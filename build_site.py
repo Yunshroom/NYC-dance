@@ -128,6 +128,37 @@ def load_modega():
         })
     return out
 
+def load_pjm():
+    p = HERE / "pjm_schedule.json"
+    if not p.exists():
+        return []
+    raw = json.loads(p.read_text())
+    out = []
+    for c in raw.get("classes", []):
+        start_dt = parse_dt(c.get("start_time", ""))
+        end_dt   = parse_dt(c.get("end_time", ""))
+        name = c.get("class_name", "")
+        out.append({
+            "studio":        "PJM Dance",
+            "studio_key":    "pjm",
+            "class_name":    name,
+            "category":      "",
+            "instructor":    c.get("instructor", ""),
+            "date_key":      fmt_date_key(start_dt, c.get("date", "")),
+            "start_dt":      start_dt,
+            "start_display": fmt_time(start_dt) or c.get("start_time_display", ""),
+            "end_display":   fmt_time(end_dt) or c.get("end_time_display", ""),
+            "duration_min":  c.get("duration_minutes"),
+            "level":         c.get("level") or extract_level(name),
+            "start_hour":    start_hour(start_dt),
+            "is_canceled":   c.get("is_canceled", False),
+            "booking_url":   c.get("booking_url", "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule"),
+            "max_capacity":  None,
+            "total_booked":  None,
+            "description":   "",
+        })
+    return out
+
 def load_peridance():
     p = HERE / "peridance_schedule.json"
     if not p.exists():
@@ -316,6 +347,10 @@ a{color:inherit;text-decoration:none}
 .card-per-0{background:linear-gradient(155deg,#1e2840 0%,#0c1020 72%);background-image:repeating-linear-gradient(50deg,rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,transparent 1px,transparent 7px),linear-gradient(155deg,#1e2840 0%,#0c1020 72%)}
 .card-per-1{background:linear-gradient(155deg,#28203c 0%,#120e1e 72%);background-image:repeating-linear-gradient(100deg,rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#28203c 0%,#120e1e 72%)}
 .card-per-2{background:linear-gradient(155deg,#24302e 0%,#101814 72%);background-image:repeating-linear-gradient(160deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 6px),linear-gradient(155deg,#24302e 0%,#101814 72%)}
+/* PJM Dance — amber/gold darks */
+.card-pjm-0{background:linear-gradient(155deg,#2e2410 0%,#160e00 72%);background-image:repeating-linear-gradient(75deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 7px),linear-gradient(155deg,#2e2410 0%,#160e00 72%)}
+.card-pjm-1{background:linear-gradient(155deg,#382c0e 0%,#1a1200 72%);background-image:repeating-linear-gradient(130deg,rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#382c0e 0%,#1a1200 72%)}
+.card-pjm-2{background:linear-gradient(155deg,#2a2018 0%,#140e08 72%);background-image:repeating-linear-gradient(25deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#2a2018 0%,#140e08 72%)}
 
 .card-canceled{opacity:.48}
 .card-inner{padding:14px;position:relative;z-index:1}
@@ -518,6 +553,7 @@ a{color:inherit;text-decoration:none}
         <button class="fchip" data-group="studio" data-val="brickhouse">Brickhouse NYC</button>
         <button class="fchip" data-group="studio" data-val="modega">Modega</button>
         <button class="fchip" data-group="studio" data-val="peridance">Peridance</button>
+        <button class="fchip" data-group="studio" data-val="pjm">PJM Dance</button>
       </div>
     </div>
 
@@ -589,6 +625,7 @@ const S={weekOffset:0,selectedDate:'',studio:'all',level:'all',teacher:'all',tim
 const BH_STYLES=['card-bh-0','card-bh-1','card-bh-2'];
 const MOD_STYLES=['card-mod-0','card-mod-1','card-mod-2'];
 const PER_STYLES=['card-per-0','card-per-1','card-per-2'];
+const PJM_STYLES=['card-pjm-0','card-pjm-1','card-pjm-2'];
 
 const AV_COLORS=['#639922','#534ab7','#1d9e75','#d4537e','#ba7517','#2a6cb5','#9e4a20','#7b5ea7','#c05a3c','#1f8e8e'];
 function avatarColor(name){if(!name)return'#888';let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return AV_COLORS[h%AV_COLORS.length]}
@@ -706,7 +743,7 @@ function renderSaved(){
 function buildCard(c,i){
   const div=document.createElement('div');
   let sv=0;{let h=0;for(const ch of(c.class_name||''))h=(h*31+ch.charCodeAt(0))>>>0;sv=h%3}
-  const styleClass=c.studio_key==='brickhouse'?BH_STYLES[sv]:c.studio_key==='peridance'?PER_STYLES[sv]:MOD_STYLES[sv];
+  const styleClass=c.studio_key==='brickhouse'?BH_STYLES[sv]:c.studio_key==='peridance'?PER_STYLES[sv]:c.studio_key==='pjm'?PJM_STYLES[sv]:MOD_STYLES[sv];
   div.className=`card ${styleClass}${c.is_canceled?' card-canceled':''}`;
   div.style.animationDelay=`${Math.min(i*35,200)}ms`;
 
@@ -918,8 +955,9 @@ def main():
     bh  = load_brickhouse()
     md  = load_modega()
     per = load_peridance()
+    pjm = load_pjm()
     all_classes = sorted(
-        bh + md + per,
+        bh + md + per + pjm,
         key=lambda c: (c["date_key"], c["start_hour"] if c["start_hour"] >= 0 else 99)
     )
 
