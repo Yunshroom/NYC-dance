@@ -1,0 +1,48 @@
+name: Daily schedule refresh
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 5 AM ET (UTC-4 summer)
+  workflow_dispatch:        # run manually from GitHub Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install beautifulsoup4
+
+      - name: Run scrapers
+        run: |
+          python scrape_brickhouse.py || true
+          python scrape_modega.py    || true
+          python scrape_peridance.py || true
+          python scrape_pjm.py       || true
+
+      - name: Build site
+        run: python build_site.py
+
+      - name: Commit & push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html \
+                  brickhouse_schedule.json \
+                  modega_schedule.json \
+                  peridance_schedule.json \
+                  pjm_schedule.json
+          git diff --staged --quiet \
+            || git commit -m "chore: daily refresh $(date -u +'%Y-%m-%d')"
+          git push

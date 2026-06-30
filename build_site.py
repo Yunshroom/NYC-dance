@@ -190,6 +190,35 @@ def load_peridance():
         })
     return out
 
+def get_update_label() -> str:
+    """Return human-readable timestamp of the most-recent scraper run."""
+    ET = timezone(timedelta(hours=-4))
+    candidates = []
+    for fname in ["brickhouse_schedule.json", "modega_schedule.json",
+                  "peridance_schedule.json", "pjm_schedule.json"]:
+        p = HERE / fname
+        if p.exists():
+            try:
+                ts = json.loads(p.read_text()).get("scraped_at", "")
+                if ts:
+                    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                    candidates.append(dt)
+            except Exception:
+                pass
+    if not candidates:
+        return "Updated today"
+    latest = max(candidates).astimezone(ET)
+    now_et = datetime.now(ET)
+    if latest.date() == now_et.date():
+        return f"Updated today at {latest.strftime('%-I:%M %p')}"
+    delta = (now_et.date() - latest.date()).days
+    if delta == 1:
+        return f"Updated yesterday"
+    if delta < 7:
+        return f"Updated {delta} days ago"
+    return f"Updated {latest.strftime('%b %-d')}"
+
+
 def to_js_obj(classes) -> str:
     serialisable = []
     for c in classes:
@@ -493,15 +522,12 @@ a{color:inherit;text-decoration:none}
           <button class="icon-btn" id="filterBtn" title="Filters">
             <svg viewBox="0 0 16 16"><path d="M2 4h12M5 8h6M7 12h2"/></svg>
           </button>
-          <button class="icon-btn" id="savedBtn" title="Saved">
-            <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
-          </button>
         </div>
       </div>
 
       <div class="header-row2">
         <h1 class="page-title" id="pageTitle">July</h1>
-        <span class="updated-text" id="updatedText">Updated today</span>
+        <span class="updated-text" id="updatedText">__UPDATED_LABEL__</span>
       </div>
 
       <div class="week-strip" id="weekStrip"></div>
@@ -915,7 +941,6 @@ document.querySelectorAll('.fchip').forEach(chip=>{
 document.getElementById('rangeMin').addEventListener('input',updateSlider);
 document.getElementById('rangeMax').addEventListener('input',updateSlider);
 document.getElementById('filterBtn').addEventListener('click',openDrawer);
-document.getElementById('savedBtn').addEventListener('click',()=>switchTab('saved'));
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
@@ -962,7 +987,9 @@ def main():
     )
 
     js_data = to_js_obj(all_classes)
+    update_label = get_update_label()
     html = HTML.replace("__ALL_CLASSES__", js_data)
+    html = html.replace("__UPDATED_LABEL__", update_label)
 
     out = HERE / "index.html"
     out.write_text(html)

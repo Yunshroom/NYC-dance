@@ -290,15 +290,12 @@ a{color:inherit;text-decoration:none}
           <button class="icon-btn" id="filterBtn" title="Filters">
             <svg viewBox="0 0 16 16"><path d="M2 4h12M5 8h6M7 12h2"/></svg>
           </button>
-          <button class="icon-btn" id="savedBtn" title="Saved">
-            <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
-          </button>
         </div>
       </div>
 
       <div class="header-row2">
         <h1 class="page-title" id="pageTitle">July</h1>
-        <span class="updated-text" id="updatedText">Updated today</span>
+        <span class="updated-text" id="updatedText">Updated today at 1:43 PM</span>
       </div>
 
       <div class="week-strip" id="weekStrip"></div>
@@ -712,7 +709,6 @@ document.querySelectorAll('.fchip').forEach(chip=>{
 document.getElementById('rangeMin').addEventListener('input',updateSlider);
 document.getElementById('rangeMax').addEventListener('input',updateSlider);
 document.getElementById('filterBtn').addEventListener('click',openDrawer);
-document.getElementById('savedBtn').addEventListener('click',()=>switchTab('saved'));
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
