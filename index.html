@@ -473,7 +473,34 @@ function doSaveCustomClass(){
   }
 }
 
-// ── popup: photo OCR via Tesseract.js (lazy) ──
+// ── popup: crop image to strip phone status bar + home indicator, then OCR ──
+function cropImageForOcr(file){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      // Skip top ~8% (status bar: clock, battery, carrier) and bottom ~4% (home indicator)
+      const cropTop=Math.floor(img.height*0.08);
+      const cropBot=Math.floor(img.height*0.04);
+      const h=img.height-cropTop-cropBot;
+      const canvas=document.createElement('canvas');
+      canvas.width=img.width;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,-cropTop);
+      canvas.toBlob(b=>resolve(b||file),'image/jpeg',0.92);
+    };
+    img.onerror=()=>resolve(file);
+    img.src=URL.createObjectURL(file);
+  });
+}
+function cleanOcrText(raw){
+  return raw.split('\n').filter(line=>{
+    const t=line.trim();
+    if(!t||t.length<=2)return false;
+    if(/^\d{1,2}:\d{2}$/.test(t))return false;      // "9:41" — status bar clock
+    if(/^\d{1,3}%$/.test(t))return false;            // "87%" — battery
+    if(/^[•●■\|\-\._]{1,5}$/.test(t))return false; // signal dots/dashes
+    return true;
+  }).join('\n').trim();
+}
 async function handlePopupPhoto(e){
   const file=e.target.files[0];if(!file)return;
   const status=document.getElementById('popupOcrStatus');
@@ -484,13 +511,15 @@ async function handlePopupPhoto(e){
         s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
         s.onload=res;s.onerror=rej;document.head.appendChild(s);});
     }
-    if(status)status.textContent='Reading text from photo…';
-    const{data:{text}}=await Tesseract.recognize(file,'eng',{logger:()=>{}});
+    if(status)status.textContent='Reading photo…';
+    const cropped=await cropImageForOcr(file);
+    const{data:{text}}=await Tesseract.recognize(cropped,'eng',{logger:()=>{}});
+    const cleaned=cleanOcrText(text);
     if(status)status.style.display='none';
     const ta=document.getElementById('popupTextarea');
-    if(ta){ta.value=text.trim();autoParsePopup();}
+    if(ta){ta.value=cleaned;autoParsePopup();}
   }catch(err){
-    if(status)status.textContent='Could not read photo — try pasting the text instead.';
+    if(status){status.style.display='';status.textContent='Could not read photo — try pasting the text instead.';}
   }
 }
 
@@ -563,9 +592,20 @@ function renderPopup(){
     clearTimeout(window._ppDebounce);window._ppDebounce=setTimeout(autoParsePopup,550);
   });
   document.getElementById('popupPasteBtn').addEventListener('click',async()=>{
-    try{const text=await navigator.clipboard.readText();
-      if(text){document.getElementById('popupTextarea').value=text;autoParsePopup();}
-    }catch(e){document.getElementById('popupTextarea').focus();}
+    const ta=document.getElementById('popupTextarea');
+    const status=document.getElementById('popupOcrStatus');
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text){ta.value=text;autoParsePopup();}
+    }catch(e){
+      // Clipboard API blocked (common on iOS) — guide user to paste manually
+      ta.focus();
+      if(status){
+        status.style.display='';
+        status.textContent='Clipboard access blocked — tap & hold the text box above, then choose Paste.';
+        setTimeout(()=>{status.style.display='none';},4000);
+      }
+    }
   });
   document.getElementById('popupPhotoInput').addEventListener('change',handlePopupPhoto);
   document.getElementById('popupSaveBtn').addEventListener('click',doSaveCustomClass);
