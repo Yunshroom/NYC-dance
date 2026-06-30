@@ -28,7 +28,7 @@ from bs4 import BeautifulSoup
 WIDGET_ID = "43835"          # Mindbody studio widget ID; stable unless studio changes platform
 WIDGET_TOKEN = "5f43835d68c" # appears in the healcode embed; change if widget is re-embedded
 
-WEEKS_TO_FETCH = 2  # number of weeks to retrieve starting from today
+WEEKS_TO_FETCH = 4  # number of weeks to retrieve starting from today
 
 def load_markup_url(start_date: str) -> str:
     """start_date: YYYY-MM-DD string (Monday of the desired week)."""
@@ -144,9 +144,11 @@ def parse_classes(html: str) -> list[dict]:
                 book_el = session.select_one(".bw-widget__signup-now")
             cls["booking_url"] = book_el.get("href", "") if book_el else ""
 
-            # Canceled flag
-            canceled_el = session.select_one(".bw-session__canceled")
-            cls["is_canceled"] = bool(canceled_el)
+            # Canceled flag — Mindbody always renders .bw-session__canceled in the static HTML
+            # and hides it via an external stylesheet (not an inline style). We can't
+            # distinguish hidden-by-CSS from visible-canceled in server-rendered markup,
+            # so we conservatively mark nothing as canceled here.
+            cls["is_canceled"] = False
 
             results.append(cls)
 

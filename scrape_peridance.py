@@ -28,7 +28,7 @@ from bs4 import BeautifulSoup
 
 WIDGET_ID    = "143499"
 WIDGET_TOKEN = "f9143499b7be"   # for reference only
-WEEKS_TO_FETCH = 8
+WEEKS_TO_FETCH = 4
 
 HEADERS = {
     "User-Agent": (
@@ -118,13 +118,15 @@ def parse_classes(html: str) -> list:
             instructor_el = session.select_one(".bw-session__staff")
             location_el   = session.select_one(".bw-session__location")
             book_el       = session.select_one("a.bw-widget__cta") or session.select_one(".bw-widget__signup-now")
-            canceled_el   = session.select_one(".bw-session__canceled")
+            canceled_el   = session.select_one(".bw-session__canceled")  # noqa: F841
 
             cls["class_name"]  = name_el.get_text(strip=True)       if name_el       else ""
             cls["instructor"]  = instructor_el.get_text(strip=True)  if instructor_el else ""
             cls["location"]    = location_el.get_text(strip=True)    if location_el   else ""
             cls["booking_url"] = book_el.get("href", "")            if book_el       else ""
-            cls["is_canceled"] = bool(canceled_el)
+            # Mindbody always renders .bw-session__canceled in static HTML (hidden via
+            # external CSS, not inline style), so we can't reliably detect cancellation here.
+            cls["is_canceled"] = False
 
             results.append(cls)
 
