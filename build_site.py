@@ -169,7 +169,7 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#eceae6"/>
+<meta name="theme-color" content="#ddb5c8"/>
 <title>NYC Dance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -177,7 +177,7 @@ HTML = r"""<!DOCTYPE html>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;background:#ddb5c8}
 body{
   font-family:'Inter',system-ui,-apple-system,sans-serif;
   background:#eceae6;
@@ -282,9 +282,6 @@ a{color:inherit;text-decoration:none}
 .day-col.has-classes .day-dot{opacity:1}
 .day-col.selected .day-dot{background:rgba(236,234,230,.55)}
 
-/* month row */
-.month-row{display:flex;justify-content:center;margin-bottom:4px}
-.month-name{font-family:'DM Mono',monospace;font-size:11px;font-weight:400;color:#6e6c66;letter-spacing:.02em}
 
 /* ── main scroll — transparent so bg shows through ── */
 .main-scroll{
@@ -338,16 +335,17 @@ a{color:inherit;text-decoration:none}
 
 .card-inner{padding:14px;position:relative;z-index:1}
 
-.card-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px}
-.level-pill{background:#fff;color:#1a1a18;font-size:11px;font-weight:500;padding:3px 11px;border-radius:20px}
+.card-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+/* pill now shows TIME */
+.time-pill{font-family:'DM Mono',monospace;background:#fff;color:#1a1a18;font-size:11px;font-weight:500;padding:3px 11px;border-radius:20px;letter-spacing:.01em}
 .save-btn{
   color:rgba(232,228,220,.55);line-height:1;padding:0;
   transition:color .15s;
 }
 .save-btn:active{color:rgba(232,228,220,.9)}
-.save-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-
-.card-time{font-family:'DM Mono',monospace;color:rgba(216,212,204,.82);font-size:11px;margin-bottom:3px;letter-spacing:.02em}
+.save-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* level label below pill */
+.card-level{font-size:10px;font-weight:500;color:rgba(216,212,204,.7);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
 .card-name{font-family:'DM Sans',sans-serif;color:#fff;font-size:19px;font-weight:500;line-height:1.2;margin-bottom:10px}
 .card-instructor-row{display:flex;align-items:center;gap:6px}
 .small-avatar{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:500}
@@ -440,21 +438,16 @@ a{color:inherit;text-decoration:none}
           <button class="icon-btn" id="filterBtn" title="Filters">
             <svg viewBox="0 0 16 16"><path d="M2 4h12M5 8h6M7 12h2"/></svg>
           </button>
-          <button class="icon-btn" id="refreshBtn" title="Refresh">
-            <svg viewBox="0 0 16 16"><path d="M13.5 8A5.5 5.5 0 1 1 10 3"/><polyline points="10,1 10,3.5 12.5,3.5"/></svg>
+          <button class="icon-btn" id="savedBtn" title="Saved">
+            <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
           </button>
         </div>
       </div>
 
       <!-- row 2: title + updated -->
       <div class="header-row2">
-        <h1 class="page-title">Your week</h1>
+        <h1 class="page-title" id="pageTitle">July</h1>
         <span class="updated-text" id="updatedText">Updated today</span>
-      </div>
-
-      <!-- month -->
-      <div class="month-row">
-        <span class="month-name" id="monthName"></span>
       </div>
 
       <!-- week strip -->
@@ -482,11 +475,11 @@ a{color:inherit;text-decoration:none}
       </div>
       <span class="nav-label">Pop up</span>
     </div>
-    <div class="nav-item" id="wishlistNav">
+    <div class="nav-item" id="savedNav">
       <div class="nav-icon">
-        <svg viewBox="0 0 22 22"><path d="M11 18S3.5 13 3.5 7.5A4.5 4.5 0 0 1 11 5.09 4.5 4.5 0 0 1 18.5 7.5C18.5 13 11 18 11 18z"/></svg>
+        <svg viewBox="0 0 22 22"><path d="M5 3h12a1 1 0 0 1 1 1v15l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg>
       </div>
-      <span class="nav-label">Wishlist</span>
+      <span class="nav-label">Saved</span>
     </div>
   </nav>
 
@@ -601,12 +594,12 @@ function matchesFilters(c){
 // ── render calendar ──
 function renderCalendar(){
   const strip=document.getElementById('weekStrip');
-  const monthEl=document.getElementById('monthName');
   const start=weekStartDate(S.weekOffset);
   const dotDates=datesWithClasses();
   const today=todayKey();
   const mid=addDays(start,3);
-  monthEl.textContent=`${MONTHS[mid.getMonth()]} ${mid.getFullYear()}`;
+  // update header title to show current month
+  document.getElementById('pageTitle').textContent=MONTHS[mid.getMonth()];
   strip.innerHTML='';
   for(let i=0;i<7;i++){
     const d=addDays(start,i);
@@ -679,12 +672,12 @@ function buildCard(c,i){
   div.innerHTML=`${bookHref}
     <div class="card-inner">
       <div class="card-top-row">
-        <span class="level-pill">${esc(levelLabel)}</span>
+        <span class="time-pill">${esc(timeStr||'—')}</span>
         <button class="save-btn" aria-label="Save">
-          <svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
+          <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
         </button>
       </div>
-      ${timeStr?`<div class="card-time">${esc(timeStr)}</div>`:''}
+      <div class="card-level">${esc(levelLabel)}</div>
       <div class="card-name">${esc(c.class_name)}</div>
       <div class="card-instructor-row">
         <div class="small-avatar" style="background:${color}">${abbr}</div>
@@ -759,16 +752,22 @@ document.querySelectorAll('.fchip').forEach(chip=>{
 document.getElementById('rangeMin').addEventListener('input',updateSlider);
 document.getElementById('rangeMax').addEventListener('input',updateSlider);
 document.getElementById('filterBtn').addEventListener('click',openDrawer);
+document.getElementById('savedBtn').addEventListener('click',()=>{
+  // bookmark button in header — same as saved tab
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('savedNav').classList.add('active');
+});
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
 
 // nav tabs
-['scheduleNav','popupNav','wishlistNav'].forEach(id=>{
+['scheduleNav','popupNav','savedNav'].forEach(id=>{
   document.getElementById(id).addEventListener('click',()=>{
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    if(id==='popupNav') openDrawer();  // Pop up tab opens filter for now
+    if(id==='popupNav') openDrawer();
+    if(id==='scheduleNav') renderAll();
   });
 });
 
