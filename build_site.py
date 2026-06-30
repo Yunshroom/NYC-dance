@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Build index.html — a mobile-optimized dance class schedule site.
-Reads brickhouse_schedule.json and modega_schedule.json, normalises
-the data, and bakes it into a single self-contained HTML file.
+Reads brickhouse_schedule.json, modega_schedule.json, peridance_schedule.json,
+normalises the data, and bakes it into a single self-contained HTML file.
 """
 
 import json
@@ -60,6 +60,12 @@ def start_hour(dt) -> float:
         return -1
     return dt.hour + dt.minute / 60
 
+def normalize_name(name: str) -> str:
+    """Strip studio-name prefixes that sometimes appear in class names."""
+    name = re.sub(r"(?i)^(Mover'?s?\s+(Bodega|Modega)\s*[-–:]\s*)", "", name).strip()
+    name = re.sub(r"(?i)^(Modega\s*[-–:]\s*)", "", name).strip()
+    return name
+
 
 # ── load + normalise ──────────────────────────────────────────────────────────
 
@@ -100,7 +106,7 @@ def load_modega():
     for c in raw["classes"]:
         start_dt = parse_dt(c.get("start_time", ""))
         end_dt   = parse_dt(c.get("end_time", ""))
-        name = c.get("class_name", "")
+        name = normalize_name(c.get("class_name", ""))
         out.append({
             "studio":        "Modega",
             "studio_key":    "modega",
@@ -180,37 +186,31 @@ html,body{height:100%;width:100%}
 html{-webkit-text-size-adjust:100%;background:#ddb5c8}
 body{
   font-family:'Inter',system-ui,-apple-system,sans-serif;
-  background:#eceae6;
+  background:#ddb5c8;
   overscroll-behavior-y:none;
   display:flex;justify-content:center;
 }
 button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
 a{color:inherit;text-decoration:none}
 
-/* ── app shell — full bleed on mobile, max-width on desktop ── */
+/* ── app shell ── */
 .app-shell{
-  width:100%;
-  /* on larger screens cap at 390px so it looks like a phone; on mobile fill edge-to-edge */
-  max-width:390px;
-  /* use dvh so Safari's collapsing URL bar is accounted for */
-  height:100dvh;
-  height:100svh; /* fallback for older Safari */
+  width:100%;max-width:390px;
+  height:100dvh;height:100svh;
   background:#eceae6;
-  position:relative;
-  display:flex;flex-direction:column;
+  position:relative;display:flex;flex-direction:column;
   overflow:hidden;
 }
-/* on real phones (≤430px) go fully edge-to-edge */
-@media (max-width:430px){
-  .app-shell{max-width:100%}
-  body{background:#eceae6}
-}
+@media (max-width:430px){.app-shell{max-width:100%}}
 
-/* ── full-shell background layers (don't scroll) ── */
+/* ── background layers ── */
+/* Linear gradient ensures the very top (behind Dynamic Island) is solidly pink,
+   matching the theme-color. Fades to transparent over first ~18% of height. */
 .bg-radial{
   position:absolute;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(ellipse 70% 45% at 85% 2%, rgba(208,120,155,0.60) 0%, transparent 100%);
+    linear-gradient(to bottom, #ddb5c8 0%, rgba(221,181,200,0) 18%),
+    radial-gradient(ellipse 75% 50% at 85% 10%, rgba(208,120,155,0.65) 0%, transparent 100%);
 }
 .bg-dots{
   position:absolute;inset:0;pointer-events:none;z-index:0;
@@ -219,7 +219,7 @@ a{color:inherit;text-decoration:none}
   background-size:2.5px 2.5px;
 }
 
-/* ── header (not scrollable, sits above main-scroll in flex column) ── */
+/* ── header ── */
 .cal-header{
   flex-shrink:0;
   padding:calc(env(safe-area-inset-top) + 20px) 18px 0;
@@ -228,15 +228,8 @@ a{color:inherit;text-decoration:none}
 }
 .cal-header-inner{position:relative;z-index:1}
 
-/* row 1: location + action buttons */
-.header-row1{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:10px;
-}
-.location-label{
-  font-size:12px;font-weight:500;letter-spacing:.07em;
-  color:#1a1a18;text-transform:uppercase;
-}
+.header-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.location-label{font-size:12px;font-weight:500;letter-spacing:.07em;color:#1a1a18;text-transform:uppercase}
 .header-actions{display:flex;align-items:center;gap:6px}
 .icon-btn{
   width:30px;height:30px;border-radius:50%;
@@ -249,11 +242,7 @@ a{color:inherit;text-decoration:none}
 .icon-btn:active{background:rgba(255,255,255,.75)}
 .icon-btn svg{width:15px;height:15px;stroke:#1a1a18;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
-/* row 2: title + updated */
-.header-row2{
-  display:flex;align-items:baseline;justify-content:space-between;
-  margin-bottom:16px;
-}
+.header-row2{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
 .page-title{font-family:'Permanent Marker',cursive;font-size:28px;font-weight:400;color:#111;line-height:1.1;letter-spacing:.5px}
 .updated-text{font-family:'DM Mono',monospace;font-size:10px;color:#8c8a82;font-weight:400;letter-spacing:.02em}
 
@@ -264,13 +253,10 @@ a{color:inherit;text-decoration:none}
   padding:6px 0 14px;gap:2px;
 }
 .week-strip::-webkit-scrollbar{display:none}
-
 .day-col{
-  flex:1;min-width:42px;
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:6px 4px 6px;border-radius:8px;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;
-  transition:background .18s;
+  flex:1;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;border-radius:8px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .18s;
 }
 .day-col.selected{background:#1a1a18}
 .day-letter{font-size:10px;font-weight:500;color:#6e6c66;text-transform:uppercase;letter-spacing:.04em}
@@ -282,11 +268,9 @@ a{color:inherit;text-decoration:none}
 .day-col.has-classes .day-dot{opacity:1}
 .day-col.selected .day-dot{background:rgba(236,234,230,.55)}
 
-
-/* ── main scroll — transparent so bg shows through ── */
+/* ── main scroll ── */
 .main-scroll{
-  flex:1;min-height:0;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
   padding:8px 16px calc(72px + env(safe-area-inset-bottom));
   position:relative;z-index:1;
 }
@@ -302,6 +286,9 @@ a{color:inherit;text-decoration:none}
 .section-divider:first-child{margin-top:2px}
 .section-line{flex:1;height:0.5px;background:rgba(26,26,24,.16)}
 
+/* saved-tab date dividers — sentence case, not uppercase */
+.section-divider.date-divider{text-transform:none;font-size:12px;letter-spacing:.02em;color:#7a7870}
+
 /* empty state */
 .empty-state{text-align:center;padding:52px 20px}
 .empty-icon{font-size:44px;margin-bottom:14px}
@@ -311,8 +298,7 @@ a{color:inherit;text-decoration:none}
 /* ── cards ── */
 .card{
   border-radius:14px;overflow:hidden;margin-bottom:10px;
-  position:relative;
-  transition:transform .15s;
+  position:relative;transition:transform .15s;
   animation:slideUp .22s ease both;
 }
 .card:active{transform:scale(.985)}
@@ -332,26 +318,31 @@ a{color:inherit;text-decoration:none}
 .card-per-2{background:linear-gradient(155deg,#24302e 0%,#101814 72%);background-image:repeating-linear-gradient(160deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 6px),linear-gradient(155deg,#24302e 0%,#101814 72%)}
 
 .card-canceled{opacity:.48}
-
 .card-inner{padding:14px;position:relative;z-index:1}
 
-.card-top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-/* pill now shows TIME */
-.time-pill{font-family:'DM Mono',monospace;background:#fff;color:#1a1a18;font-size:11px;font-weight:500;padding:3px 11px;border-radius:20px;letter-spacing:.01em}
+/* card top row — just the bookmark button, right-aligned */
+.card-top-row{display:flex;justify-content:flex-end;margin-bottom:6px}
 .save-btn{
-  color:rgba(232,228,220,.55);line-height:1;padding:0;
-  transition:color .15s;
+  color:rgba(232,228,220,.40);line-height:1;padding:2px;
+  transition:color .2s;
+  position:relative;z-index:3;
 }
-.save-btn:active{color:rgba(232,228,220,.9)}
-.save-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-/* level label below pill */
-.card-level{font-size:10px;font-weight:500;color:rgba(216,212,204,.7);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.save-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s,stroke .2s}
+.save-btn.saved{color:#d4537e}
+.save-btn.saved svg{fill:#d4537e;stroke:#d4537e}
+
+/* time label (replaces level pill) */
+.card-time-label{
+  font-family:'DM Mono',monospace;font-size:11px;
+  color:rgba(216,212,204,.75);letter-spacing:.03em;
+  margin-bottom:6px;
+}
 .card-name{font-family:'DM Sans',sans-serif;color:#fff;font-size:19px;font-weight:500;line-height:1.2;margin-bottom:10px}
 .card-instructor-row{display:flex;align-items:center;gap:6px}
 .small-avatar{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:500}
 .card-instructor-name{color:#b5b1a6;font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* capacity micro-bar (Modega real data only) */
+/* capacity micro-bar */
 .cap-wrap{margin-top:10px}
 .cap-bar-bg{height:2px;background:rgba(255,255,255,.12);border-radius:1px}
 .cap-bar-fill{height:2px;border-radius:1px;background:rgba(255,255,255,.42)}
@@ -404,9 +395,41 @@ a{color:inherit;text-decoration:none}
 .fchip-row{display:flex;flex-wrap:wrap;gap:8px}
 .fchip{padding:8px 15px;border-radius:20px;font-size:13px;font-weight:500;color:#3a3830;background:#f0ece6;border:1.5px solid transparent;transition:all .15s}
 .fchip.active{background:#1a1a18;color:#eceae6;border-color:#1a1a18}
-.teacher-chip-row{display:flex;flex-wrap:wrap;gap:6px}
-.tchip{padding:7px 13px;border-radius:18px;font-size:12px;font-weight:500;color:#3a3830;background:#f0ece6;border:1.5px solid transparent;transition:all .15s}
+
+/* teacher search */
+.teacher-search-wrap{margin-bottom:12px}
+.teacher-search{
+  width:100%;padding:10px 14px;border-radius:12px;
+  border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;
+  outline:none;font-family:inherit;background:#faf9f7;
+  -webkit-appearance:none;
+}
+.teacher-search:focus{border-color:#1a1a18}
+
+/* teacher chips */
+.teacher-chip-row{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start}
+.fav-teacher-label{
+  font-size:10px;font-weight:600;color:#9a9688;text-transform:uppercase;
+  letter-spacing:.07em;margin:8px 0 6px;width:100%;
+}
+.tchip-wrap{display:inline-flex;align-items:center;gap:0}
+.tchip{
+  padding:7px 11px;border-radius:18px 0 0 18px;
+  font-size:12px;font-weight:500;color:#3a3830;background:#f0ece6;
+  border:1.5px solid transparent;border-right:none;
+  transition:all .15s;
+}
 .tchip.active{background:#1a1a18;color:#eceae6}
+/* If no heart follows (standalone chip like "All") give it full radius */
+.tchip:only-child,.tchip-all{border-radius:18px;border-right:1.5px solid transparent}
+.heart-btn{
+  padding:7px 9px 7px 7px;border-radius:0 18px 18px 0;
+  background:#f0ece6;font-size:13px;line-height:1;
+  color:#ccc;transition:color .2s,background .15s;
+  border:1.5px solid transparent;border-left:none;
+}
+.heart-btn.hearted{color:#d4537e}
+
 .time-display-row{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#1a1a18;margin-bottom:12px}
 .time-display-row span{background:#f0ece6;padding:5px 12px;border-radius:10px;min-width:86px;text-align:center}
 .range-slider-wrap{position:relative;height:32px;margin:0 4px}
@@ -423,15 +446,12 @@ a{color:inherit;text-decoration:none}
 <body>
 <div class="app-shell">
 
-  <!-- fixed background layers -->
   <div class="bg-radial"></div>
   <div class="bg-dots"></div>
 
-  <!-- header (stays put; main-scroll scrolls below it) -->
   <header class="cal-header">
     <div class="cal-header-inner">
 
-      <!-- row 1: location + action icons -->
       <div class="header-row1">
         <span class="location-label">New York City</span>
         <div class="header-actions">
@@ -444,24 +464,20 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
 
-      <!-- row 2: title + updated -->
       <div class="header-row2">
         <h1 class="page-title" id="pageTitle">July</h1>
         <span class="updated-text" id="updatedText">Updated today</span>
       </div>
 
-      <!-- week strip -->
       <div class="week-strip" id="weekStrip"></div>
 
     </div>
   </header>
 
-  <!-- scrollable classes — transparent so bg shows through -->
   <main class="main-scroll" id="mainScroll">
     <div id="classesList"></div>
   </main>
 
-  <!-- bottom nav -->
   <nav class="bottom-nav">
     <div class="nav-item active" id="scheduleNav">
       <div class="nav-icon">
@@ -483,12 +499,10 @@ a{color:inherit;text-decoration:none}
     </div>
   </nav>
 
-</div><!-- /app-shell -->
+</div>
 
-<!-- drawer overlay -->
 <div class="drawer-overlay" id="drawerOverlay"></div>
 
-<!-- filter drawer -->
 <div class="drawer" id="drawer">
   <div class="drawer-handle"></div>
   <div class="drawer-header">
@@ -535,6 +549,9 @@ a{color:inherit;text-decoration:none}
 
     <div class="fsection">
       <div class="fsection-label">Teacher</div>
+      <div class="teacher-search-wrap">
+        <input type="search" id="teacherSearch" class="teacher-search" placeholder="Search teachers…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+      </div>
       <div class="teacher-chip-row" id="teacherChipRow"></div>
     </div>
 
@@ -548,25 +565,51 @@ a{color:inherit;text-decoration:none}
 // ── data ──
 const ALL_CLASSES = __ALL_CLASSES__;
 
+// ── bookmarks (localStorage) ──
+function classId(c){return c.date_key+'|'+c.studio_key+'|'+c.class_name+'|'+c.start_display}
+let savedSet=new Set(JSON.parse(localStorage.getItem('nyd_saved')||'[]'));
+function isSaved(c){return savedSet.has(classId(c))}
+function toggleSaved(c){
+  const id=classId(c);let now;
+  if(savedSet.has(id)){savedSet.delete(id);now=false}else{savedSet.add(id);now=true}
+  localStorage.setItem('nyd_saved',JSON.stringify([...savedSet]));
+  return now;
+}
+
+// ── favorite teachers (localStorage) ──
+let favTeachers=new Set(JSON.parse(localStorage.getItem('nyd_fav_t')||'[]'));
+function toggleFavTeacher(name){
+  if(favTeachers.has(name))favTeachers.delete(name);else favTeachers.add(name);
+  localStorage.setItem('nyd_fav_t',JSON.stringify([...favTeachers]));
+}
+
 // ── state ──
-const S = {weekOffset:0, selectedDate:'', studio:'all', level:'all', teacher:'all', timeMin:6, timeMax:24};
+const S={weekOffset:0,selectedDate:'',studio:'all',level:'all',teacher:'all',timeMin:6,timeMax:24,tab:'schedule'};
 
-const BH_STYLES  = ['card-bh-0','card-bh-1','card-bh-2'];
-const MOD_STYLES = ['card-mod-0','card-mod-1','card-mod-2'];
-const PER_STYLES = ['card-per-0','card-per-1','card-per-2'];
+const BH_STYLES=['card-bh-0','card-bh-1','card-bh-2'];
+const MOD_STYLES=['card-mod-0','card-mod-1','card-mod-2'];
+const PER_STYLES=['card-per-0','card-per-1','card-per-2'];
 
-const AV_COLORS = ['#639922','#534ab7','#1d9e75','#d4537e','#ba7517','#2a6cb5','#9e4a20','#7b5ea7','#c05a3c','#1f8e8e'];
+const AV_COLORS=['#639922','#534ab7','#1d9e75','#d4537e','#ba7517','#2a6cb5','#9e4a20','#7b5ea7','#c05a3c','#1f8e8e'];
 function avatarColor(name){if(!name)return'#888';let h=0;for(const c of name)h=(h*31+c.charCodeAt(0))>>>0;return AV_COLORS[h%AV_COLORS.length]}
 function initials(name){if(!name)return'?';const p=name.trim().split(/\s+/);return p.length===1?p[0].slice(0,2).toUpperCase():(p[0][0]+p[p.length-1][0]).toUpperCase()}
 function fmtHour(h){if(h>=24)return'12:00 AM';const hr=Math.floor(h),mn=Math.round((h-hr)*60),period=hr>=12?'PM':'AM',dh=hr>12?hr-12:(hr===0?12:hr);return`${dh}:${mn.toString().padStart(2,'0')} ${period}`}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 const DAY_LETTERS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const DAY_NAMES=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_SHORT=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function todayKey(){const d=new Date();return isoKey(d)}
 function isoKey(d){return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function weekStartDate(off){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay()+off*7);return d}
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
+function formatDateFull(dateKey){
+  const[y,m,d]=dateKey.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  return`${DAY_NAMES[dt.getDay()]}, ${MONTHS_SHORT[dt.getMonth()]} ${d}`;
+}
 
 function filteredForDate(dateKey){
   return ALL_CLASSES.filter(c=>{
@@ -591,34 +634,27 @@ function matchesFilters(c){
   return true;
 }
 
-// ── render calendar ──
+// ── calendar ──
 function renderCalendar(){
   const strip=document.getElementById('weekStrip');
   const start=weekStartDate(S.weekOffset);
   const dotDates=datesWithClasses();
   const today=todayKey();
   const mid=addDays(start,3);
-  // update header title to show current month
-  document.getElementById('pageTitle').textContent=MONTHS[mid.getMonth()];
+  const yr=String(mid.getFullYear()).slice(-2);
+  document.getElementById('pageTitle').textContent=MONTHS[mid.getMonth()]+' \''+yr;
   strip.innerHTML='';
   for(let i=0;i<7;i++){
-    const d=addDays(start,i);
-    const key=isoKey(d);
+    const d=addDays(start,i);const key=isoKey(d);
     const col=document.createElement('div');
-    col.className='day-col'
-      +(key===S.selectedDate?' selected':'')
-      +(key===today?' today':'')
-      +(dotDates.has(key)?' has-classes':'');
-    col.innerHTML=`
-      <span class="day-letter">${DAY_LETTERS[d.getDay()]}</span>
-      <span class="day-num">${d.getDate()}</span>
-      <span class="day-dot"></span>`;
+    col.className='day-col'+(key===S.selectedDate?' selected':'')+(key===today?' today':'')+(dotDates.has(key)?' has-classes':'');
+    col.innerHTML=`<span class="day-letter">${DAY_LETTERS[d.getDay()]}</span><span class="day-num">${d.getDate()}</span><span class="day-dot"></span>`;
     col.addEventListener('click',()=>{S.selectedDate=key;renderAll()});
     strip.appendChild(col);
   }
 }
 
-// ── render classes ──
+// ── classes list ──
 function renderClasses(){
   const listEl=document.getElementById('classesList');
   if(!S.selectedDate){listEl.innerHTML='';return}
@@ -628,23 +664,45 @@ function renderClasses(){
     return;
   }
   classes.sort((a,b)=>a.start_hour-b.start_hour);
-  listEl.innerHTML='';
-  let lastSec='';
+  listEl.innerHTML='';let lastSec='';
   classes.forEach((c,i)=>{
     const sec=timeSection(c.start_hour);
     if(sec!==lastSec){
-      const div=document.createElement('div');
-      div.className='section-divider';
+      const div=document.createElement('div');div.className='section-divider';
       div.innerHTML=`${sec}<div class="section-line"></div>`;
-      listEl.appendChild(div);
-      lastSec=sec;
+      listEl.appendChild(div);lastSec=sec;
+    }
+    listEl.appendChild(buildCard(c,i));
+  });
+}
+function timeSection(h){if(h<0||h<12)return'Morning';if(h<17)return'Afternoon';return'Evening'}
+
+// ── saved tab ──
+function renderSaved(){
+  document.getElementById('pageTitle').textContent='Saved';
+  document.getElementById('weekStrip').style.display='none';
+  document.getElementById('updatedText').style.visibility='hidden';
+
+  const listEl=document.getElementById('classesList');
+  const savedClasses=ALL_CLASSES.filter(c=>isSaved(c));
+  if(!savedClasses.length){
+    listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap the bookmark on any card to save it here.</div></div>`;
+    return;
+  }
+  savedClasses.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+  listEl.innerHTML='';let lastDate='';
+  savedClasses.forEach((c,i)=>{
+    if(c.date_key!==lastDate){
+      const div=document.createElement('div');
+      div.className='section-divider date-divider';
+      div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
+      listEl.appendChild(div);lastDate=c.date_key;
     }
     listEl.appendChild(buildCard(c,i));
   });
 }
 
-function timeSection(h){if(h<0||h<12)return'Morning';if(h<17)return'Afternoon';return'Evening'}
-
+// ── card builder ──
 function buildCard(c,i){
   const div=document.createElement('div');
   let sv=0;{let h=0;for(const ch of(c.class_name||''))h=(h*31+ch.charCodeAt(0))>>>0;sv=h%3}
@@ -654,10 +712,9 @@ function buildCard(c,i){
 
   const color=avatarColor(c.instructor);
   const abbr=initials(c.instructor);
-  const levelLabel=c.level||'Open';
   const timeStr=c.start_display?(c.end_display?`${c.start_display} – ${c.end_display}`:c.start_display):'';
+  const saved=isSaved(c);
 
-  // capacity: only show when both values are real and max > 0
   let capHTML='';
   if(c.max_capacity>0&&c.total_booked!=null){
     const pct=Math.min(100,Math.round(c.total_booked/c.max_capacity*100));
@@ -672,12 +729,11 @@ function buildCard(c,i){
   div.innerHTML=`${bookHref}
     <div class="card-inner">
       <div class="card-top-row">
-        <span class="time-pill">${esc(timeStr||'—')}</span>
-        <button class="save-btn" aria-label="Save">
+        <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save class'}">
           <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
         </button>
       </div>
-      <div class="card-level">${esc(levelLabel)}</div>
+      <div class="card-time-label">${esc(timeStr||'—')}</div>
       <div class="card-name">${esc(c.class_name)}</div>
       <div class="card-instructor-row">
         <div class="small-avatar" style="background:${color}">${abbr}</div>
@@ -685,10 +741,18 @@ function buildCard(c,i){
       </div>
       ${capHTML}
     </div>`;
+
+  // Wire save button AFTER innerHTML (can't inline handler with complex closure)
+  const saveBtn=div.querySelector('.save-btn');
+  saveBtn.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    const nowSaved=toggleSaved(c);
+    saveBtn.classList.toggle('saved',nowSaved);
+    saveBtn.setAttribute('aria-label',nowSaved?'Unsave':'Save class');
+    if(S.tab==='saved')setTimeout(renderSaved,60);
+  });
   return div;
 }
-
-function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
 // ── drawer ──
 function openDrawer(){
@@ -703,26 +767,72 @@ function closeDrawer(){
   document.body.style.overflow='';
 }
 
+// ── teacher chips with search + hearts ──
 function buildTeacherChips(){
+  const searchInput=document.getElementById('teacherSearch');
+  const searchVal=(searchInput?searchInput.value:'').toLowerCase().trim();
   const row=document.getElementById('teacherChipRow');
+
   const teachers=[...new Set(
     ALL_CLASSES
       .filter(c=>S.studio==='all'||c.studio_key===S.studio)
       .filter(c=>c.instructor&&!c.instructor.includes('LLC')&&c.instructor!=='Various *'&&c.instructor!=='Modega')
       .map(c=>c.instructor)
   )].sort();
+
+  const matched=searchVal?teachers.filter(t=>t.toLowerCase().includes(searchVal)):teachers;
+  const favs=matched.filter(t=>favTeachers.has(t));
+  const rest=matched.filter(t=>!favTeachers.has(t));
+
   row.innerHTML='';
+
+  // "All" chip (standalone — full border-radius)
   const allChip=document.createElement('button');
-  allChip.className='tchip'+(S.teacher==='all'?' active':'');
-  allChip.textContent='All teachers';
-  allChip.addEventListener('click',()=>{S.teacher='all';row.querySelectorAll('.tchip').forEach(c=>c.classList.remove('active'));allChip.classList.add('active');updateApplyBtn()});
+  allChip.className='tchip tchip-all'+(S.teacher==='all'?' active':'');
+  allChip.textContent='All';
+  allChip.addEventListener('click',()=>{S.teacher='all';buildTeacherChips();updateApplyBtn()});
   row.appendChild(allChip);
-  teachers.forEach(t=>{
-    const chip=document.createElement('button');
-    chip.className='tchip'+(S.teacher===t?' active':'');chip.textContent=t;
-    chip.addEventListener('click',()=>{S.teacher=t;row.querySelectorAll('.tchip').forEach(c=>c.classList.remove('active'));chip.classList.add('active');updateApplyBtn()});
-    row.appendChild(chip);
+
+  // Favorites section
+  if(favs.length){
+    const hdr=document.createElement('div');hdr.className='fav-teacher-label';hdr.textContent='♥ Favorites';
+    row.appendChild(hdr);
+    favs.forEach(t=>row.appendChild(makeTchip(t)));
+  }
+
+  // All / remaining
+  if(rest.length){
+    if(favs.length){
+      const hdr=document.createElement('div');hdr.className='fav-teacher-label';hdr.textContent='All teachers';
+      row.appendChild(hdr);
+    }
+    rest.forEach(t=>row.appendChild(makeTchip(t)));
+  }
+
+  if(!matched.length){
+    const el=document.createElement('div');el.style.cssText='font-size:13px;color:#9a9688;padding:4px 0';el.textContent='No teachers found';
+    row.appendChild(el);
+  }
+}
+
+function makeTchip(t){
+  const wrap=document.createElement('div');wrap.className='tchip-wrap';
+  const chip=document.createElement('button');
+  chip.className='tchip'+(S.teacher===t?' active':'');
+  chip.textContent=t;
+  chip.addEventListener('click',()=>{S.teacher=t;buildTeacherChips();updateApplyBtn()});
+  const heart=document.createElement('button');
+  heart.className='heart-btn'+(favTeachers.has(t)?' hearted':'');
+  heart.setAttribute('aria-label',favTeachers.has(t)?'Unfavorite':'Favorite');
+  heart.textContent=favTeachers.has(t)?'♥':'♡';
+  heart.addEventListener('click',e=>{
+    e.stopPropagation();
+    toggleFavTeacher(t);
+    buildTeacherChips();
+    updateApplyBtn();
   });
+  wrap.appendChild(chip);wrap.appendChild(heart);
+  return wrap;
 }
 
 function updateSlider(){
@@ -739,6 +849,22 @@ function updateSlider(){
 }
 function updateApplyBtn(){const n=filteredForDate(S.selectedDate).length;document.getElementById('applyBtn').textContent=`Show ${n} class${n!==1?'es':''}`}
 
+// ── tab switching ──
+function switchTab(tab){
+  if(tab==='popup'){openDrawer();return}
+  S.tab=tab;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(tab==='schedule'?'scheduleNav':'savedNav').classList.add('active');
+  if(tab==='schedule'){
+    document.getElementById('weekStrip').style.display='';
+    document.getElementById('updatedText').style.visibility='visible';
+    renderAll();
+  } else if(tab==='saved'){
+    renderSaved();
+  }
+}
+
+// ── event listeners ──
 document.querySelectorAll('.fchip').forEach(chip=>{
   chip.addEventListener('click',()=>{
     const group=chip.dataset.group,val=chip.dataset.val;
@@ -752,22 +878,15 @@ document.querySelectorAll('.fchip').forEach(chip=>{
 document.getElementById('rangeMin').addEventListener('input',updateSlider);
 document.getElementById('rangeMax').addEventListener('input',updateSlider);
 document.getElementById('filterBtn').addEventListener('click',openDrawer);
-document.getElementById('savedBtn').addEventListener('click',()=>{
-  // bookmark button in header — same as saved tab
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('savedNav').classList.add('active');
-});
+document.getElementById('savedBtn').addEventListener('click',()=>switchTab('saved'));
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
+document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
 
-// nav tabs
 ['scheduleNav','popupNav','savedNav'].forEach(id=>{
   document.getElementById(id).addEventListener('click',()=>{
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    if(id==='popupNav') openDrawer();
-    if(id==='scheduleNav') renderAll();
+    switchTab(id==='scheduleNav'?'schedule':id==='popupNav'?'popup':'saved');
   });
 });
 
