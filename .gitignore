@@ -13,3 +13,6 @@ playwright-report/
 
 # Phase 1 raw output (large, ephemeral)
 phase1_output/
+
+# Claude Code internal
+.claude/
