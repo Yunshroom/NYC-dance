@@ -128,6 +128,10 @@ def extract_genre(name: str):
     if any(x in n for x in ['heel', 'femme', 'stiletto']):
         return ('heels', 'heels')
 
+    # Choreography / Choreo (after style-specific checks so "Choreo Hip Hop" etc. don't land here)
+    if any(x in n for x in ['choreography', 'choreo']):
+        return ('choreo', 'choreo')
+
     # Hip-Hop (broad — after all specific sub-styles)
     if any(x in n for x in ['hip hop', 'hip-hop', 'hiphop']):
         return ('street', 'hiphop')
@@ -189,14 +193,15 @@ def _make_class(studio, studio_key, class_name, category, instructor,
                 start_dt, end_dt, is_canceled, booking_url,
                 max_capacity=None, total_booked=None, description="",
                 date_str="", level_override=None):
-    genre, subgenre = extract_genre(class_name + " " + category)
+    cat = category or ""
+    genre, subgenre = extract_genre(class_name + " " + cat)
     start_dt_parsed = start_dt
     end_dt_parsed   = end_dt
     return {
         "studio":        studio,
         "studio_key":    studio_key,
         "class_name":    class_name,
-        "category":      category,
+        "category":      cat,
         "instructor":    instructor,
         "date_key":      fmt_date_key(start_dt_parsed, date_str),
         "start_dt":      start_dt_parsed,
@@ -204,7 +209,7 @@ def _make_class(studio, studio_key, class_name, category, instructor,
         "end_display":   fmt_time(end_dt_parsed),
         "duration_min":  int((end_dt_parsed - start_dt_parsed).total_seconds() / 60)
                          if (start_dt_parsed and end_dt_parsed) else None,
-        "level":         level_override or extract_level(class_name + " " + category),
+        "level":         level_override or extract_level(class_name + " " + cat),
         "genre":         genre,
         "subgenre":      subgenre,
         "start_hour":    start_hour(start_dt_parsed),
@@ -418,6 +423,11 @@ a{color:inherit;text-decoration:none}
 .card-other-1{background:linear-gradient(155deg,#1e1a14 0%,#0c0a08 72%);background-image:repeating-linear-gradient(155deg,rgba(255,255,255,.045) 0,rgba(255,255,255,.045) 1px,transparent 1px,transparent 7px),linear-gradient(155deg,#1e1a14 0%,#0c0a08 72%)}
 .card-other-2{background:linear-gradient(155deg,#221c10 0%,#100c04 72%);background-image:repeating-linear-gradient(35deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#221c10 0%,#100c04 72%)}
 
+/* Choreo — teal/dark-cyan family */
+.card-choreo-0{background:linear-gradient(155deg,#082428 0%,#020c10 72%);background-image:repeating-linear-gradient(75deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 7px),linear-gradient(155deg,#082428 0%,#020c10 72%)}
+.card-choreo-1{background:linear-gradient(155deg,#061e24 0%,#020a0e 72%);background-image:repeating-linear-gradient(145deg,rgba(255,255,255,.05) 0,rgba(255,255,255,.05) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#061e24 0%,#020a0e 72%)}
+.card-choreo-2{background:linear-gradient(155deg,#0a2020 0%,#040e0e 72%);background-image:repeating-linear-gradient(28deg,rgba(255,255,255,.048) 0,rgba(255,255,255,.048) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#0a2020 0%,#040e0e 72%)}
+
 .card-canceled{opacity:.48}
 .card-inner{padding:14px;position:relative;z-index:1}
 .card-top-row{display:flex;justify-content:flex-end;margin-bottom:4px}
@@ -439,19 +449,21 @@ a{color:inherit;text-decoration:none}
 .cap-text{font-family:'DM Mono',monospace;font-size:10px;color:rgba(232,228,220,.48);margin-top:4px;letter-spacing:.02em}
 .card-tap{position:absolute;inset:0;z-index:2}
 
-/* bottom nav */
-.bottom-nav{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-around;padding:10px 0 calc(14px + env(safe-area-inset-bottom));background:rgba(236,234,230,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:.5px solid rgba(26,26,24,.10);z-index:50}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;padding:0 18px}
-.nav-icon svg{width:22px;height:22px;stroke:#9a9688;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
-.nav-label{font-size:10px;color:#9a9688;font-weight:500;transition:color .15s}
-.nav-item.active .nav-icon svg{stroke:#1a1a18}
-.nav-item.active .nav-label{color:#1a1a18;font-weight:600}
+/* ── glassmorphic pill nav ── */
+#bottomNav{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:12px 20px calc(12px + env(safe-area-inset-bottom));z-index:50;pointer-events:none}
+.nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.78);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:.5px solid rgba(255,255,255,.1);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.38),0 1px 0 rgba(255,255,255,.06) inset;pointer-events:all}
+.nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.96);border:.5px solid rgba(255,255,255,.18);box-shadow:0 2px 10px rgba(0,0,0,.45),0 .5px 0 rgba(255,255,255,.08) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
+.nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:10px 15px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tab-icon svg{width:20px;height:20px;stroke:rgba(140,132,120,.85);fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;display:block;flex-shrink:0;transition:stroke .2s}
+.tab-label{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;max-width:0;opacity:0;margin-left:0;transition:max-width .38s cubic-bezier(.34,1.4,.64,1),margin-left .38s cubic-bezier(.34,1.4,.64,1)}
+.nav-tab.active .tab-icon svg{stroke:#fff}
+.nav-tab.active .tab-label{max-width:90px;margin-left:6px}
 
 /* drawer */
 .drawer-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0);pointer-events:none;transition:background .3s}
 .drawer-overlay.open{background:rgba(26,26,24,.5);pointer-events:all}
-.drawer{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:390px;z-index:201;background:#fff;border-radius:24px 24px 0 0;padding:0 0 calc(20px + env(safe-area-inset-bottom));transition:transform .35s cubic-bezier(.32,1,.36,1);max-height:92svh;display:flex;flex-direction:column}
-.drawer.open{transform:translateX(-50%) translateY(0)}
+.drawer{position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);width:100%;z-index:201;background:#fff;border-radius:24px 24px 0 0;padding:0 0 calc(20px + env(safe-area-inset-bottom));transition:transform .35s cubic-bezier(.32,1,.36,1);max-height:92svh;display:flex;flex-direction:column}
+.drawer.open{transform:translateY(0)}
 .drawer-handle{width:40px;height:4px;border-radius:2px;background:#e0dbd6;margin:12px auto 0;flex-shrink:0}
 .drawer-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 10px;flex-shrink:0}
 .drawer-title{font-size:18px;font-weight:700;color:#1a1a18}
@@ -519,18 +531,21 @@ a{color:inherit;text-decoration:none}
     <div id="classesList"></div>
   </main>
 
-  <nav class="bottom-nav">
-    <div class="nav-item active" id="scheduleNav">
-      <div class="nav-icon"><svg viewBox="0 0 22 22"><rect x="3" y="4" width="16" height="15" rx="2"/><path d="M7 2v4M15 2v4M3 9h16"/></svg></div>
-      <span class="nav-label">Schedule</span>
-    </div>
-    <div class="nav-item" id="popupNav">
-      <div class="nav-icon"><svg viewBox="0 0 22 22"><path d="M11 3v18M3 8l8-5 8 5"/><rect x="5" y="11" width="12" height="10" rx="1"/></svg></div>
-      <span class="nav-label">Pop up</span>
-    </div>
-    <div class="nav-item" id="savedNav">
-      <div class="nav-icon"><svg viewBox="0 0 22 22"><path d="M5 3h12a1 1 0 0 1 1 1v15l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></div>
-      <span class="nav-label">Saved</span>
+  <nav id="bottomNav">
+    <div id="navBar" class="nav-bar">
+      <div id="navCapsule" class="nav-capsule"></div>
+      <button class="nav-tab active" data-tab="schedule" id="navSchedule">
+        <span class="tab-icon"><svg viewBox="0 0 22 22"><rect x="3" y="4" width="16" height="15" rx="2"/><path d="M7 2v4M15 2v4M3 9h16"/></svg></span>
+        <span class="tab-label">Schedule</span>
+      </button>
+      <button class="nav-tab" data-tab="popup" id="navPopup">
+        <span class="tab-icon"><svg viewBox="0 0 22 22"><path d="M11 2a7 7 0 0 1 7 7c0 5.25-7 12-7 12S4 14.25 4 9a7 7 0 0 1 7-7z"/><circle cx="11" cy="9" r="2.5"/></svg></span>
+        <span class="tab-label">Pop up</span>
+      </button>
+      <button class="nav-tab" data-tab="wishlist" id="navWishlist">
+        <span class="tab-icon"><svg viewBox="0 0 22 22"><path d="M5 3h12a1 1 0 0 1 1 1v15l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span>
+        <span class="tab-label">Wishlist</span>
+      </button>
     </div>
   </nav>
 </div>
@@ -566,6 +581,7 @@ a{color:inherit;text-decoration:none}
         <button class="fchip" data-genre="afro"><span class="gdot" style="background:#b87c1a"></span>Afrobeats</button>
         <button class="fchip" data-genre="latin"><span class="gdot" style="background:#9a1a1a"></span>Latin</button>
         <button class="fchip" data-genre="heels"><span class="gdot" style="background:#9a1a4a"></span>Heels</button>
+        <button class="fchip" data-genre="choreo"><span class="gdot" style="background:#0e6e72"></span>Choreo</button>
         <button class="fchip" data-genre="other"><span class="gdot" style="background:#5a5040"></span>Other</button>
       </div>
     </div>
@@ -643,6 +659,7 @@ const GENRE_STYLES={
   afro:        ['card-afro-0','card-afro-1','card-afro-2'],
   latin:       ['card-latin-0','card-latin-1','card-latin-2'],
   heels:       ['card-heels-0','card-heels-1','card-heels-2'],
+  choreo:      ['card-choreo-0','card-choreo-1','card-choreo-2'],
   conditioning:['card-other-0','card-other-1','card-other-2'],
   tap:         ['card-other-0','card-other-1','card-other-2'],
   other:       ['card-other-0','card-other-1','card-other-2'],
@@ -690,22 +707,54 @@ function datesWithClasses(){
   return s;
 }
 
-// ── calendar ──
-function renderCalendar(){
+// ── calendar: 5-week scrollable strip (1 past + current + 3 future) ──
+let _calendarBuilt=false;
+function buildCalendarStrip(){
   const strip=document.getElementById('weekStrip');
-  const start=weekStartDate(S.weekOffset);
-  const dotDates=datesWithClasses();
-  const today=todayKey();
-  const mid=addDays(start,3);
-  document.getElementById('pageTitle').textContent=MONTHS[mid.getMonth()]+' \''+String(mid.getFullYear()).slice(-2);
   strip.innerHTML='';
-  for(let i=0;i<7;i++){
-    const d=addDays(start,i);const key=isoKey(d);
+  const todayDate=new Date();todayDate.setHours(0,0,0,0);
+  // Start from the Sunday one week before the current week's Sunday
+  const startDate=new Date(todayDate);
+  startDate.setDate(startDate.getDate()-startDate.getDay()-7);
+  for(let i=0;i<35;i++){
+    const d=new Date(startDate);d.setDate(d.getDate()+i);
+    const key=isoKey(d);
     const col=document.createElement('div');
-    col.className='day-col'+(key===S.selectedDate?' selected':'')+(key===today?' today':'')+(dotDates.has(key)?' has-classes':'');
+    col.dataset.dateKey=key;
     col.innerHTML=`<span class="day-letter">${DAY_LETTERS[d.getDay()]}</span><span class="day-num">${d.getDate()}</span><span class="day-dot"></span>`;
     col.addEventListener('click',()=>{S.selectedDate=key;renderAll()});
     strip.appendChild(col);
+  }
+  _calendarBuilt=true;
+}
+
+function renderCalendar(){
+  if(!_calendarBuilt)buildCalendarStrip();
+  const strip=document.getElementById('weekStrip');
+  const dotDates=datesWithClasses();
+  const today=todayKey();
+
+  // Update page title from selected date
+  if(S.selectedDate){
+    const[sy,sm]=S.selectedDate.split('-').map(Number);
+    document.getElementById('pageTitle').textContent=MONTHS[sm-1]+' \''+String(sy).slice(-2);
+  }
+
+  let selectedEl=null,todayEl=null;
+  strip.querySelectorAll('.day-col').forEach(col=>{
+    const key=col.dataset.dateKey;
+    col.className='day-col'+(key===S.selectedDate?' selected':'')+(key===today?' today':'')+(dotDates.has(key)?' has-classes':'');
+    if(key===S.selectedDate)selectedEl=col;
+    if(key===today)todayEl=col;
+  });
+
+  // Scroll selected (or today on first render) into center
+  const target=selectedEl||todayEl;
+  if(target){
+    requestAnimationFrame(()=>{
+      const sw=strip.offsetWidth,cw=target.offsetWidth;
+      strip.scrollLeft=target.offsetLeft-sw/2+cw/2;
+    });
   }
 }
 
@@ -731,9 +780,9 @@ function renderClasses(){
   });
 }
 
-// ── saved tab ──
+// ── wishlist tab ──
 function renderSaved(){
-  document.getElementById('pageTitle').textContent='Saved';
+  document.getElementById('pageTitle').textContent='Wishlist';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   const listEl=document.getElementById('classesList');
@@ -941,19 +990,85 @@ function updateApplyBtn(){
   btn.textContent=`Show ${n} classes in next ${days} days`;
 }
 
+// ── nav capsule ──
+let _navCurrent='schedule',_navBusy=false;
+function _navTabEl(tab){return document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1))}
+
+function snapCapsule(tabEl){
+  const capsule=document.getElementById('navCapsule');
+  capsule.style.transition='none';
+  capsule.getBoundingClientRect();
+  capsule.style.left=tabEl.offsetLeft+'px';
+  capsule.style.width=tabEl.offsetWidth+'px';
+  requestAnimationFrame(()=>{capsule.style.transition=''});
+}
+function slideCapsule(tabEl){
+  const capsule=document.getElementById('navCapsule');
+  capsule.style.left=tabEl.offsetLeft+'px';
+  capsule.style.width=tabEl.offsetWidth+'px';
+  // Re-sync after tab fully expands (label CSS transition = 380ms)
+  setTimeout(()=>{
+    capsule.style.transition='none';
+    capsule.style.left=tabEl.offsetLeft+'px';
+    capsule.style.width=tabEl.offsetWidth+'px';
+    requestAnimationFrame(()=>{capsule.style.transition=''});
+  },420);
+}
+
 // ── tab switching ──
 function switchTab(tab){
-  if(tab==='popup'){openDrawer();return}
-  S.tab=tab;
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById(tab==='schedule'?'scheduleNav':'savedNav').classList.add('active');
-  if(tab==='schedule'){
-    document.getElementById('weekStrip').style.display='';
-    document.getElementById('updatedText').style.visibility='visible';
-    renderAll();
-  } else {
-    renderSaved();
+  if(tab==='popup'){
+    // Pop-up tab: show empty "coming soon" state
+    if(_navCurrent==='popup')return;
+    _animateNav('popup',()=>{
+      document.getElementById('pageTitle').textContent='Pop up';
+      document.getElementById('weekStrip').style.display='none';
+      document.getElementById('updatedText').style.visibility='hidden';
+      document.getElementById('classesList').innerHTML='<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Pop-up classes</div><div class="empty-sub">Special workshops and drop-in events coming soon.</div></div>';
+    });
+    S.tab='popup';
+    return;
   }
+  if(tab===_navCurrent)return;
+  if(tab==='schedule'){
+    _animateNav('schedule',()=>{
+      document.getElementById('weekStrip').style.display='';
+      document.getElementById('updatedText').style.visibility='visible';
+      renderAll();
+    });
+    S.tab='schedule';
+  } else {
+    _animateNav('wishlist',()=>{renderSaved()});
+    S.tab='saved';
+  }
+}
+
+function _animateNav(newTab,callback){
+  const oldEl=_navTabEl(_navCurrent);
+  const newEl=_navTabEl(newTab);
+  // 1. fade out old label
+  const oldLbl=oldEl.querySelector('.tab-label');
+  oldLbl.style.opacity='0';
+  oldLbl.style.transition='opacity 0.1s';
+  setTimeout(()=>{
+    // 2. swap active classes
+    oldEl.classList.remove('active');
+    newEl.classList.add('active');
+    _navCurrent=newTab;
+    // 3. slide capsule (initial measurement — tab not yet fully expanded)
+    requestAnimationFrame(()=>{
+      slideCapsule(newEl);
+      // 4. show new label after capsule settles
+      setTimeout(()=>{
+        const newLbl=newEl.querySelector('.tab-label');
+        newLbl.style.transition='opacity 0.18s';
+        newLbl.style.opacity='1';
+        _navBusy=false;
+      },350);
+    });
+    callback();
+  },110);
+  _navBusy=true;
 }
 
 // ── event listeners ──
@@ -964,9 +1079,10 @@ document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
 document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
-['scheduleNav','popupNav','savedNav'].forEach(id=>{
+['navSchedule','navPopup','navWishlist'].forEach(id=>{
   document.getElementById(id).addEventListener('click',()=>{
-    switchTab(id==='scheduleNav'?'schedule':id==='popupNav'?'popup':'saved');
+    if(_navBusy)return;
+    switchTab(id==='navSchedule'?'schedule':id==='navPopup'?'popup':'wishlist');
   });
 });
 
@@ -979,13 +1095,11 @@ function renderAll(){renderCalendar();renderClasses()}
   const allDates=[...new Set(ALL_CLASSES.filter(c=>!c.is_canceled).map(c=>c.date_key))].sort();
   const future=allDates.filter(d=>d>=today);
   S.selectedDate=future.length?future[0]:allDates[allDates.length-1];
-  const[sy,sm,sd]=S.selectedDate.split('-').map(Number);
-  const selDate=new Date(sy,sm-1,sd);
-  const todayDate=new Date();todayDate.setHours(0,0,0,0);
-  const todaySunday=new Date(todayDate);todaySunday.setDate(todaySunday.getDate()-todayDate.getDay());
-  const selSunday=new Date(selDate);selSunday.setDate(selSunday.getDate()-selDate.getDay());
-  S.weekOffset=Math.round((selSunday-todaySunday)/(7*86400000));
   updateSlider();buildTeacherChips();renderAll();
+  // Init nav capsule after first render (active tab is fully sized)
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    snapCapsule(document.getElementById('navSchedule'));
+  }));
 })();
 </script>
 </body>
