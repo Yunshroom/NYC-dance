@@ -453,12 +453,12 @@ a{color:inherit;text-decoration:none}
 /* ── glassmorphic pill nav ── */
 #bottomNav{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:12px 20px calc(12px + env(safe-area-inset-bottom));z-index:50;pointer-events:none}
 .nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.48);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);border:.5px solid rgba(255,255,255,.13);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.07) inset;pointer-events:all}
-.nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.96);border:.5px solid rgba(255,255,255,.18);box-shadow:0 2px 10px rgba(0,0,0,.45),0 .5px 0 rgba(255,255,255,.08) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
+.nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.52);border:.5px solid rgba(255,255,255,.2);box-shadow:0 2px 10px rgba(0,0,0,.3),0 .5px 0 rgba(255,255,255,.07) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:10px 15px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tab-icon svg{width:20px;height:20px;stroke:rgba(140,132,120,.85);fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;display:block;flex-shrink:0;transition:stroke .2s}
 .tab-label{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;max-width:0;opacity:0;margin-left:0;transition:max-width .38s cubic-bezier(.34,1.4,.64,1),margin-left .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab.active .tab-icon svg{stroke:#fff}
-.nav-tab.active .tab-label{max-width:90px;margin-left:6px}
+.nav-tab.active .tab-label{max-width:90px;margin-left:6px;opacity:1}
 
 /* drawer */
 .drawer-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,26,24,0);pointer-events:none;transition:background .3s}
@@ -503,6 +503,32 @@ a{color:inherit;text-decoration:none}
 .drawer-footer{padding:14px 20px 0;flex-shrink:0}
 .apply-btn{display:block;width:100%;padding:15px;border-radius:14px;background:#1a1a18;color:#eceae6;font-size:15px;font-weight:600;text-align:center;transition:opacity .15s;letter-spacing:.01em}
 .apply-btn:active{opacity:.78}
+
+/* ── popup tab ── */
+.popup-pane{padding:4px 0 32px}
+.popup-hint{font-size:13px;color:#9a9688;margin-bottom:14px;line-height:1.55}
+.popup-textarea{width:100%;min-height:108px;padding:12px;border-radius:13px;border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;line-height:1.5;resize:none;font-family:inherit;background:#faf9f7;outline:none;-webkit-appearance:none;display:block}
+.popup-textarea:focus{border-color:#1a1a18}
+.popup-btn-row{display:flex;gap:10px;margin:10px 0 16px}
+.popup-act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 0;border-radius:12px;background:#f0ece6;border:none;font-size:14px;font-weight:500;color:#3a3830;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.popup-act-btn:active{background:#e4e0da}
+.popup-act-btn svg{stroke:#3a3830;flex-shrink:0}
+.popup-ocr-status{font-size:12px;color:#9a9688;margin-bottom:12px;padding:8px 12px;background:#f8f6f2;border-radius:8px}
+.popup-fields{display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.pfield{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.pfield-row{display:flex;gap:10px}
+.pfield-label{font-size:11px;font-weight:600;color:#9a9688;text-transform:uppercase;letter-spacing:.07em}
+.pfield-input{padding:10px 12px;border-radius:10px;border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;font-family:inherit;background:#faf9f7;outline:none;-webkit-appearance:none;width:100%;box-sizing:border-box}
+.pfield-input:focus{border-color:#1a1a18}
+.pfield-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pchip{padding:7px 13px;border-radius:16px;font-size:12px;font-weight:500;color:#3a3830;background:#f0ece6;border:1.5px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pchip.active{background:#1a1a18;color:#eceae6}
+.popup-save-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:14px;background:#1a1a18;color:#eceae6;font-size:15px;font-weight:600;cursor:pointer;border:none;margin-top:4px;-webkit-tap-highlight-color:transparent;transition:background .2s,opacity .15s}
+.popup-save-btn:active{opacity:.78}
+.popup-save-btn.saved-ok{background:#1a7a46}
+
+/* custom card badge */
+.custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
 </style>
 </head>
 <body>
@@ -629,6 +655,246 @@ a{color:inherit;text-decoration:none}
 
 <script>
 const ALL_CLASSES = __ALL_CLASSES__;
+
+// ── custom (popup-added) classes ──
+let CUSTOM_CLASSES = JSON.parse(localStorage.getItem('nyd_custom')||'[]');
+
+// ── popup: JS genre extractor (mirrors Python extract_genre) ──
+function extractGenreJS(n){
+  n=n.toLowerCase();
+  if(/ballet|pointe|floor.?barre|rommett/.test(n))return['ballet','classical'];
+  if(/vogue|new way|old way/.test(n))return['street','vogue'];
+  if(/waack|whack|disco/.test(n))return['street','waacking'];
+  if(/\bhouse\b/.test(n))return['street','house'];
+  if(/breaking|bboy|bgirl|breakdanc/.test(n))return['street','breaking'];
+  if(/popping/.test(n))return['street','popping'];
+  if(/locking/.test(n))return['street','locking'];
+  if(/afro|african|amapiano/.test(n))return['afro','afrobeats'];
+  if(/contemporary|contemp/.test(n))return['contemporary','contemporary'];
+  if(/\bmodern\b/.test(n))return['contemporary','modern'];
+  if(/jazz.?funk|street.?jazz/.test(n))return['street','jazzfunk'];
+  if(/kpop|k-pop/.test(n))return['street','kpop'];
+  if(/salsa|mambo|bachata|latin|tango|cumbia|reggaeton/.test(n))return['latin','latin'];
+  if(/heel|femme|stiletto/.test(n))return['heels','heels'];
+  if(/choreo/.test(n))return['choreo','choreo'];
+  if(/hip.?hop/.test(n))return['street','hiphop'];
+  if(/street.?style|urban|funk.?style/.test(n))return['street','street'];
+  if(/jazz/.test(n))return['contemporary','jazz'];
+  if(/yoga|condition|pilates|stretch/.test(n))return['conditioning','conditioning'];
+  return['other','other'];
+}
+
+// ── popup: JS level extractor ──
+function extractLevelJS(n){
+  n=n.toLowerCase();
+  if(/adv\.?\s*beg|beg\.?\/adv|absolute.?beginner/.test(n))return'Beginner';
+  if(/beginner|\bbeg\b/.test(n))return'Beginner';
+  if(/all.?level|open.?level|open.?class/.test(n))return'All Levels';
+  if(/int\.?\/adv|int\/adv/.test(n))return'Int/Adv';
+  if(/intermediate|\binter\b|\bint\b/.test(n))return'Intermediate';
+  if(/advanced|\badv\b/.test(n))return'Advanced';
+  return'All Levels';
+}
+
+// ── popup: parse class text → class object ──
+function parseClassText(text){
+  if(!text.trim())return null;
+  const t=text.trim(),tl=t.toLowerCase();
+  const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,
+    january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};
+  // Date
+  let date_key='';
+  const dm=t.match(/(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*[,\s]+([A-Z][a-z]+)\s+(\d{1,2})(?:[,\s]+(\d{4}))?/i)
+           ||t.match(/([A-Z][a-z]{2,8})\s+(\d{1,2})(?:[,\s]+(\d{4}))?/i)
+           ||t.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+  if(dm){
+    const now=new Date();let m,d,y=now.getFullYear();
+    if(isNaN(dm[1])){
+      m=MON[dm[1].toLowerCase().slice(0,3)]||(now.getMonth()+1);d=parseInt(dm[2]);
+      if(dm[3])y=parseInt(dm[3]);if(y<100)y+=2000;
+    }else{m=parseInt(dm[1]);d=parseInt(dm[2]);if(dm[3])y=parseInt(dm[3]);if(y<100)y+=2000;}
+    if(d>=1&&d<=31&&m>=1&&m<=12)
+      date_key=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  // Time
+  let start_display='',start_hour=-1;
+  const tm=t.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+  if(tm){
+    let h=parseInt(tm[1]),mn=parseInt(tm[2]||'0'),ap=tm[3].toUpperCase();
+    start_display=`${h}:${String(mn).padStart(2,'0')} ${ap}`;
+    if(ap==='PM'&&h<12)h+=12;if(ap==='AM'&&h===12)h=0;
+    start_hour=h+mn/60;
+  }
+  // Instructor
+  let instructor='';
+  const im=t.match(/(?:with|taught by|instructor:?|teacher:?)\s+([A-Z][a-z]+(?: [A-Z][a-z]+)?)/i);
+  if(im)instructor=im[1].trim();
+  // Studio
+  let studio='Custom';
+  const sm=t.match(/(?:@|(?:^|\n)at )\s*([A-Za-z][A-Za-z &']+?)(?:\n|,|\.|$)/m);
+  if(sm)studio=sm[1].trim().slice(0,40);
+  // Level + genre
+  const level=extractLevelJS(tl);
+  const[genre,subgenre]=extractGenreJS(tl);
+  // Class name: first meaningful line
+  const lines=t.split(/\n/).map(l=>l.trim()).filter(l=>l.length>2);
+  let class_name=lines[0]||t.slice(0,80);
+  if(class_name.length>80)class_name=class_name.slice(0,77)+'…';
+  return{studio,studio_key:'custom',class_name,instructor,date_key,
+    start_display,end_display:'',duration_min:null,level,genre,subgenre,
+    start_hour,is_canceled:false,is_custom:true,booking_url:'',raw_text:t,
+    custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
+}
+
+// ── popup: auto-fill form from parsed class ──
+function autoParsePopup(){
+  const text=document.getElementById('popupTextarea')?.value||'';
+  const cls=parseClassText(text);
+  const fieldsDiv=document.getElementById('popupFields');
+  if(!fieldsDiv)return;
+  if(!cls){fieldsDiv.style.display='none';return;}
+  fieldsDiv.style.display='';
+  if(cls.class_name)document.getElementById('pf_name').value=cls.class_name;
+  if(cls.date_key)document.getElementById('pf_date').value=cls.date_key;
+  if(cls.start_display)document.getElementById('pf_time').value=cls.start_display;
+  if(cls.instructor)document.getElementById('pf_instructor').value=cls.instructor;
+  if(cls.studio&&cls.studio!=='Custom')document.getElementById('pf_studio').value=cls.studio;
+  document.querySelectorAll('#pf_level_chips .pchip').forEach(c=>c.classList.toggle('active',c.dataset.level===cls.level));
+}
+
+// ── popup: save custom class ──
+function doSaveCustomClass(){
+  const name=(document.getElementById('pf_name')?.value||'').trim()||'Custom Class';
+  const dateVal=document.getElementById('pf_date')?.value||'';
+  const timeVal=(document.getElementById('pf_time')?.value||'').trim();
+  const instrVal=(document.getElementById('pf_instructor')?.value||'').trim();
+  const studioVal=(document.getElementById('pf_studio')?.value||'').trim()||'Custom';
+  const lvlEl=document.querySelector('#pf_level_chips .pchip.active');
+  const level=lvlEl?lvlEl.dataset.level:'All Levels';
+  const rawText=document.getElementById('popupTextarea')?.value||'';
+  const[genre,subgenre]=extractGenreJS(name.toLowerCase()+' '+rawText.toLowerCase());
+  let start_hour=-1;
+  const tmt=timeVal.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if(tmt){let h=parseInt(tmt[1]),mn=parseInt(tmt[2]);if(tmt[3].toUpperCase()==='PM'&&h<12)h+=12;if(tmt[3].toUpperCase()==='AM'&&h===12)h=0;start_hour=h+mn/60;}
+  const cls={studio:studioVal,studio_key:'custom',class_name:name,instructor:instrVal,
+    date_key:dateVal,start_display:timeVal,end_display:'',duration_min:null,
+    level,genre,subgenre,start_hour,is_canceled:false,is_custom:true,
+    booking_url:'',raw_text:rawText,custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
+  CUSTOM_CLASSES.push(cls);
+  localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));
+  const btn=document.getElementById('popupSaveBtn');
+  if(btn){
+    btn.textContent='✓ Saved to Wishlist';btn.classList.add('saved-ok');
+    setTimeout(()=>{
+      btn.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg> Save to Wishlist';
+      btn.classList.remove('saved-ok');
+    },2500);
+  }
+}
+
+// ── popup: photo OCR via Tesseract.js (lazy) ──
+async function handlePopupPhoto(e){
+  const file=e.target.files[0];if(!file)return;
+  const status=document.getElementById('popupOcrStatus');
+  if(status){status.style.display='';status.textContent='Loading OCR engine…';}
+  try{
+    if(!window.Tesseract){
+      await new Promise((res,rej)=>{const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    }
+    if(status)status.textContent='Reading text from photo…';
+    const{data:{text}}=await Tesseract.recognize(file,'eng',{logger:()=>{}});
+    if(status)status.style.display='none';
+    const ta=document.getElementById('popupTextarea');
+    if(ta){ta.value=text.trim();autoParsePopup();}
+  }catch(err){
+    if(status)status.textContent='Could not read photo — try pasting the text instead.';
+  }
+}
+
+// ── popup tab render ──
+function renderPopup(){
+  document.getElementById('pageTitle').textContent='Pop up';
+  document.getElementById('weekStrip').style.display='none';
+  document.getElementById('updatedText').style.visibility='hidden';
+  const listEl=document.getElementById('classesList');
+  listEl.innerHTML=`
+<div class="popup-pane">
+  <p class="popup-hint">Paste a class description, flyer text, or Instagram caption — we'll extract the details for you.</p>
+  <textarea id="popupTextarea" class="popup-textarea" placeholder="e.g. Hip Hop Foundations with Maya&#10;Tuesday July 8 · 7:30 PM&#10;Brickhouse NYC · Beginner friendly"></textarea>
+  <div class="popup-btn-row">
+    <button class="popup-act-btn" id="popupPasteBtn">
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="11" height="14" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/><path d="M9 3a2 2 0 0 1 3.5 0"/></svg>
+      Paste from clipboard
+    </button>
+    <label class="popup-act-btn" style="cursor:pointer">
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="18" height="13" rx="2"/><circle cx="10" cy="12" r="3"/><path d="M7 5l1.5-2.5h3L13 5"/></svg>
+      Photo
+      <input type="file" id="popupPhotoInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
+    </label>
+  </div>
+  <div id="popupOcrStatus" class="popup-ocr-status" style="display:none"></div>
+  <div id="popupFields" class="popup-fields" style="display:none">
+    <div class="pfield">
+      <label class="pfield-label">Class name</label>
+      <input class="pfield-input" id="pf_name" type="text" placeholder="e.g. Beginner Hip Hop"/>
+    </div>
+    <div class="pfield-row">
+      <div class="pfield">
+        <label class="pfield-label">Date</label>
+        <input class="pfield-input" id="pf_date" type="date"/>
+      </div>
+      <div class="pfield">
+        <label class="pfield-label">Time</label>
+        <input class="pfield-input" id="pf_time" type="text" placeholder="7:30 PM"/>
+      </div>
+    </div>
+    <div class="pfield-row">
+      <div class="pfield">
+        <label class="pfield-label">Instructor</label>
+        <input class="pfield-input" id="pf_instructor" type="text" placeholder="Name"/>
+      </div>
+      <div class="pfield">
+        <label class="pfield-label">Studio</label>
+        <input class="pfield-input" id="pf_studio" type="text" placeholder="Studio name"/>
+      </div>
+    </div>
+    <div class="pfield">
+      <label class="pfield-label">Level</label>
+      <div class="pfield-chips" id="pf_level_chips">
+        <button class="pchip active" data-level="All Levels">Open</button>
+        <button class="pchip" data-level="Beginner">Beginner</button>
+        <button class="pchip" data-level="Intermediate">Int</button>
+        <button class="pchip" data-level="Int/Adv">Int/Adv</button>
+        <button class="pchip" data-level="Advanced">Advanced</button>
+      </div>
+    </div>
+    <button class="popup-save-btn" id="popupSaveBtn">
+      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
+      Save to Wishlist
+    </button>
+  </div>
+</div>`;
+
+  // Wire events
+  document.getElementById('popupTextarea').addEventListener('input',()=>{
+    clearTimeout(window._ppDebounce);window._ppDebounce=setTimeout(autoParsePopup,550);
+  });
+  document.getElementById('popupPasteBtn').addEventListener('click',async()=>{
+    try{const text=await navigator.clipboard.readText();
+      if(text){document.getElementById('popupTextarea').value=text;autoParsePopup();}
+    }catch(e){document.getElementById('popupTextarea').focus();}
+  });
+  document.getElementById('popupPhotoInput').addEventListener('change',handlePopupPhoto);
+  document.getElementById('popupSaveBtn').addEventListener('click',doSaveCustomClass);
+  document.querySelectorAll('#pf_level_chips .pchip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('#pf_level_chips .pchip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+}
 
 // ── bookmarks ──
 function classId(c){return c.date_key+'|'+c.studio_key+'|'+c.class_name+'|'+c.start_display}
@@ -780,14 +1046,15 @@ function renderSaved(){
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   const listEl=document.getElementById('classesList');
-  const savedClasses=ALL_CLASSES.filter(c=>isSaved(c));
-  if(!savedClasses.length){
+  const savedFromSchedule=ALL_CLASSES.filter(c=>isSaved(c));
+  const allSaved=[...savedFromSchedule,...CUSTOM_CLASSES];
+  if(!allSaved.length){
     listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap the bookmark on any card to save it here.</div></div>`;
     return;
   }
-  savedClasses.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+  allSaved.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
   listEl.innerHTML='';let lastDate='';
-  savedClasses.forEach((c,i)=>{
+  allSaved.forEach((c,i)=>{
     if(c.date_key!==lastDate){
       const div=document.createElement('div');div.className='section-divider date-divider';
       div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
@@ -808,6 +1075,7 @@ function buildCard(c,i){
   const timeStr=c.start_display?(c.end_display?`${c.start_display} – ${c.end_display}`:c.start_display):'';
   const metaStr=c.studio+(timeStr?' · '+timeStr:'');
   const saved=isSaved(c);
+  const customTag=c.is_custom?'<span class="custom-tag">✦ CUSTOM</span>':'';
 
   let capHTML='';
   if(c.max_capacity>0&&c.total_booked!=null){
@@ -821,7 +1089,7 @@ function buildCard(c,i){
   div.innerHTML=`${bookHref}
     <div class="card-inner">
       <div class="card-header-row">
-        <div class="card-meta">${esc(metaStr)}</div>
+        <div class="card-meta">${customTag}${esc(metaStr)}</div>
         <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
           <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
         </button>
@@ -1013,14 +1281,8 @@ function slideCapsule(tabEl){
 // ── tab switching ──
 function switchTab(tab){
   if(tab==='popup'){
-    // Pop-up tab: show empty "coming soon" state
     if(_navCurrent==='popup')return;
-    _animateNav('popup',()=>{
-      document.getElementById('pageTitle').textContent='Pop up';
-      document.getElementById('weekStrip').style.display='none';
-      document.getElementById('updatedText').style.visibility='hidden';
-      document.getElementById('classesList').innerHTML='<div class="empty-state"><div class="empty-icon">📍</div><div class="empty-title">Pop-up classes</div><div class="empty-sub">Special workshops and drop-in events coming soon.</div></div>';
-    });
+    _animateNav('popup',()=>{ renderPopup(); });
     S.tab='popup';
     return;
   }
@@ -1046,16 +1308,18 @@ function _animateNav(newTab,callback){
   oldLbl.style.opacity='0';
   oldLbl.style.transition='opacity 0.1s';
   setTimeout(()=>{
-    // 2. swap active classes
+    // 2. swap active classes — keep new label hidden until capsule lands
     oldEl.classList.remove('active');
     newEl.classList.add('active');
+    const newLbl=newEl.querySelector('.tab-label');
+    newLbl.style.transition='none';
+    newLbl.style.opacity='0';
     _navCurrent=newTab;
     // 3. slide capsule (initial measurement — tab not yet fully expanded)
     requestAnimationFrame(()=>{
       slideCapsule(newEl);
       // 4. show new label after capsule settles
       setTimeout(()=>{
-        const newLbl=newEl.querySelector('.tab-label');
         newLbl.style.transition='opacity 0.18s';
         newLbl.style.opacity='1';
         _navBusy=false;
@@ -1091,9 +1355,14 @@ function renderAll(){renderCalendar();renderClasses()}
   const future=allDates.filter(d=>d>=today);
   S.selectedDate=future.length?future[0]:allDates[allDates.length-1];
   updateSlider();buildTeacherChips();renderAll();
-  // Init nav capsule after first render (active tab is fully sized)
+  // Init nav capsule + label after first render (active tab is fully sized)
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    snapCapsule(document.getElementById('navSchedule'));
+    const initEl=document.getElementById('navSchedule');
+    const initLbl=initEl.querySelector('.tab-label');
+    initLbl.style.transition='none';
+    initLbl.style.opacity='1';
+    snapCapsule(initEl);
+    requestAnimationFrame(()=>{ initLbl.style.transition=''; });
   }));
 })();
 </script>
