@@ -110,15 +110,17 @@ a{color:inherit;text-decoration:none}
 .card-choreo-2{background:linear-gradient(155deg,#0a2020 0%,#040e0e 72%);background-image:repeating-linear-gradient(28deg,rgba(255,255,255,.048) 0,rgba(255,255,255,.048) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#0a2020 0%,#040e0e 72%)}
 
 .card-canceled{opacity:.48}
-.card-inner{padding:14px;position:relative;z-index:1}
-.card-top-row{display:flex;justify-content:flex-end;margin-bottom:4px}
-.save-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px;transition:color .2s;position:relative;z-index:3}
+/* card-inner has no z-index so save-btn can rise above card-tap in card's stacking context */
+.card-inner{padding:14px;position:relative}
+.card-tap{position:absolute;inset:0;z-index:1}
+.card-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.save-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 2px 2px 6px;transition:color .2s;position:relative;z-index:2;flex-shrink:0}
 .save-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s,stroke .2s}
 .save-btn.saved{color:#d4537e}
 .save-btn.saved svg{fill:#d4537e;stroke:#d4537e}
 
-/* studio + time label (replaced level pill) */
-.card-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(216,212,204,.65);letter-spacing:.04em;margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* studio + time — now lives in card-header-row beside bookmark */
+.card-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(216,212,204,.65);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
 .card-name{font-family:'DM Sans',sans-serif;color:#fff;font-size:19px;font-weight:500;line-height:1.2;margin-bottom:10px}
 .card-instructor-row{display:flex;align-items:center;gap:6px}
 .small-avatar{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:500}
@@ -128,11 +130,10 @@ a{color:inherit;text-decoration:none}
 .cap-bar-bg{height:2px;background:rgba(255,255,255,.12);border-radius:1px}
 .cap-bar-fill{height:2px;border-radius:1px;background:rgba(255,255,255,.42)}
 .cap-text{font-family:'DM Mono',monospace;font-size:10px;color:rgba(232,228,220,.48);margin-top:4px;letter-spacing:.02em}
-.card-tap{position:absolute;inset:0;z-index:2}
 
 /* ── glassmorphic pill nav ── */
 #bottomNav{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:12px 20px calc(12px + env(safe-area-inset-bottom));z-index:50;pointer-events:none}
-.nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.78);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:.5px solid rgba(255,255,255,.1);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.38),0 1px 0 rgba(255,255,255,.06) inset;pointer-events:all}
+.nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.48);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);border:.5px solid rgba(255,255,255,.13);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.07) inset;pointer-events:all}
 .nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.96);border:.5px solid rgba(255,255,255,.18);box-shadow:0 2px 10px rgba(0,0,0,.45),0 .5px 0 rgba(255,255,255,.08) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:10px 15px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tab-icon svg{width:20px;height:20px;stroke:rgba(140,132,120,.85);fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;display:block;flex-shrink:0;transition:stroke .2s}
@@ -255,27 +256,15 @@ a{color:inherit;text-decoration:none}
     <div class="fsection">
       <div class="fsection-label">Genre</div>
       <div class="fchip-row" id="genreChipRow">
-        <button class="fchip active" data-genre="all">All</button>
-        <button class="fchip" data-genre="street"><span class="gdot" style="background:#6b3fa0"></span>Street</button>
+        <button class="fchip active" data-genre="street"><span class="gdot" style="background:#6b3fa0"></span>Street</button>
         <button class="fchip" data-genre="ballet"><span class="gdot" style="background:#1a6e38"></span>Ballet</button>
-        <button class="fchip" data-genre="contemporary"><span class="gdot" style="background:#1a3a7a"></span>Contemporary</button>
-        <button class="fchip" data-genre="afro"><span class="gdot" style="background:#b87c1a"></span>Afrobeats</button>
+        <button class="fchip active" data-genre="contemporary"><span class="gdot" style="background:#1a3a7a"></span>Contemporary</button>
+        <button class="fchip active" data-genre="afro"><span class="gdot" style="background:#b87c1a"></span>Afrobeats</button>
         <button class="fchip" data-genre="latin"><span class="gdot" style="background:#9a1a1a"></span>Latin</button>
         <button class="fchip" data-genre="heels"><span class="gdot" style="background:#9a1a4a"></span>Heels</button>
-        <button class="fchip" data-genre="choreo"><span class="gdot" style="background:#0e6e72"></span>Choreo</button>
-        <button class="fchip" data-genre="other"><span class="gdot" style="background:#5a5040"></span>Other</button>
-      </div>
-    </div>
-
-    <div class="fsection">
-      <div class="fsection-label">Level</div>
-      <div class="fchip-row" id="levelChipRow">
-        <button class="fchip active" data-level="all">All</button>
-        <button class="fchip" data-level="Beginner">Beginner</button>
-        <button class="fchip" data-level="All Levels">Open</button>
-        <button class="fchip" data-level="Intermediate">Intermediate</button>
-        <button class="fchip" data-level="Int/Adv">Int/Adv</button>
-        <button class="fchip" data-level="Advanced">Advanced</button>
+        <button class="fchip active" data-genre="choreo"><span class="gdot" style="background:#0e6e72"></span>Choreo</button>
+        <button class="fchip active" data-genre="conditioning"><span class="gdot" style="background:#6e5a3a"></span>Conditioning</button>
+        <button class="fchip active" data-genre="other"><span class="gdot" style="background:#5a5040"></span>Other</button>
       </div>
     </div>
 
@@ -290,6 +279,18 @@ a{color:inherit;text-decoration:none}
         <div class="slider-track-fill" id="sliderFill"></div>
         <input type="range" id="rangeMin" min="6" max="24" step="0.5" value="12"/>
         <input type="range" id="rangeMax" min="6" max="24" step="0.5" value="24"/>
+      </div>
+    </div>
+
+    <div class="fsection">
+      <div class="fsection-label">Level</div>
+      <div class="fchip-row" id="levelChipRow">
+        <button class="fchip active" data-level="all">All</button>
+        <button class="fchip" data-level="Beginner">Beginner</button>
+        <button class="fchip" data-level="All Levels">Open</button>
+        <button class="fchip" data-level="Intermediate">Intermediate</button>
+        <button class="fchip" data-level="Int/Adv">Int/Adv</button>
+        <button class="fchip" data-level="Advanced">Advanced</button>
       </div>
     </div>
 
@@ -329,8 +330,10 @@ function toggleFavTeacher(name){
 }
 
 // ── state ──
-// studios: Set — 'all' means no filter, otherwise contains studio_key values
-const S={weekOffset:0,selectedDate:'',studios:new Set(['all']),genre:'all',level:'all',teacher:'all',timeMin:12,timeMax:24,tab:'schedule'};
+// studios: Set — 'all' means no filter; genres: Set of selected genre keys (multi-select)
+const S={selectedDate:'',studios:new Set(['all']),
+  genres:new Set(['street','contemporary','afro','choreo','conditioning','other']),
+  level:'all',teacher:'all',timeMin:12,timeMax:24,tab:'schedule'};
 
 // ── genre → card style ──
 const GENRE_STYLES={
@@ -373,7 +376,7 @@ function formatDateFull(dateKey){
 
 function matchesFilters(c){
   if(!S.studios.has('all')&&!S.studios.has(c.studio_key))return false;
-  if(S.genre!=='all'&&c.genre!==S.genre)return false;
+  if(!S.genres.has(c.genre))return false;
   if(S.level!=='all'&&c.level!==S.level)return false;
   if(S.teacher!=='all'&&c.instructor!==S.teacher)return false;
   const h=c.start_hour;if(h>=0&&(h<S.timeMin||h>S.timeMax))return false;
@@ -388,54 +391,45 @@ function datesWithClasses(){
   return s;
 }
 
-// ── calendar: 5-week scrollable strip (1 past + current + 3 future) ──
-let _calendarBuilt=false;
-function buildCalendarStrip(){
-  const strip=document.getElementById('weekStrip');
-  strip.innerHTML='';
-  const todayDate=new Date();todayDate.setHours(0,0,0,0);
-  // Start from the Sunday one week before the current week's Sunday
-  const startDate=new Date(todayDate);
-  startDate.setDate(startDate.getDate()-startDate.getDay()-7);
-  for(let i=0;i<35;i++){
-    const d=new Date(startDate);d.setDate(d.getDate()+i);
-    const key=isoKey(d);
-    const col=document.createElement('div');
-    col.dataset.dateKey=key;
-    col.innerHTML=`<span class="day-letter">${DAY_LETTERS[d.getDay()]}</span><span class="day-num">${d.getDate()}</span><span class="day-dot"></span>`;
-    col.addEventListener('click',()=>{S.selectedDate=key;renderAll()});
-    strip.appendChild(col);
-  }
-  _calendarBuilt=true;
-}
-
+// ── calendar: 28-day scrollable strip (4 weeks from today) ──
 function renderCalendar(){
-  if(!_calendarBuilt)buildCalendarStrip();
   const strip=document.getElementById('weekStrip');
   const dotDates=datesWithClasses();
   const today=todayKey();
+  const todayDate=new Date();todayDate.setHours(0,0,0,0);
 
-  // Update page title from selected date
+  // Update page title from selected date's month
   if(S.selectedDate){
     const[sy,sm]=S.selectedDate.split('-').map(Number);
     document.getElementById('pageTitle').textContent=MONTHS[sm-1]+' \''+String(sy).slice(-2);
   }
 
+  // Preserve scroll position across re-renders
+  const prevScroll=strip.scrollLeft;
+  strip.innerHTML='';
   let selectedEl=null,todayEl=null;
-  strip.querySelectorAll('.day-col').forEach(col=>{
-    const key=col.dataset.dateKey;
+
+  for(let i=0;i<28;i++){
+    const d=new Date(todayDate);d.setDate(d.getDate()+i);
+    const key=isoKey(d);
+    const col=document.createElement('div');
     col.className='day-col'+(key===S.selectedDate?' selected':'')+(key===today?' today':'')+(dotDates.has(key)?' has-classes':'');
+    col.innerHTML=`<span class="day-letter">${DAY_LETTERS[d.getDay()]}</span><span class="day-num">${d.getDate()}</span><span class="day-dot"></span>`;
+    col.addEventListener('click',()=>{S.selectedDate=key;renderAll()});
+    strip.appendChild(col);
     if(key===S.selectedDate)selectedEl=col;
     if(key===today)todayEl=col;
-  });
+  }
 
-  // Scroll selected (or today on first render) into center
-  const target=selectedEl||todayEl;
-  if(target){
-    requestAnimationFrame(()=>{
+  // On first load scroll selected/today to center; otherwise restore scroll
+  if(prevScroll===0){
+    const target=selectedEl||todayEl;
+    if(target) requestAnimationFrame(()=>{
       const sw=strip.offsetWidth,cw=target.offsetWidth;
       strip.scrollLeft=target.offsetLeft-sw/2+cw/2;
     });
+  } else {
+    strip.scrollLeft=prevScroll;
   }
 }
 
@@ -507,12 +501,12 @@ function buildCard(c,i){
 
   div.innerHTML=`${bookHref}
     <div class="card-inner">
-      <div class="card-top-row">
+      <div class="card-header-row">
+        <div class="card-meta">${esc(metaStr)}</div>
         <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
           <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
         </button>
       </div>
-      <div class="card-meta">${esc(metaStr)}</div>
       <div class="card-name">${esc(c.class_name)}</div>
       <div class="card-instructor-row">
         <div class="small-avatar" style="background:${color}">${abbr}</div>
@@ -569,14 +563,15 @@ function initStudioChips(){
   });
 }
 
-// ── genre chips (single-select) ──
+// ── genre chips (multi-select, no All) ──
 function initGenreChips(){
   document.querySelectorAll('#genreChipRow .fchip').forEach(chip=>{
     chip.addEventListener('click',()=>{
-      document.querySelectorAll('#genreChipRow .fchip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-      S.genre=chip.dataset.genre;
-      updateApplyBtn();
+      chip.classList.toggle('active');
+      const val=chip.dataset.genre;
+      if(chip.classList.contains('active')) S.genres.add(val);
+      else S.genres.delete(val);
+      buildTeacherChips();updateApplyBtn();
     });
   });
 }
