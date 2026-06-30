@@ -244,14 +244,17 @@ def load_brickhouse():
 def load_modega():
     raw = json.loads((HERE / "modega_schedule.json").read_text())
     out = []
+    _STUDIO_NAMES = {"Modega", "Mover's Bodega, LLC", "Mover's Bodega"}
     for c in raw["classes"]:
         start_dt = parse_dt(c.get("start_time", ""))
         end_dt   = parse_dt(c.get("end_time", ""))
         name = normalize_name(c.get("class_name", ""))
+        raw_instr = c.get("instructor", "")
+        instructor = "" if raw_instr in _STUDIO_NAMES else raw_instr
         out.append(_make_class(
             studio="Modega", studio_key="modega",
             class_name=name, category="",
-            instructor=c.get("instructor", ""),
+            instructor=instructor,
             start_dt=start_dt, end_dt=end_dt,
             is_canceled=c.get("is_canceled", False),
             booking_url=c.get("booking_url", c.get("source_url", "")),
@@ -507,22 +510,20 @@ a{color:inherit;text-decoration:none}
 /* ── popup tab ── */
 .popup-pane{padding:4px 0 32px}
 .popup-hint{font-size:13px;color:#9a9688;margin-bottom:14px;line-height:1.55}
-.popup-textarea{width:100%;min-height:108px;padding:12px;border-radius:13px;border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;line-height:1.5;resize:none;font-family:inherit;background:#faf9f7;outline:none;-webkit-appearance:none;display:block}
-.popup-textarea:focus{border-color:#1a1a18}
-.popup-btn-row{display:flex;gap:10px;margin:10px 0 16px}
-.popup-act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 0;border-radius:12px;background:#f0ece6;border:none;font-size:14px;font-weight:500;color:#3a3830;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.popup-btn-row{display:flex;gap:10px;margin:0 0 14px}
+.popup-act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 0;border-radius:12px;background:#f0ece6;border:none;font-size:14px;font-weight:500;color:#3a3830;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
 .popup-act-btn:active{background:#e4e0da}
 .popup-act-btn svg{stroke:#3a3830;flex-shrink:0}
 .popup-ocr-status{font-size:12px;color:#9a9688;margin-bottom:12px;padding:8px 12px;background:#f8f6f2;border-radius:8px}
-.popup-fields{display:flex;flex-direction:column;gap:14px;padding-top:6px}
-.pfield{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
-.pfield-row{display:flex;gap:10px}
-.pfield-label{font-size:11px;font-weight:600;color:#9a9688;text-transform:uppercase;letter-spacing:.07em}
-.pfield-input{padding:10px 12px;border-radius:10px;border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;font-family:inherit;background:#faf9f7;outline:none;-webkit-appearance:none;width:100%;box-sizing:border-box}
-.pfield-input:focus{border-color:#1a1a18}
-.pfield-chips{display:flex;flex-wrap:wrap;gap:6px}
-.pchip{padding:7px 13px;border-radius:16px;font-size:12px;font-weight:500;color:#3a3830;background:#f0ece6;border:1.5px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.pchip.active{background:#1a1a18;color:#eceae6}
+.popup-content-area{margin-bottom:14px}
+.popup-img-preview{width:100%;max-height:340px;object-fit:contain;display:block;border-radius:13px;background:#f0ece6}
+.popup-textarea{width:100%;min-height:120px;padding:12px;border-radius:13px;border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;line-height:1.5;resize:none;font-family:inherit;background:#faf9f7;outline:none;-webkit-appearance:none;display:block;box-sizing:border-box}
+.popup-textarea:focus{border-color:#1a1a18}
+.popup-summary{background:#f8f6f2;border:1.5px solid #e8e4de;border-radius:13px;padding:14px 14px 12px;margin-bottom:14px}
+.ps-name{font-size:16px;font-weight:700;color:#1a1a18;margin-bottom:5px;line-height:1.3}
+.ps-meta{font-size:12px;color:#7a7570;margin-bottom:2px;line-height:1.45}
+.ps-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.ps-chip{padding:4px 11px;border-radius:12px;font-size:11px;font-weight:600;background:#e8e4de;color:#5a5650;text-transform:capitalize}
 .popup-save-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:14px;background:#1a1a18;color:#eceae6;font-size:15px;font-weight:600;cursor:pointer;border:none;margin-top:4px;-webkit-tap-highlight-color:transparent;transition:background .2s,opacity .15s}
 .popup-save-btn:active{opacity:.78}
 .popup-save-btn.saved-ok{background:#1a7a46}
@@ -630,11 +631,11 @@ a{color:inherit;text-decoration:none}
     <div class="fsection">
       <div class="fsection-label">Level</div>
       <div class="fchip-row" id="levelChipRow">
-        <button class="fchip active" data-level="all">All</button>
+        <button class="fchip" data-level="all">All</button>
         <button class="fchip" data-level="Beginner">Beginner</button>
-        <button class="fchip" data-level="All Levels">Open</button>
-        <button class="fchip" data-level="Intermediate">Intermediate</button>
-        <button class="fchip" data-level="Int/Adv">Int/Adv</button>
+        <button class="fchip active" data-level="All Levels">Open</button>
+        <button class="fchip active" data-level="Intermediate">Intermediate</button>
+        <button class="fchip active" data-level="Int/Adv">Int/Adv</button>
         <button class="fchip" data-level="Advanced">Advanced</button>
       </div>
     </div>
@@ -747,48 +748,43 @@ function parseClassText(text){
 }
 
 // ── popup: auto-fill form from parsed class ──
-function autoParsePopup(){
-  const text=document.getElementById('popupTextarea')?.value||'';
-  const cls=parseClassText(text);
-  const fieldsDiv=document.getElementById('popupFields');
-  if(!fieldsDiv)return;
-  if(!cls){fieldsDiv.style.display='none';return;}
-  fieldsDiv.style.display='';
-  if(cls.class_name)document.getElementById('pf_name').value=cls.class_name;
-  if(cls.date_key)document.getElementById('pf_date').value=cls.date_key;
-  if(cls.start_display)document.getElementById('pf_time').value=cls.start_display;
-  if(cls.instructor)document.getElementById('pf_instructor').value=cls.instructor;
-  if(cls.studio&&cls.studio!=='Custom')document.getElementById('pf_studio').value=cls.studio;
-  document.querySelectorAll('#pf_level_chips .pchip').forEach(c=>c.classList.toggle('active',c.dataset.level===cls.level));
+// ── popup: shared parsed state ──
+let _popupParsed=null;
+
+function _showParsedSummary(cls){
+  const sd=document.getElementById('popupSummary');
+  const sb=document.getElementById('popupSaveBtn');
+  if(!sd||!sb)return;
+  _popupParsed=cls;
+  const dateStr=cls.date_key?formatDateFull(cls.date_key):'';
+  const timePart=cls.start_display?' · '+cls.start_display:'';
+  const datePart=dateStr?' · '+dateStr:'';
+  sd.style.display='';
+  sd.innerHTML=`<div class="ps-name">${esc(cls.class_name||'Class')}</div>`
+    +`<div class="ps-meta">${esc(cls.studio)}${datePart}${timePart}</div>`
+    +(cls.instructor?`<div class="ps-meta">with ${esc(cls.instructor)}</div>`:'')
+    +`<div class="ps-chips"><span class="ps-chip">${esc(cls.level)}</span><span class="ps-chip">${esc(cls.genre)}</span></div>`;
+  sb.style.display='';
 }
 
 // ── popup: save custom class ──
 function doSaveCustomClass(){
-  const name=(document.getElementById('pf_name')?.value||'').trim()||'Custom Class';
-  const dateVal=document.getElementById('pf_date')?.value||'';
-  const timeVal=(document.getElementById('pf_time')?.value||'').trim();
-  const instrVal=(document.getElementById('pf_instructor')?.value||'').trim();
-  const studioVal=(document.getElementById('pf_studio')?.value||'').trim()||'Custom';
-  const lvlEl=document.querySelector('#pf_level_chips .pchip.active');
-  const level=lvlEl?lvlEl.dataset.level:'All Levels';
-  const rawText=document.getElementById('popupTextarea')?.value||'';
-  const[genre,subgenre]=extractGenreJS(name.toLowerCase()+' '+rawText.toLowerCase());
-  let start_hour=-1;
-  const tmt=timeVal.match(/(\d+):(\d+)\s*(AM|PM)/i);
-  if(tmt){let h=parseInt(tmt[1]),mn=parseInt(tmt[2]);if(tmt[3].toUpperCase()==='PM'&&h<12)h+=12;if(tmt[3].toUpperCase()==='AM'&&h===12)h=0;start_hour=h+mn/60;}
-  const cls={studio:studioVal,studio_key:'custom',class_name:name,instructor:instrVal,
-    date_key:dateVal,start_display:timeVal,end_display:'',duration_min:null,
-    level,genre,subgenre,start_hour,is_canceled:false,is_custom:true,
-    booking_url:'',raw_text:rawText,custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
+  if(!_popupParsed)return;
+  const cls={..._popupParsed,custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
   CUSTOM_CLASSES.push(cls);
   localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));
   const btn=document.getElementById('popupSaveBtn');
   if(btn){
     btn.textContent='✓ Saved to Wishlist';btn.classList.add('saved-ok');
     setTimeout(()=>{
-      btn.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg> Save to Wishlist';
-      btn.classList.remove('saved-ok');
-    },2500);
+      _popupParsed=null;
+      const ca=document.getElementById('popupContent');
+      const sd=document.getElementById('popupSummary');
+      if(ca){ca.style.display='none';ca.innerHTML='';}
+      if(sd){sd.style.display='none';sd.innerHTML='';}
+      btn.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg> Save to Wishlist';
+      btn.classList.remove('saved-ok');btn.style.display='none';
+    },2000);
   }
 }
 
@@ -822,40 +818,57 @@ function cleanOcrText(raw){
 }
 async function handlePopupPhoto(e){
   const file=e.target.files[0];if(!file)return;
+  const imgUrl=URL.createObjectURL(file);
+  // Show image preview immediately
+  const ca=document.getElementById('popupContent');
+  if(ca){
+    ca.style.display='';
+    ca.innerHTML=`<img src="${imgUrl}" class="popup-img-preview" alt="Class photo"/>`;
+  }
   const status=document.getElementById('popupOcrStatus');
-  if(status){status.style.display='';status.textContent='Loading OCR engine…';}
+  if(status){status.style.display='';status.textContent='Reading text from photo…';}
   try{
     if(!window.Tesseract){
       await new Promise((res,rej)=>{const s=document.createElement('script');
         s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
         s.onload=res;s.onerror=rej;document.head.appendChild(s);});
     }
-    if(status)status.textContent='Reading photo…';
     const cropped=await cropImageForOcr(file);
     const{data:{text}}=await Tesseract.recognize(cropped,'eng',{logger:()=>{}});
     const cleaned=cleanOcrText(text);
     if(status)status.style.display='none';
-    const ta=document.getElementById('popupTextarea');
-    if(ta){ta.value=cleaned;autoParsePopup();}
+    const cls=parseClassText(cleaned);
+    if(cls)_showParsedSummary(cls);
+    else{
+      // OCR got no parseable data — still let user save with placeholder
+      _showParsedSummary({studio:'Custom',studio_key:'custom',class_name:'Custom Class',
+        instructor:'',date_key:'',start_display:'',end_display:'',level:'All Levels',
+        genre:'other',subgenre:'other',start_hour:-1,is_canceled:false,is_custom:true,
+        booking_url:'',raw_text:cleaned});
+    }
   }catch(err){
-    if(status){status.style.display='';status.textContent='Could not read photo — try pasting the text instead.';}
+    if(status){status.style.display='';status.textContent='Could not read text — saving photo as custom class.';}
+    _showParsedSummary({studio:'Custom',studio_key:'custom',class_name:'Custom Class',
+      instructor:'',date_key:'',start_display:'',end_display:'',level:'All Levels',
+      genre:'other',subgenre:'other',start_hour:-1,is_canceled:false,is_custom:true,
+      booking_url:'',raw_text:''});
   }
 }
 
 // ── popup tab render ──
 function renderPopup(){
+  _popupParsed=null;
   document.getElementById('pageTitle').textContent='Pop up';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   const listEl=document.getElementById('classesList');
   listEl.innerHTML=`
 <div class="popup-pane">
-  <p class="popup-hint">Paste a class description, flyer text, or Instagram caption — we'll extract the details for you.</p>
-  <textarea id="popupTextarea" class="popup-textarea" placeholder="e.g. Hip Hop Foundations with Maya&#10;Tuesday July 8 · 7:30 PM&#10;Brickhouse NYC · Beginner friendly"></textarea>
+  <p class="popup-hint">Add a class from a screenshot or copied text — we'll extract the details.</p>
   <div class="popup-btn-row">
     <button class="popup-act-btn" id="popupPasteBtn">
       <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="11" height="14" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/><path d="M9 3a2 2 0 0 1 3.5 0"/></svg>
-      Paste from clipboard
+      Paste
     </button>
     <label class="popup-act-btn" style="cursor:pointer">
       <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="18" height="13" rx="2"/><circle cx="10" cy="12" r="3"/><path d="M7 5l1.5-2.5h3L13 5"/></svg>
@@ -864,76 +877,46 @@ function renderPopup(){
     </label>
   </div>
   <div id="popupOcrStatus" class="popup-ocr-status" style="display:none"></div>
-  <div id="popupFields" class="popup-fields" style="display:none">
-    <div class="pfield">
-      <label class="pfield-label">Class name</label>
-      <input class="pfield-input" id="pf_name" type="text" placeholder="e.g. Beginner Hip Hop"/>
-    </div>
-    <div class="pfield-row">
-      <div class="pfield">
-        <label class="pfield-label">Date</label>
-        <input class="pfield-input" id="pf_date" type="date"/>
-      </div>
-      <div class="pfield">
-        <label class="pfield-label">Time</label>
-        <input class="pfield-input" id="pf_time" type="text" placeholder="7:30 PM"/>
-      </div>
-    </div>
-    <div class="pfield-row">
-      <div class="pfield">
-        <label class="pfield-label">Instructor</label>
-        <input class="pfield-input" id="pf_instructor" type="text" placeholder="Name"/>
-      </div>
-      <div class="pfield">
-        <label class="pfield-label">Studio</label>
-        <input class="pfield-input" id="pf_studio" type="text" placeholder="Studio name"/>
-      </div>
-    </div>
-    <div class="pfield">
-      <label class="pfield-label">Level</label>
-      <div class="pfield-chips" id="pf_level_chips">
-        <button class="pchip active" data-level="All Levels">Open</button>
-        <button class="pchip" data-level="Beginner">Beginner</button>
-        <button class="pchip" data-level="Intermediate">Int</button>
-        <button class="pchip" data-level="Int/Adv">Int/Adv</button>
-        <button class="pchip" data-level="Advanced">Advanced</button>
-      </div>
-    </div>
-    <button class="popup-save-btn" id="popupSaveBtn">
-      <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
-      Save to Wishlist
-    </button>
-  </div>
+  <div id="popupContent" class="popup-content-area" style="display:none"></div>
+  <div id="popupSummary" class="popup-summary" style="display:none"></div>
+  <button class="popup-save-btn" id="popupSaveBtn" style="display:none">
+    <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
+    Save to Wishlist
+  </button>
 </div>`;
 
-  // Wire events
-  document.getElementById('popupTextarea').addEventListener('input',()=>{
-    clearTimeout(window._ppDebounce);window._ppDebounce=setTimeout(autoParsePopup,550);
-  });
+  // Paste button
   document.getElementById('popupPasteBtn').addEventListener('click',async()=>{
-    const ta=document.getElementById('popupTextarea');
     const status=document.getElementById('popupOcrStatus');
     try{
       const text=await navigator.clipboard.readText();
-      if(text){ta.value=text;autoParsePopup();}
-    }catch(e){
-      // Clipboard API blocked (common on iOS) — guide user to paste manually
-      ta.focus();
-      if(status){
-        status.style.display='';
-        status.textContent='Clipboard access blocked — tap & hold the text box above, then choose Paste.';
-        setTimeout(()=>{status.style.display='none';},4000);
+      if(text){
+        const ca=document.getElementById('popupContent');
+        ca.style.display='';
+        ca.innerHTML=`<textarea class="popup-textarea" readonly>${esc(text)}</textarea>`;
+        const cls=parseClassText(text);
+        if(cls)_showParsedSummary(cls);
       }
+    }catch(e){
+      // Clipboard blocked — show a manual textarea
+      const ca=document.getElementById('popupContent');
+      ca.style.display='';
+      ca.innerHTML='<textarea id="popupManualTA" class="popup-textarea" placeholder="Paste your text here…"></textarea>';
+      document.getElementById('popupManualTA').focus();
+      document.getElementById('popupManualTA').addEventListener('input',function(){
+        clearTimeout(window._ppD);
+        window._ppD=setTimeout(()=>{
+          const cls=parseClassText(this.value);
+          if(cls)_showParsedSummary(cls);
+        },600);
+      });
+      if(status){status.style.display='';status.textContent='Tap & hold the box above, then choose Paste.';
+        setTimeout(()=>{status.style.display='none';},4000);}
     }
   });
+
   document.getElementById('popupPhotoInput').addEventListener('change',handlePopupPhoto);
   document.getElementById('popupSaveBtn').addEventListener('click',doSaveCustomClass);
-  document.querySelectorAll('#pf_level_chips .pchip').forEach(c=>{
-    c.addEventListener('click',()=>{
-      document.querySelectorAll('#pf_level_chips .pchip').forEach(x=>x.classList.remove('active'));
-      c.classList.add('active');
-    });
-  });
 }
 
 // ── bookmarks ──
@@ -958,7 +941,8 @@ function toggleFavTeacher(name){
 // studios: Set — 'all' means no filter; genres: Set of selected genre keys (multi-select)
 const S={selectedDate:'',studios:new Set(['all']),
   genres:new Set(['street','contemporary','afro','choreo','conditioning','other']),
-  level:'all',teacher:'all',timeMin:12,timeMax:24,tab:'schedule'};
+  level:new Set(['All Levels','Intermediate','Int/Adv']),
+  teacher:'all',timeMin:12,timeMax:24,tab:'schedule'};
 
 // ── genre → card style ──
 const GENRE_STYLES={
@@ -1002,7 +986,7 @@ function formatDateFull(dateKey){
 function matchesFilters(c){
   if(!S.studios.has('all')&&!S.studios.has(c.studio_key))return false;
   if(!S.genres.has(c.genre))return false;
-  if(S.level!=='all'&&c.level!==S.level)return false;
+  if(!S.level.has('all')&&!S.level.has(c.level))return false;
   if(S.teacher!=='all'&&c.instructor!==S.teacher)return false;
   const h=c.start_hour;if(h>=0&&(h<S.timeMin||h>S.timeMax))return false;
   return true;
@@ -1046,13 +1030,13 @@ function renderCalendar(){
     if(key===today)todayEl=col;
   }
 
-  // On first load scroll selected/today to center; otherwise restore scroll
+  // On first load start at left (today visible, 7 days shown); otherwise restore scroll
   if(prevScroll===0){
-    const target=selectedEl||todayEl;
-    if(target) requestAnimationFrame(()=>{
-      const sw=strip.offsetWidth,cw=target.offsetWidth;
-      strip.scrollLeft=target.offsetLeft-sw/2+cw/2;
-    });
+    strip.scrollLeft=0;
+    // If selected date is not today, scroll it just into view (don't center)
+    if(selectedEl&&S.selectedDate!==today){
+      requestAnimationFrame(()=>selectedEl.scrollIntoView({behavior:'instant',inline:'nearest'}));
+    }
   } else {
     strip.scrollLeft=prevScroll;
   }
@@ -1203,13 +1187,24 @@ function initGenreChips(){
   });
 }
 
-// ── level chips ──
+// ── level chips (multi-select) ──
 function initLevelChips(){
   document.querySelectorAll('#levelChipRow .fchip').forEach(chip=>{
     chip.addEventListener('click',()=>{
-      document.querySelectorAll('#levelChipRow .fchip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-      S.level=chip.dataset.level;
+      const val=chip.dataset.level;
+      if(val==='all'){
+        S.level=new Set(['all']);
+        document.querySelectorAll('#levelChipRow .fchip').forEach(c=>
+          c.classList.toggle('active',c.dataset.level==='all'));
+      } else {
+        S.level.delete('all');
+        chip.classList.toggle('active');
+        if(chip.classList.contains('active'))S.level.add(val);
+        else S.level.delete(val);
+        if(S.level.size===0)S.level.add('all');
+        document.querySelector('#levelChipRow .fchip[data-level="all"]')
+          .classList.toggle('active',S.level.has('all'));
+      }
       updateApplyBtn();
     });
   });
