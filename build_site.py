@@ -433,6 +433,8 @@ a{color:inherit;text-decoration:none}
 .card-choreo-2{background:linear-gradient(155deg,#0a2020 0%,#040e0e 72%);background-image:repeating-linear-gradient(28deg,rgba(255,255,255,.048) 0,rgba(255,255,255,.048) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#0a2020 0%,#040e0e 72%)}
 
 .card-canceled{opacity:.48}
+.card-past{opacity:.42}
+.card-past .card-tap{pointer-events:none}
 /* card-inner has no z-index so save-btn can rise above card-tap in card's stacking context */
 .card-inner{padding:14px;position:relative}
 .card-tap{position:absolute;inset:0;z-index:1}
@@ -536,6 +538,23 @@ a{color:inherit;text-decoration:none}
 .popup-save-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:14px;background:#1a1a18;color:#eceae6;font-size:15px;font-weight:600;cursor:pointer;border:none;margin-top:4px;-webkit-tap-highlight-color:transparent;transition:background .2s,opacity .15s}
 .popup-save-btn:active{opacity:.78}
 .popup-save-btn.saved-ok{background:#1a7a46}
+
+/* pink card for custom popup classes */
+.card-custom-popup{background:linear-gradient(155deg,#2a0818 0%,#160510 72%);background-image:repeating-linear-gradient(35deg,rgba(212,83,126,.1) 0,rgba(212,83,126,.1) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#2a0818 0%,#160510 72%)}
+/* manual add form */
+.popup-manual-form{background:#f8f6f2;border:1.5px solid #e8e4de;border-radius:16px;padding:16px;margin-bottom:16px;display:flex;flex-direction:column;gap:12px}
+.pmf-row{display:flex;gap:10px}
+.pmf-field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.pmf-label{font-size:11px;font-weight:600;color:#9a9688;text-transform:uppercase;letter-spacing:.07em}
+.pmf-input{padding:10px 12px;border-radius:10px;border:1.5px solid #e8e4de;font-size:14px;color:#1a1a18;font-family:inherit;background:#fff;outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none}
+.pmf-input:focus{border-color:#1a1a18}
+.pmf-chips{display:flex;flex-wrap:wrap;gap:6px}
+.pmf-chip{padding:7px 13px;border-radius:16px;font-size:12px;font-weight:500;color:#3a3830;background:#f0ece6;border:1.5px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pmf-chip.active{background:#1a1a18;color:#eceae6}
+.pmf-save{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:13px;background:#1a1a18;color:#eceae6;font-size:15px;font-weight:600;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent;transition:background .2s}
+.pmf-save.ok{background:#1a7a46}
+/* custom classes list in popup tab */
+.popup-classes-header{font-size:12px;font-weight:600;color:#9a9688;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:4px}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
@@ -869,34 +888,147 @@ async function handlePopupPhoto(e){
 }
 
 // ── popup tab render ──
+function renderManualForm(container){
+  // Build instructor and studio lists from ALL_CLASSES
+  const instructors=[...new Set(ALL_CLASSES.filter(c=>c.instructor&&c.instructor!=='Modega Staff').map(c=>c.instructor))].sort();
+  const studios=[...new Set(ALL_CLASSES.map(c=>c.studio))].sort();
+  const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemporary',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Conditioning',other:'Other'};
+  const LEVEL_LABELS=['All Levels','Beginner','Intermediate','Int/Adv','Advanced'];
+
+  container.innerHTML=`
+<div class="popup-manual-form" id="pmfWrap">
+  <datalist id="pmf-instrs">${instructors.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>
+  <datalist id="pmf-studios">${studios.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
+  <div class="pmf-field">
+    <label class="pmf-label">Class name</label>
+    <input class="pmf-input" id="pmf_name" list="pmf-instrs" placeholder="e.g. Heels Fundamentals" autocomplete="off"/>
+  </div>
+  <div class="pmf-row">
+    <div class="pmf-field">
+      <label class="pmf-label">Instructor</label>
+      <input class="pmf-input" id="pmf_instructor" list="pmf-instrs" placeholder="Name" autocomplete="off"/>
+    </div>
+    <div class="pmf-field">
+      <label class="pmf-label">Studio / Location</label>
+      <input class="pmf-input" id="pmf_studio" list="pmf-studios" placeholder="Studio" autocomplete="off"/>
+    </div>
+  </div>
+  <div class="pmf-row">
+    <div class="pmf-field">
+      <label class="pmf-label">Date</label>
+      <input class="pmf-input" id="pmf_date" type="date"/>
+    </div>
+    <div class="pmf-field">
+      <label class="pmf-label">Time</label>
+      <input class="pmf-input" id="pmf_time" type="time"/>
+    </div>
+  </div>
+  <div class="pmf-field">
+    <label class="pmf-label">Style</label>
+    <div class="pmf-chips" id="pmf_genre_chips">
+      ${Object.entries(GENRE_LABELS).map(([k,v])=>`<button class="pmf-chip" data-val="${k}">${v}</button>`).join('')}
+    </div>
+  </div>
+  <div class="pmf-field">
+    <label class="pmf-label">Level</label>
+    <div class="pmf-chips" id="pmf_level_chips">
+      ${LEVEL_LABELS.map(l=>`<button class="pmf-chip${l==='All Levels'?' active':''}" data-val="${l}">${l}</button>`).join('')}
+    </div>
+  </div>
+  <button class="pmf-save" id="pmfSaveBtn"><i class="ph ph-plus-circle"></i> Add Class</button>
+</div>`;
+
+  // Chip toggles (genre: single, level: single)
+  ['pmf_genre_chips','pmf_level_chips'].forEach(rowId=>{
+    container.querySelectorAll(`#${rowId} .pmf-chip`).forEach(ch=>{
+      ch.addEventListener('click',()=>{
+        container.querySelectorAll(`#${rowId} .pmf-chip`).forEach(x=>x.classList.remove('active'));
+        ch.classList.add('active');
+      });
+    });
+  });
+
+  container.querySelector('#pmfSaveBtn').addEventListener('click',()=>{
+    const name=(container.querySelector('#pmf_name').value||'').trim()||'Custom Class';
+    const instructor=(container.querySelector('#pmf_instructor').value||'').trim();
+    const studio=(container.querySelector('#pmf_studio').value||'').trim()||'Custom';
+    const dateVal=container.querySelector('#pmf_date').value||'';
+    const timeVal=container.querySelector('#pmf_time').value||'';
+    const genreEl=container.querySelector('#pmf_genre_chips .pmf-chip.active');
+    const genre=genreEl?genreEl.dataset.val:'other';
+    const levelEl=container.querySelector('#pmf_level_chips .pmf-chip.active');
+    const level=levelEl?levelEl.dataset.val:'All Levels';
+    let start_display='',start_hour=-1;
+    if(timeVal){
+      const[hh,mm]=timeVal.split(':').map(Number);
+      const period=hh>=12?'PM':'AM';const dh=hh>12?hh-12:(hh===0?12:hh);
+      start_display=`${dh}:${String(mm).padStart(2,'0')} ${period}`;
+      start_hour=hh+mm/60;
+    }
+    const[sg]=extractGenreJS(name.toLowerCase());
+    const cls={studio,studio_key:'custom',class_name:name,instructor,date_key:dateVal,
+      start_display,end_display:'',level,genre:genre||sg,subgenre:genre||sg,
+      start_hour,is_canceled:false,is_custom:true,booking_url:'',raw_text:'',
+      custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
+    CUSTOM_CLASSES.push(cls);
+    localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));
+    const btn=container.querySelector('#pmfSaveBtn');
+    btn.textContent='✓ Added!';btn.classList.add('ok');
+    setTimeout(()=>{renderPopup();},1200);
+  });
+}
+
 function renderPopup(){
   _popupParsed=null;
   document.getElementById('pageTitle').textContent='Pop up';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   const listEl=document.getElementById('classesList');
+
+  // Sort CUSTOM_CLASSES by date desc (most recent first)
+  const sorted=[...CUSTOM_CLASSES].sort((a,b)=>b.date_key.localeCompare(a.date_key));
+  const customListHTML=sorted.length?`
+<div class="popup-classes-header">Your Pop-ups (${sorted.length})</div>
+<div id="popupCustomList"></div>`:'';
+
   listEl.innerHTML=`
 <div class="popup-pane">
-  <p class="popup-hint">Add a class from a screenshot or copied text — we'll extract the details.</p>
-  <div class="popup-btn-row">
-    <button class="popup-act-btn" id="popupPasteBtn">
-      <i class="ph ph-clipboard-text"></i>
-      Paste
+  <div class="popup-btn-row" style="gap:8px">
+    <button class="popup-act-btn" id="popupPasteBtn" style="flex:1">
+      <i class="ph ph-clipboard-text"></i>Paste
     </button>
-    <label class="popup-act-btn" style="cursor:pointer">
-      <i class="ph ph-camera"></i>
-      Photo
+    <label class="popup-act-btn" style="flex:1;cursor:pointer">
+      <i class="ph ph-camera"></i>Photo
       <input type="file" id="popupPhotoInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
     </label>
+    <button class="popup-act-btn" id="popupManualBtn" style="flex:1">
+      <i class="ph ph-pencil-simple"></i>Manual
+    </button>
   </div>
   <div id="popupOcrStatus" class="popup-ocr-status" style="display:none"></div>
+  <div id="popupManualWrap"></div>
   <div id="popupContent" class="popup-content-area" style="display:none"></div>
   <div id="popupSummary" class="popup-summary" style="display:none"></div>
   <button class="popup-save-btn" id="popupSaveBtn" style="display:none">
-    <i class="ph ph-bookmark-simple"></i>
-    Save to Wishlist
+    <i class="ph ph-bookmark-simple"></i>Save to Wishlist
   </button>
+  ${customListHTML}
 </div>`;
+
+  // Render custom class cards
+  if(sorted.length){
+    const cl=listEl.querySelector('#popupCustomList');
+    sorted.forEach((c,i)=>cl.appendChild(buildCard(c,i)));
+  }
+
+  // Manual form toggle
+  let manualOpen=false;
+  document.getElementById('popupManualBtn').addEventListener('click',()=>{
+    manualOpen=!manualOpen;
+    const wrap=document.getElementById('popupManualWrap');
+    if(manualOpen){renderManualForm(wrap);}
+    else{wrap.innerHTML='';}
+  });
 
   // Paste button
   document.getElementById('popupPasteBtn').addEventListener('click',async()=>{
@@ -911,7 +1043,6 @@ function renderPopup(){
         if(cls)_showParsedSummary(cls);
       }
     }catch(e){
-      // Clipboard blocked — show a manual textarea
       const ca=document.getElementById('popupContent');
       ca.style.display='';
       ca.innerHTML='<textarea id="popupManualTA" class="popup-textarea" placeholder="Paste your text here…"></textarea>';
@@ -944,30 +1075,143 @@ function toggleSaved(c){
 }
 
 // ── my classes ──
-let myClassesMap=JSON.parse(localStorage.getItem('nyd_my_classes')||'{}');
+let myClassesMap=(()=>{
+  const raw=JSON.parse(localStorage.getItem('nyd_my_classes')||'{}');
+  // migrate: notes string → array
+  Object.values(raw).forEach(v=>{if(typeof v.notes==='string')v.notes=v.notes?[{id:'n0',text:v.notes,type:'text',created_at:v.added_at}]:[];});
+  return raw;
+})();
 // myClassesMap: {classId → {notes, added_at}}
 function isMyClass(c){return!!myClassesMap[classId(c)]}
 function toggleMyClass(c){
   const id=classId(c);
   if(myClassesMap[id]){delete myClassesMap[id];}
-  else{myClassesMap[id]={notes:'',added_at:new Date().toISOString()};}
+  else{myClassesMap[id]={notes:[],added_at:new Date().toISOString()};}
   localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
   return!!myClassesMap[id];
 }
-function saveNotes(c,text){
+function addNote(c,text,type){
   const id=classId(c);
-  if(myClassesMap[id])myClassesMap[id].notes=text;
+  if(!myClassesMap[id])return;
+  const note={id:`n_${Date.now()}`,text,type,created_at:new Date().toISOString()};
+  myClassesMap[id].notes.push(note);
+  localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
+  return note;
+}
+function deleteNote(c,noteId){
+  const id=classId(c);
+  if(!myClassesMap[id])return;
+  myClassesMap[id].notes=myClassesMap[id].notes.filter(n=>n.id!==noteId);
   localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
 }
 
+let _notesClass=null;
+
+const NOTE_COLORS=['#f9d0dd','#d4d0f9','#d0f0d8','#f9ead0','#d0eaf9'];
+function noteColor(idx){return NOTE_COLORS[idx%NOTE_COLORS.length];}
+
+function renderNoteDetail(c){
+  _notesClass=c;
+  const id=classId(c);
+  const entry=myClassesMap[id]||{notes:[],added_at:new Date().toISOString()};
+  const notes=entry.notes||[];
+  const listEl=document.getElementById('classesList');
+
+  function _rebuildNotes(){
+    const entry2=myClassesMap[id]||{notes:[]};
+    const notes2=entry2.notes||[];
+    const notesContainer=document.getElementById('noteCardsContainer');
+    if(!notesContainer)return;
+    notesContainer.innerHTML='';
+    if(!notes2.length){
+      notesContainer.innerHTML='<div style="color:#9a9688;font-size:13px;padding:8px 0 16px">No notes yet — add one below.</div>';
+    } else {
+      notes2.forEach((n,i)=>{
+        const dt=new Date(n.created_at);
+        const mon=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()];
+        const hh=dt.getHours(),mm=dt.getMinutes(),period=hh>=12?'PM':'AM';
+        const dh=hh>12?hh-12:(hh===0?12:hh);
+        const timeStr=`${dh}:${String(mm).padStart(2,'0')} ${period}`;
+        const footer=`${mon} ${dt.getDate()} · ${timeStr} · ${n.type==='voice'?'voice → text':'text'}`;
+        const card=document.createElement('div');
+        card.style.cssText='background:#fff;border-radius:16px;padding:18px 16px 14px;margin-bottom:10px;position:relative;box-shadow:0 1px 4px rgba(0,0,0,.07)';
+        card.innerHTML=`<div style="display:flex;justify-content:center;margin-bottom:12px"><div style="width:32px;height:5px;border-radius:3px;background:${noteColor(i)}"></div></div>`
+          +`<div style="font-size:15px;color:#1a1a18;line-height:1.55;margin-bottom:10px">${esc(n.text)}</div>`
+          +`<div style="font-size:11px;color:#9a9688">${footer}</div>`;
+        // delete button
+        const del=document.createElement('button');
+        del.style.cssText='position:absolute;top:10px;right:12px;font-size:18px;color:#ccc;background:none;border:none;cursor:pointer;line-height:1';
+        del.innerHTML='<i class="ph ph-x"></i>';
+        del.addEventListener('click',()=>{deleteNote(c,n.id);_rebuildNotes();});
+        card.appendChild(del);
+        notesContainer.appendChild(card);
+      });
+    }
+  }
+
+  listEl.innerHTML='';
+  // header
+  const header=document.createElement('div');
+  header.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:18px';
+  header.innerHTML=`<button id="notesBackBtn" style="font-size:22px;color:#1a1a18;background:none;border:none;cursor:pointer;display:flex;align-items:center"><i class="ph ph-arrow-left"></i></button>`
+    +`<div style="font-family:'Permanent Marker',cursive;font-size:22px;color:#111;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.class_name)}</div>`;
+  listEl.appendChild(header);
+  document.getElementById('notesBackBtn').addEventListener('click',()=>{_notesClass=null;renderMyClasses();});
+
+  // note cards container
+  const container=document.createElement('div');
+  container.id='noteCardsContainer';
+  listEl.appendChild(container);
+  _rebuildNotes();
+
+  // add note area
+  const addArea=document.createElement('div');
+  addArea.style.cssText='background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-top:4px';
+  addArea.innerHTML=`<textarea id="newNoteTA" placeholder="Add a note…" style="width:100%;min-height:80px;border:none;outline:none;font-size:14px;font-family:inherit;color:#1a1a18;line-height:1.5;resize:none;background:transparent;box-sizing:border-box"></textarea>
+<div style="display:flex;gap:8px;margin-top:8px">
+  <button id="addNoteVoiceBtn" style="display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:10px;background:#f0ece6;border:none;font-size:13px;font-weight:500;color:#3a3830;cursor:pointer"><i class="ph ph-microphone"></i> Voice</button>
+  <button id="addNoteTextBtn" style="flex:1;padding:8px 14px;border-radius:10px;background:#1a1a18;border:none;font-size:13px;font-weight:600;color:#eceae6;cursor:pointer">Save Note</button>
+</div>`;
+  listEl.appendChild(addArea);
+
+  document.getElementById('addNoteTextBtn').addEventListener('click',()=>{
+    const ta=document.getElementById('newNoteTA');
+    const text=ta.value.trim();
+    if(!text)return;
+    addNote(c,text,'text');
+    ta.value='';
+    _rebuildNotes();
+  });
+
+  // Voice via SpeechRecognition
+  document.getElementById('addNoteVoiceBtn').addEventListener('click',()=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){alert('Voice not supported in this browser. Try Chrome.');return;}
+    const rec=new SR();rec.lang='en-US';rec.interimResults=false;rec.maxAlternatives=1;
+    const voiceBtn=document.getElementById('addNoteVoiceBtn');
+    voiceBtn.innerHTML='<i class="ph ph-microphone-stage"></i> Listening…';
+    voiceBtn.style.background='#fde8ef';
+    rec.onresult=e=>{
+      const text=e.results[0][0].transcript;
+      addNote(c,text,'voice');
+      _rebuildNotes();
+      voiceBtn.innerHTML='<i class="ph ph-microphone"></i> Voice';
+      voiceBtn.style.background='#f0ece6';
+    };
+    rec.onerror=()=>{voiceBtn.innerHTML='<i class="ph ph-microphone"></i> Voice';voiceBtn.style.background='#f0ece6';};
+    rec.start();
+  });
+}
+
 function renderMyClasses(){
+  if(_notesClass){renderNoteDetail(_notesClass);return;}
   document.getElementById('pageTitle').textContent='My Classes';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   const listEl=document.getElementById('classesList');
   const stamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
   if(!stamped.length){
-    listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class to add it here.</div></div>`;
+    listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class card to add it here.</div></div>`;
     return;
   }
   stamped.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
@@ -979,16 +1223,16 @@ function renderMyClasses(){
       listEl.appendChild(div);lastDate=c.date_key;
     }
     const card=buildCard(c,i);
-    // Notes area below card
-    const notesWrap=document.createElement('div');
-    notesWrap.className='class-notes-wrap';
-    const ta=document.createElement('textarea');
-    ta.className='class-notes-ta';
-    ta.placeholder='Add notes…';
-    ta.value=myClassesMap[classId(c)]?.notes||'';
-    ta.addEventListener('input',()=>{clearTimeout(ta._nd);ta._nd=setTimeout(()=>saveNotes(c,ta.value),600);});
-    notesWrap.appendChild(ta);
-    card.appendChild(notesWrap);
+    // Notes button row below card
+    const noteRow=document.createElement('div');
+    noteRow.style.cssText='padding:0 14px 10px;position:relative;z-index:2;display:flex;align-items:center;gap:6px';
+    const noteCount=(myClassesMap[classId(c)]?.notes||[]).length;
+    noteRow.innerHTML=`<button style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);font-size:12px;color:rgba(236,234,230,.75);cursor:pointer;-webkit-tap-highlight-color:transparent"><i class="ph ph-note-pencil"></i> Notes${noteCount?' ('+noteCount+')':''}</button>`;
+    noteRow.querySelector('button').addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      _notesClass=c;renderMyClasses();
+    });
+    card.appendChild(noteRow);
     listEl.appendChild(card);
   });
 }
@@ -1021,6 +1265,7 @@ const GENRE_STYLES={
   other:       ['card-other-0','card-other-1','card-other-2'],
 };
 function cardStyle(c){
+  if(c.studio_key==='custom') return 'card-custom-popup';
   const styles=GENRE_STYLES[c.genre]||GENRE_STYLES.other;
   let h=0;for(const ch of(c.subgenre||''))h=(h*31+ch.charCodeAt(0))>>>0;
   return styles[h%3];
@@ -1044,6 +1289,13 @@ function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r}
 function formatDateFull(dateKey){
   const[y,m,d]=dateKey.split('-').map(Number);const dt=new Date(y,m-1,d);
   return`${DAY_NAMES[dt.getDay()]}, ${MONTHS_SHORT[dt.getMonth()]} ${d}`;
+}
+
+function isPastClass(c){
+  if(!c.date_key||c.start_hour<0)return false;
+  const[y,m,d]=c.date_key.split('-').map(Number);
+  const classTime=new Date(y,m-1,d,Math.floor(c.start_hour),Math.round((c.start_hour%1)*60));
+  return classTime<new Date();
 }
 
 function matchesFilters(c){
@@ -1154,7 +1406,7 @@ function renderSaved(){
 // ── card builder ──
 function buildCard(c,i){
   const div=document.createElement('div');
-  div.className=`card ${cardStyle(c)}${c.is_canceled?' card-canceled':''}`;
+  div.className=`card ${cardStyle(c)}${c.is_canceled?' card-canceled':''}${isPastClass(c)?' card-past':''}`;
   div.style.animationDelay=`${Math.min(i*35,200)}ms`;
 
   const color=avatarColor(c.instructor);
