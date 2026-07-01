@@ -335,6 +335,15 @@ def load_pjm():
         ))
     return out
 
+import base64 as _b64
+
+def _watermark_data_url() -> str:
+    """Load watermark PNG and return as base64 data URL for inlining."""
+    p = HERE / "watermark_small.png"
+    if p.exists():
+        return "data:image/png;base64," + _b64.b64encode(p.read_bytes()).decode()
+    return ""  # fallback: no watermark image
+
 def to_js_obj(classes) -> str:
     serialisable = []
     for c in classes:
@@ -1133,13 +1142,13 @@ let myClassesMap=(()=>{
 // create table if not exists wishlist(user_id text, class_id text, class_json jsonb, saved_at timestamptz default now(), primary key(user_id,class_id));
 // create table if not exists custom_classes(user_id text, class_id text, class_json jsonb, created_at timestamptz default now(), primary key(user_id,class_id));
 // create table if not exists user_preferences(user_id text, pref_key text, value_json text, updated_at timestamptz default now(), primary key(user_id,pref_key));
-const _SB_URL='YOUR_SUPABASE_URL';
-const _SB_KEY='YOUR_SUPABASE_ANON_KEY';
+const _SB_URL='https://riezaxehqtoaxjysguwe.supabase.co';
+const _SB_KEY='sb_publishable_beWZ6S96-qf51IBebC_IVQ_ufUR_E9_';
 const _SB_USER='yunshroom-test-01';
 let _sb=null;
 (function(){
   try{
-    if(_SB_URL!=='YOUR_SUPABASE_URL'&&typeof supabase!=='undefined'){
+    if(_SB_URL&&typeof supabase!=='undefined'){
       _sb=supabase.createClient(_SB_URL,_SB_KEY);
       console.log('[Supabase] connected');
     } else {
@@ -1819,36 +1828,7 @@ function renderSaved(){
 
 // ── card builder ──
 // ── stamp watermark ──
-const STAMP_SVG=`<svg viewBox="0 0 130 130" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
-<defs><path id="st-arc" d="M 11,65 A 54,54 0 1,1 119,65"/></defs>
-<circle cx="65" cy="65" r="60" fill="none" stroke="rgba(236,234,230,1)" stroke-width="1.4" stroke-dasharray="2.6,2.6"/>
-<circle cx="65" cy="65" r="52" fill="none" stroke="rgba(236,234,230,1)" stroke-width="0.85"/>
-<text font-family="DM Mono,monospace" font-size="10" font-weight="700" letter-spacing="5.5" fill="rgba(236,234,230,1)">
-  <textPath href="#st-arc" startOffset="50%" text-anchor="middle">CLASS TAKEN</textPath>
-</text>
-<g stroke="rgba(236,234,230,1)" stroke-linecap="round" fill="rgba(236,234,230,1)">
-  <circle cx="37" cy="49" r="5.5" stroke="none"/>
-  <line x1="37" y1="55" x2="37" y2="72" stroke-width="2.3"/>
-  <line x1="37" y1="60" x2="25" y2="54" stroke-width="2.3"/>
-  <line x1="37" y1="60" x2="49" y2="53" stroke-width="2.3"/>
-  <line x1="37" y1="72" x2="28" y2="86" stroke-width="2.3"/>
-  <line x1="37" y1="72" x2="46" y2="83" stroke-width="2.3"/>
-  <circle cx="65" cy="46" r="5.5" stroke="none"/>
-  <line x1="65" y1="52" x2="65" y2="70" stroke-width="2.3"/>
-  <line x1="65" y1="57" x2="52" y2="48" stroke-width="2.3"/>
-  <line x1="65" y1="57" x2="78" y2="48" stroke-width="2.3"/>
-  <line x1="65" y1="70" x2="57" y2="85" stroke-width="2.3"/>
-  <line x1="65" y1="70" x2="73" y2="85" stroke-width="2.3"/>
-  <circle cx="93" cy="49" r="5.5" stroke="none"/>
-  <line x1="93" y1="55" x2="93" y2="72" stroke-width="2.3"/>
-  <line x1="93" y1="60" x2="81" y2="53" stroke-width="2.3"/>
-  <line x1="93" y1="60" x2="105" y2="54" stroke-width="2.3"/>
-  <line x1="93" y1="72" x2="84" y2="86" stroke-width="2.3"/>
-  <line x1="93" y1="72" x2="102" y2="83" stroke-width="2.3"/>
-</g>
-<text x="29" y="107" font-size="9" fill="rgba(236,234,230,1)" font-family="sans-serif">✦</text>
-<text x="94" y="107" font-size="9" fill="rgba(236,234,230,1)" font-family="sans-serif">✦</text>
-</svg>`;
+const STAMP_IMG_URL='__WATERMARK_URL__';
 
 function _stampParams(id){
   // Deterministic seed from classId so stamp looks the same on re-render
@@ -1863,7 +1843,9 @@ function _attachStamp(div,c,animate){
   const el=document.createElement('div');
   el.className='stamp-mark'+(animate?' stamp-enter':' stamp-show');
   el.style.cssText=`--sr:${p.rot};--ss:${p.sc};--so:${p.op}`;
-  el.innerHTML=STAMP_SVG;
+  const img=document.createElement('img');
+  img.src=STAMP_IMG_URL;img.width=120;img.height=120;img.style.display='block';
+  el.appendChild(img);
   div.appendChild(el);
   return el;
 }
@@ -2232,15 +2214,16 @@ function renderAll(){renderCalendar();renderClasses()}
     const dates=_dates();
     const idx=dates.indexOf(S.selectedDate);
     let nextDate=null;
-    const dir=dx<0?-1:1; // -1=left(next), +1=right(prev)
+    const dir=dx<0?-1:1; // -1=left swipe (next day), +1=right swipe (prev day)
     if(dir===-1&&idx<dates.length-1)nextDate=dates[idx+1];
     else if(dir===1&&idx>0)nextDate=dates[idx-1];
     if(!nextDate)return;
 
     _busy=true;
     const list=document.getElementById('classesList');
-    const OUT_X=dir*-28; // slide out direction
-    const IN_X=dir*28;   // new content enters from opposite
+    // swipe left (dir=-1): list exits LEFT (-28%), new enters from RIGHT (+28%)
+    const OUT_X=dir*28;   // -1 → -28% (left), +1 → +28% (right)
+    const IN_X=dir*-28;   // -1 → +28% (from right), +1 → -28% (from left)
 
     // 1. Slide out + fade
     list.style.transition='transform 0.17s ease-in,opacity 0.17s ease-in';
@@ -2308,6 +2291,7 @@ def main():
     update_label = get_update_label()
     html = HTML.replace("__ALL_CLASSES__", js_data)
     html = html.replace("__UPDATED_LABEL__", update_label)
+    html = html.replace("__WATERMARK_URL__", _watermark_data_url())
 
     out = HERE / "index.html"
     out.write_text(html)
