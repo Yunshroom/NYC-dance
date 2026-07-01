@@ -599,7 +599,8 @@ a{color:inherit;text-decoration:none}
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
 /* stamp watermark */
-.stamp-mark{position:absolute;right:14px;top:50%;pointer-events:none;transform-origin:center center}
+.stamp-mark{position:absolute;right:14px;top:50%;pointer-events:none;transform-origin:center center;width:120px;height:120px;}
+.stamp-mark img{width:100%;height:100%;display:block;mix-blend-mode:multiply;}
 @keyframes stampPress{
   0%  {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*1.35));opacity:0}
   30% {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*0.9));opacity:calc(var(--so)*1.5)}
@@ -1208,34 +1209,61 @@ async function sbSyncFilters(){
 async function sbLoadAll(){
   if(!_sb)return;
   try{
-    // Load my_classes + notes
-    const{data:mc}=await _sb.from('my_classes').select('class_id,class_json,added_at').eq('user_id',_SB_USER);
+    // ── my_classes: merge remote + local (union, remote wins on conflict) ──
+    const{data:mc,error:mcErr}=await _sb.from('my_classes').select('class_id,class_json,added_at').eq('user_id',_SB_USER);
+    if(mcErr)console.warn('[Supabase] my_classes fetch error',mcErr);
     const{data:notes}=await _sb.from('notes').select('*').eq('user_id',_SB_USER);
-    if(mc&&mc.length){
-      mc.forEach(row=>{
-        myClassesMap[row.class_id]={notes:[],added_at:row.added_at,...(row.class_json||{})};
-        myClassesMap[row.class_id].notes=[];
-      });
-      (notes||[]).forEach(n=>{
-        if(myClassesMap[n.class_id])myClassesMap[n.class_id].notes.push({id:n.note_id,text:n.text,type:n.type,created_at:n.created_at});
-      });
-      localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
+    // Start from local snapshot, then overlay remote on top
+    const merged={...myClassesMap};
+    (mc||[]).forEach(row=>{
+      const existing=merged[row.class_id];
+      merged[row.class_id]={
+        notes: existing?existing.notes:[],
+        added_at: row.added_at,
+        ...(row.class_json||{})
+      };
+      merged[row.class_id].notes=existing?existing.notes:[];
+    });
+    // Attach remote notes
+    (notes||[]).forEach(n=>{
+      if(merged[n.class_id]){
+        // avoid duplicates
+        const already=merged[n.class_id].notes.some(x=>x.id===n.note_id);
+        if(!already)merged[n.class_id].notes.push({id:n.note_id,text:n.text,type:n.type,created_at:n.created_at});
+      }
+    });
+    // Apply merged map
+    Object.keys(myClassesMap).forEach(k=>delete myClassesMap[k]);
+    Object.assign(myClassesMap,merged);
+    localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
+    // Push any local-only entries up to Supabase so other devices get them
+    const remoteIds=new Set((mc||[]).map(r=>r.class_id));
+    const localOnly=Object.entries(myClassesMap).filter(([id])=>!remoteIds.has(id));
+    if(localOnly.length){
+      const rows=localOnly.map(([id,v])=>({user_id:_SB_USER,class_id:id,class_json:v,added_at:v.added_at||new Date().toISOString()}));
+      await _sb.from('my_classes').upsert(rows,{onConflict:'user_id,class_id'});
+      console.log('[Supabase] pushed',localOnly.length,'local-only classes up');
     }
-    // Load wishlist
+    // ── wishlist: merge remote + local ──
     const{data:wl}=await _sb.from('wishlist').select('class_id').eq('user_id',_SB_USER);
-    if(wl&&wl.length){
-      const ids=wl.map(r=>r.class_id);
-      localStorage.setItem('nyd_saved',JSON.stringify(ids));
-      ids.forEach(id=>savedSet.add(id));
+    const remoteWl=new Set((wl||[]).map(r=>r.class_id));
+    // union local savedSet with remote
+    remoteWl.forEach(id=>savedSet.add(id));
+    // push local-only wishlist items up
+    const wlLocalOnly=[...savedSet].filter(id=>!remoteWl.has(id));
+    if(wlLocalOnly.length){
+      const rows=wlLocalOnly.map(id=>({user_id:_SB_USER,class_id:id,saved_at:new Date().toISOString()}));
+      await _sb.from('wishlist').upsert(rows,{onConflict:'user_id,class_id'});
     }
-    // Load custom classes
+    localStorage.setItem('nyd_saved',JSON.stringify([...savedSet]));
+    // ── custom classes ──
     const{data:cc}=await _sb.from('custom_classes').select('class_json').eq('user_id',_SB_USER);
     if(cc&&cc.length){
       const arr=cc.map(r=>r.class_json);
       localStorage.setItem('nyd_custom',JSON.stringify(arr));
       CUSTOM_CLASSES.length=0;arr.forEach(c=>CUSTOM_CLASSES.push(c));
     }
-    // Load preferences (fav teachers + filters)
+    // ── preferences: fav teachers + filters ──
     const{data:prefs}=await _sb.from('user_preferences').select('pref_key,value_json').eq('user_id',_SB_USER);
     (prefs||[]).forEach(p=>{
       if(p.pref_key==='fav_teachers'){
@@ -1245,8 +1273,7 @@ async function sbLoadAll(){
         try{const f=JSON.parse(p.value_json);_applySerializedFilters(f);localStorage.setItem('nyd_filters',p.value_json);}catch(e){}
       }
     });
-    console.log('[Supabase] loaded remote data');
-    // re-render with remote filters/data if page is on schedule tab
+    console.log('[Supabase] sync complete — my_classes:',Object.keys(myClassesMap).length,'wishlist:',savedSet.size);
     if(typeof syncChipsFromState==='function')syncChipsFromState();
     if(typeof renderAll==='function')renderAll();
   }catch(e){console.warn('[Supabase] sbLoadAll error',e);}
@@ -1844,7 +1871,7 @@ function _attachStamp(div,c,animate){
   el.className='stamp-mark'+(animate?' stamp-enter':' stamp-show');
   el.style.cssText=`--sr:${p.rot};--ss:${p.sc};--so:${p.op}`;
   const img=document.createElement('img');
-  img.src=STAMP_IMG_URL;img.width=120;img.height=120;img.style.display='block';
+  img.src=STAMP_IMG_URL;
   el.appendChild(img);
   div.appendChild(el);
   return el;
