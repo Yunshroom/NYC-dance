@@ -481,9 +481,8 @@ a{color:inherit;text-decoration:none}
 .card-tap{position:absolute;inset:0;z-index:1}
 .card-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .card-actions{display:flex;align-items:center;gap:0;position:relative;z-index:2;flex-shrink:0}
-.save-btn,.my-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 3px;transition:color .2s;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.save-btn{padding-left:6px}
-.save-btn i,.my-btn i{font-size:19px;transition:color .2s}
+.save-btn,.my-btn{color:rgba(232,228,220,.4);line-height:1;padding:10px 8px;transition:color .2s;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;margin:-8px 0}
+.save-btn i,.my-btn i{font-size:20px;transition:color .2s;display:block}
 .save-btn.saved{color:#d4537e}
 .save-btn.saved i{color:#d4537e}
 .my-btn.stamped{color:#f0a830}
@@ -1301,14 +1300,21 @@ async function sbLoadAll(){
 sbLoadAll();
 
 // myClassesMap: {classId → {notes, added_at}}
-function isMyClass(c){return!!myClassesMap[classId(c)]}
+function isMyClass(c){const e=myClassesMap[classId(c)];return!!(e&&!e._wishlistOnly)}
 function toggleMyClass(c){
   const id=classId(c);
-  if(myClassesMap[id]){delete myClassesMap[id];}
-  else{myClassesMap[id]={notes:[],added_at:new Date().toISOString()};}
+  const existing=myClassesMap[id];
+  if(existing&&!existing._wishlistOnly){
+    // fully stamped → un-stamp; keep entry if it has notes, else delete
+    if(existing.notes&&existing.notes.length){existing._wishlistOnly=true;}
+    else{delete myClassesMap[id];}
+  } else {
+    // not stamped (or wishlist-only) → stamp it, preserve any existing notes
+    myClassesMap[id]={notes:existing?existing.notes:[],added_at:new Date().toISOString()};
+  }
   localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
   sbSyncMyClasses();
-  return!!myClassesMap[id];
+  return isMyClass(c);
 }
 function addNote(c,text,type){
   const id=classId(c);
@@ -2035,7 +2041,12 @@ function renderSaved(){
       div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
       listEl.appendChild(div);lastDate=c.date_key;
     }
-    listEl.appendChild(buildCard(c,i));
+    const card=buildCard(c,i);
+    // Inline notes on wishlist — ensure myClassesMap entry exists for notes storage
+    const cid=classId(c);
+    if(!myClassesMap[cid])myClassesMap[cid]={notes:[],added_at:null,_wishlistOnly:true};
+    card.appendChild(_buildInlineNotes(c));
+    listEl.appendChild(card);
   });
 }
 
