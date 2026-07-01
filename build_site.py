@@ -507,6 +507,10 @@ a{color:inherit;text-decoration:none}
 @keyframes recPulse{0%,100%{opacity:1}50%{opacity:.4}}
 .rec-pulse{animation:recPulse 1.2s ease-in-out infinite}
 .note-pill-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:999px;padding:9px 14px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;-webkit-tap-highlight-color:transparent;transition:opacity .15s}
+.notes-hidden .inline-notes-wrap{display:none!important}
+.notes-hide-toggle{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(220,216,208,.6);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;white-space:nowrap}
+.notes-hide-toggle.active{background:rgba(127,119,221,.2);border-color:rgba(127,119,221,.4);color:rgba(200,196,255,.9)}
+.notes-hide-toggle i{font-size:13px}
 
 /* studio + time — now lives in card-header-row beside bookmark */
 .card-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(216,212,204,.65);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
@@ -637,6 +641,9 @@ a{color:inherit;text-decoration:none}
       <div class="header-row1">
         <span class="location-label">New York City</span>
         <div class="header-actions">
+          <button class="notes-hide-toggle" id="notesToggleBtn" title="Toggle notes" style="display:none">
+            <i class="ph ph-note-pencil"></i><span>Notes</span>
+          </button>
           <button class="icon-btn" id="filterBtn" title="Filters">
             <i class="ph ph-funnel"></i>
           </button>
@@ -1053,6 +1060,7 @@ function renderPopup(){
   document.getElementById('pageTitle').textContent='Pop up';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
+  const _ntB=document.getElementById('notesToggleBtn');if(_ntB)_ntB.style.display='none';
   const listEl=document.getElementById('classesList');
 
   // Sort CUSTOM_CLASSES by date desc (most recent first)
@@ -1655,38 +1663,8 @@ function _buildInlineNotes(c){
   const wrap=document.createElement('div');
   wrap.className='inline-notes-wrap';
 
-  const notes=(myClassesMap[id]?.notes)||[];
-  let expanded=notes.length>0; // start open if has notes
-
-  // ── toggle header ──
-  const toggle=document.createElement('button');
-  toggle.className='inline-notes-toggle';
-  function _updateToggle(){
-    const n=(myClassesMap[id]?.notes||[]).length;
-    toggle.innerHTML=`<i class="ph ph-note-pencil"></i><span>Notes${n?' ('+n+')':''}</span><i class="ph ph-caret-${expanded?'up':'down'} inline-notes-caret"></i>`;
-  }
-  _updateToggle();
-
-  // ── scrapbook panel ──
-  const panel=document.createElement('div');
-  panel.className='inline-notes-panel';
-  panel.style.display=expanded?'block':'none';
-
-  function _rebuildStickies(){
-    const ns=(myClassesMap[id]?.notes)||[];
-    stickyCon.innerHTML='';
-    if(!ns.length){
-      const emp=document.createElement('div');
-      emp.style.cssText='color:#9a9688;font-family:"DM Mono",monospace;font-size:11px;padding:4px 0 8px;text-align:center';
-      emp.textContent='no notes yet';
-      stickyCon.appendChild(emp);
-    } else {
-      ns.forEach((n,i)=>stickyCon.appendChild(_buildSticky(n,i,false)));
-    }
-    _updateToggle();
-  }
-
-  function _buildSticky(n,i,isNew){
+  // ── shared: build a sticky note card ──
+  function _buildSticky(n,i,isNew,onDelete){
     const col=stickyColor(i);
     const rot=noteRot(i);
     const dt=new Date(n.created_at);
@@ -1710,39 +1688,13 @@ function _buildInlineNotes(c){
     del.setAttribute('aria-label','delete note');
     del.style.cssText='position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:rgba(26,26,24,.25);padding:2px;line-height:1';
     del.innerHTML='<i class="ph ph-x" style="font-size:12px"></i>';
-    del.addEventListener('click',()=>{deleteNote(c,n.id);sbSyncNotes(id);_rebuildStickies();});
+    del.addEventListener('click',()=>{deleteNote(c,n.id);sbSyncNotes(id);onDelete();});
     card.appendChild(del);
     return card;
   }
 
-  // sticky container
-  const stickyCon=document.createElement('div');
-  stickyCon.style.cssText='display:flex;flex-direction:column;gap:10px;margin-bottom:10px';
-  panel.appendChild(stickyCon);
-  _rebuildStickies();
-
-  // add buttons area
-  const inputArea=document.createElement('div');
-  panel.appendChild(inputArea);
-
-  function _showAddBtns(){
-    inputArea.innerHTML='';
-    const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';
-    const textBtn=document.createElement('button');
-    textBtn.className='note-pill-btn';
-    textBtn.style.cssText+='background:rgba(26,26,24,.82);color:#eceae6;';
-    textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
-    textBtn.addEventListener('click',_showTextInput);
-    const voiceBtn=document.createElement('button');
-    voiceBtn.className='note-pill-btn';
-    voiceBtn.style.cssText+='background:rgba(127,119,221,.85);color:#fff;';
-    voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
-    voiceBtn.addEventListener('click',_showVoiceInput);
-    row.appendChild(textBtn);row.appendChild(voiceBtn);
-    inputArea.appendChild(row);
-  }
-
-  function _showTextInput(){
+  // ── shared: show text input inside a container; calls onSaved() after saving, onCancel() on cancel ──
+  function _showTextInput(inputArea, onSaved, onCancel){
     inputArea.innerHTML='';
     const wrap2=document.createElement('div');wrap2.style.cssText='display:flex;flex-direction:column;gap:8px';
     const box=document.createElement('div');box.style.cssText='background:#fffdf5;border-radius:8px;padding:10px 12px;border:1px solid rgba(26,26,24,.1)';
@@ -1753,13 +1705,13 @@ function _buildInlineNotes(c){
     const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px;justify-content:flex-end';
     const cancelBtn=document.createElement('button');
     cancelBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#9a9688;background:none;border:none;cursor:pointer;padding:6px 10px';
-    cancelBtn.textContent='cancel';cancelBtn.addEventListener('click',_showAddBtns);
+    cancelBtn.textContent='cancel';cancelBtn.addEventListener('click',onCancel);
     const saveBtn=document.createElement('button');
     saveBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#f5f1ea;background:#1a1a18;border:none;border-radius:999px;cursor:pointer;padding:7px 16px';
     saveBtn.textContent='add note';
     saveBtn.addEventListener('click',()=>{
       const text=ta.value.trim();if(!text)return;
-      addNote(c,text,'text');sbSyncNotes(id);_rebuildStickies();_showAddBtns();
+      addNote(c,text,'text');sbSyncNotes(id);onSaved();
     });
     ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))saveBtn.click();});
     btnRow.appendChild(cancelBtn);btnRow.appendChild(saveBtn);
@@ -1767,8 +1719,9 @@ function _buildInlineNotes(c){
     setTimeout(()=>ta.focus(),50);
   }
 
-  let _isRecording=false,_recognition=null,_pendingTranscript='';
-  function _showVoiceInput(){
+  // ── shared: show voice input ──
+  function _showVoiceInput(inputArea, onSaved, onCancel){
+    let _isRecording=false,_recognition=null,_pendingTranscript='';
     inputArea.innerHTML='';_pendingTranscript='';_isRecording=false;
     const wrap2=document.createElement('div');wrap2.style.cssText='display:flex;flex-direction:column;gap:8px';
     const voiceBox=document.createElement('div');
@@ -1786,13 +1739,13 @@ function _buildInlineNotes(c){
     const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px;justify-content:flex-end';
     const cancelBtn=document.createElement('button');
     cancelBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#9a9688;background:none;border:none;cursor:pointer;padding:6px 10px';
-    cancelBtn.textContent='cancel';cancelBtn.addEventListener('click',()=>{if(_recognition)_recognition.stop();_showAddBtns();});
+    cancelBtn.textContent='cancel';cancelBtn.addEventListener('click',()=>{if(_recognition)_recognition.stop();onCancel();});
     const saveBtn=document.createElement('button');
     saveBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#f5f1ea;background:#7f77dd;border:none;border-radius:999px;cursor:pointer;padding:7px 16px;display:none';
     saveBtn.textContent='save note';
     saveBtn.addEventListener('click',()=>{
       const t=_pendingTranscript.trim();if(!t)return;
-      addNote(c,t,'voice');sbSyncNotes(id);_rebuildStickies();_showAddBtns();
+      addNote(c,t,'voice');sbSyncNotes(id);onSaved();
     });
     btnRow.appendChild(cancelBtn);btnRow.appendChild(saveBtn);
     wrap2.appendChild(btnRow);inputArea.appendChild(wrap2);
@@ -1811,25 +1764,171 @@ function _buildInlineNotes(c){
     micWrap.addEventListener('click',()=>{if(!_isRecording)_startRecording();else{if(_recognition)_recognition.stop();}});
   }
 
-  _showAddBtns();
+  // ── main render — called on init and after notes change ──
+  function _render(){
+    wrap.innerHTML='';
+    const notes=(myClassesMap[id]?.notes)||[];
 
-  // wire toggle
-  toggle.addEventListener('click',e=>{
-    e.preventDefault();e.stopPropagation();
-    expanded=!expanded;
-    panel.style.display=expanded?'block':'none';
-    _updateToggle();
-  });
+    if(notes.length===0){
+      // ── MODE A: no notes → show pill buttons directly ──
+      const pillRow=document.createElement('div');pillRow.style.cssText='display:flex;gap:8px';
+      const textBtn=document.createElement('button');
+      textBtn.className='note-pill-btn';
+      textBtn.style.cssText='background:rgba(26,26,24,.82);color:#eceae6;';
+      textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
+      const voiceBtn=document.createElement('button');
+      voiceBtn.className='note-pill-btn';
+      voiceBtn.style.cssText='background:rgba(127,119,221,.85);color:#fff;';
+      voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
+      const inputArea=document.createElement('div');
+      function _showPills(){
+        wrap.innerHTML='';
+        wrap.appendChild(pillRow);
+        wrap.appendChild(inputArea);
+        inputArea.innerHTML='';
+      }
+      textBtn.addEventListener('click',()=>{
+        pillRow.style.display='none';
+        _showTextInput(inputArea,()=>_render(),_showPills);
+      });
+      voiceBtn.addEventListener('click',()=>{
+        pillRow.style.display='none';
+        _showVoiceInput(inputArea,()=>_render(),_showPills);
+      });
+      pillRow.appendChild(textBtn);pillRow.appendChild(voiceBtn);
+      wrap.appendChild(pillRow);
+      wrap.appendChild(inputArea);
 
-  wrap.appendChild(toggle);
-  wrap.appendChild(panel);
+    } else {
+      // ── MODE B: has notes → show Notes (N) toggle ──
+      let expanded=false;
+      const toggle=document.createElement('button');
+      toggle.className='inline-notes-toggle';
+      function _updateToggle(){
+        const n=(myClassesMap[id]?.notes||[]).length;
+        toggle.innerHTML=`<i class="ph ph-note-pencil"></i><span>Notes (${n})</span><i class="ph ph-caret-${expanded?'up':'down'} inline-notes-caret"></i>`;
+      }
+      _updateToggle();
+
+      const panel=document.createElement('div');
+      panel.className='inline-notes-panel';
+      panel.style.display='none';
+
+      const stickyCon=document.createElement('div');
+      stickyCon.style.cssText='display:flex;flex-direction:column;gap:10px;margin-bottom:10px';
+
+      function _rebuildStickies(){
+        const ns=(myClassesMap[id]?.notes)||[];
+        stickyCon.innerHTML='';
+        ns.forEach((n,i)=>stickyCon.appendChild(_buildSticky(n,i,false,()=>{
+          // after delete: if 0 notes left, switch to pill mode
+          if(!(myClassesMap[id]?.notes||[]).length)_render();else _rebuildStickies();
+        })));
+        _updateToggle();
+      }
+
+      const inputArea=document.createElement('div');
+
+      function _showAddBtns(){
+        inputArea.innerHTML='';
+        const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';
+        const textBtn=document.createElement('button');
+        textBtn.className='note-pill-btn';
+        textBtn.style.cssText='background:rgba(26,26,24,.82);color:#eceae6;';
+        textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
+        textBtn.addEventListener('click',()=>_showTextInput(inputArea,()=>{_rebuildStickies();_showAddBtns();},_showAddBtns));
+        const voiceBtn=document.createElement('button');
+        voiceBtn.className='note-pill-btn';
+        voiceBtn.style.cssText='background:rgba(127,119,221,.85);color:#fff;';
+        voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
+        voiceBtn.addEventListener('click',()=>_showVoiceInput(inputArea,()=>{_rebuildStickies();_showAddBtns();},_showAddBtns));
+        row.appendChild(textBtn);row.appendChild(voiceBtn);
+        inputArea.appendChild(row);
+      }
+
+      _rebuildStickies();
+      _showAddBtns();
+      panel.appendChild(stickyCon);
+      panel.appendChild(inputArea);
+
+      toggle.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        expanded=!expanded;
+        panel.style.display=expanded?'block':'none';
+        _updateToggle();
+      });
+
+      wrap.appendChild(toggle);
+      wrap.appendChild(panel);
+    }
+  }
+
+  _render();
   return wrap;
+}
+
+// ── Add to Calendar ──
+function _addToCalendar(c){
+  // Parse date_key (YYYY-MM-DD) and start_dt ISO string for accurate datetime
+  let dtStart='',dtEnd='';
+  try{
+    if(c.start_dt){
+      const d=new Date(c.start_dt);
+      const pad=n=>String(n).padStart(2,'0');
+      const fmt=d=>`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+      dtStart=fmt(d);
+      // End time: use duration_min if available, else +1 hr
+      const dur=(c.duration_min&&c.duration_min>0)?c.duration_min:60;
+      const dEnd=new Date(d.getTime()+dur*60000);
+      dtEnd=fmt(dEnd);
+    } else if(c.date_key){
+      // Fallback: all-day event
+      const compact=c.date_key.replace(/-/g,'');
+      dtStart=compact;dtEnd=compact;
+    }
+  }catch(e){dtStart=c.date_key?c.date_key.replace(/-/g,''):'';dtEnd=dtStart;}
+  const esc=s=>(s||'').replace(/[\\;,]/g,'\\$&').replace(/\n/g,'\\n');
+  const uid=`${classId(c).replace(/[^a-z0-9]/gi,'-')}-nyd@dnce.app`;
+  const loc=esc(c.studio||'');
+  const title=esc(c.class_name+(c.instructor?' w/ '+c.instructor:''));
+  const isAllDay=dtStart.length===8;
+  const dtProp=isAllDay?`DTSTART;VALUE=DATE:${dtStart}\r\nDTEND;VALUE=DATE:${dtEnd}`:`DTSTART;TZID=America/New_York:${dtStart}\r\nDTEND;TZID=America/New_York:${dtEnd}`;
+  const ics=[
+    'BEGIN:VCALENDAR','VERSION:2.0','CALSCALE:GREGORIAN','PRODID:-//NYDance//EN',
+    'BEGIN:VTIMEZONE','TZID:America/New_York',
+    'BEGIN:STANDARD','DTSTART:19671029T020000','RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10','TZOFFSETFROM:-0400','TZOFFSETTO:-0500','TZNAME:EST','END:STANDARD',
+    'BEGIN:DAYLIGHT','DTSTART:19870405T020000','RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3','TZOFFSETFROM:-0500','TZOFFSETTO:-0400','TZNAME:EDT','END:DAYLIGHT',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',`UID:${uid}`,dtProp,`SUMMARY:${title}`,`LOCATION:${loc}`,
+    'END:VEVENT','END:VCALENDAR'
+  ].join('\r\n');
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=(c.class_name||'class').replace(/[^a-z0-9 ]/gi,'_')+'.ics';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+}
+
+// ── Notes visibility toggle ──
+let _notesHidden=false;
+function _toggleNotesHidden(){
+  _notesHidden=!_notesHidden;
+  document.getElementById('mainScroll').classList.toggle('notes-hidden',_notesHidden);
+  const btn=document.getElementById('notesToggleBtn');
+  if(btn){
+    btn.classList.toggle('active',_notesHidden);
+    btn.querySelector('span').textContent=_notesHidden?'Show notes':'Notes';
+  }
 }
 
 function renderMyClasses(){
   document.getElementById('pageTitle').textContent='My Classes';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
+  // Show notes toggle btn
+  const ntBtn=document.getElementById('notesToggleBtn');
+  if(ntBtn)ntBtn.style.display='';
   const listEl=document.getElementById('classesList');
   const stamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
   if(!stamped.length){
@@ -2026,6 +2125,9 @@ function renderSaved(){
   document.getElementById('pageTitle').textContent='Wishlist';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
+  // Show notes toggle btn
+  const ntBtn2=document.getElementById('notesToggleBtn');
+  if(ntBtn2)ntBtn2.style.display='';
   const listEl=document.getElementById('classesList');
   const savedFromSchedule=ALL_CLASSES.filter(c=>isSaved(c));
   const allSaved=[...savedFromSchedule,...CUSTOM_CLASSES];
@@ -2132,7 +2234,12 @@ function buildCard(c,i,inMyClasses){
       document.querySelectorAll('.mc-dots-menu').forEach(m=>m.remove());
       const menu=document.createElement('div');
       menu.className='mc-dots-menu';
-      menu.innerHTML=`<button class="mc-dots-item mc-dots-delete"><i class="ph ph-trash"></i> Remove from My Classes</button>`;
+      menu.innerHTML=`<button class="mc-dots-item mc-dots-cal"><i class="ph ph-calendar-plus"></i> Add to Calendar</button><button class="mc-dots-item mc-dots-delete"><i class="ph ph-trash"></i> Remove from My Classes</button>`;
+      menu.querySelector('.mc-dots-cal').addEventListener('click',ev=>{
+        ev.stopPropagation();
+        menu.remove();
+        _addToCalendar(c);
+      });
       menu.querySelector('.mc-dots-delete').addEventListener('click',ev=>{
         ev.stopPropagation();
         menu.remove();
@@ -2369,9 +2476,11 @@ function switchTab(tab){
     if(_navCurrent==='popup')return;
     _animateNav('popup',()=>renderPopup());
     S.tab='popup';localStorage.setItem('nyd_tab','popup');
+    const _ntBtnP=document.getElementById('notesToggleBtn');if(_ntBtnP)_ntBtnP.style.display='none';
     return;
   }
   if(tab===_navCurrent)return;
+  const _ntBtn=document.getElementById('notesToggleBtn');
   if(tab==='schedule'){
     _animateNav('schedule',()=>{
       document.getElementById('weekStrip').style.display='';
@@ -2379,12 +2488,15 @@ function switchTab(tab){
       renderAll();
     });
     S.tab='schedule';
+    if(_ntBtn)_ntBtn.style.display='none';
   } else if(tab==='wishlist'){
     _animateNav('wishlist',()=>renderSaved());
     S.tab='saved';
+    if(_ntBtn)_ntBtn.style.display='';
   } else {
     _animateNav('myclasses',()=>renderMyClasses());
     S.tab='myclasses';
+    // notesToggleBtn is shown inside renderMyClasses
   }
   localStorage.setItem('nyd_tab',tab);
 }
@@ -2427,6 +2539,7 @@ document.getElementById('rangeMin').addEventListener('input',updateSlider);
 document.getElementById('rangeMax').addEventListener('input',updateSlider);
 document.getElementById('filterBtn').addEventListener('click',openDrawer);
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
+document.getElementById('notesToggleBtn').addEventListener('click',_toggleNotesHidden);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{saveFilters();closeDrawer();renderAll()});
 document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
@@ -2438,7 +2551,10 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
   });
 });
 
-function renderAll(){renderCalendar();renderClasses()}
+function renderAll(){
+  const _ntB=document.getElementById('notesToggleBtn');if(_ntB)_ntB.style.display='none';
+  renderCalendar();renderClasses();
+}
 
 // ── swipe to change day with slide animation (schedule tab only) ──
 (function(){
