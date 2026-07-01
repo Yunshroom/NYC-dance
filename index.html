@@ -149,7 +149,8 @@ a{color:inherit;text-decoration:none}
 .note-in{animation:noteIn .32s cubic-bezier(.34,1.4,.5,1) both}
 @keyframes recPulse{0%,100%{opacity:1}50%{opacity:.4}}
 .rec-pulse{animation:recPulse 1.2s ease-in-out infinite}
-.note-pill-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:999px;padding:9px 14px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;-webkit-tap-highlight-color:transparent;transition:opacity .15s}
+.note-pill-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;padding:9px 14px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;-webkit-tap-highlight-color:transparent;transition:background .18s,opacity .15s;background:rgba(255,255,255,.08);backdrop-filter:blur(14px) saturate(1.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);border:.5px solid rgba(255,255,255,.14);color:rgba(232,228,220,.82);box-shadow:0 2px 8px rgba(0,0,0,.18),0 .5px 0 rgba(255,255,255,.08) inset}
+.note-pill-btn:active{background:rgba(255,255,255,.14);opacity:.85}
 .notes-hidden .inline-notes-wrap{display:none!important}
 .notes-hide-toggle{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(220,216,208,.6);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,color .15s;white-space:nowrap}
 .notes-hide-toggle.active{background:rgba(127,119,221,.2);border-color:rgba(127,119,221,.4);color:rgba(200,196,255,.9)}
@@ -1121,17 +1122,13 @@ function renderNoteDetail(c){
     inputArea.innerHTML='';
     const row=document.createElement('div');
     row.style.cssText='display:flex;gap:8px';
-    // text note pill (dark)
     const textBtn=document.createElement('button');
     textBtn.className='note-pill-btn';
-    textBtn.style.cssText+='background:rgba(26,26,24,.82);color:#eceae6;';
     textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
     textBtn.addEventListener('click',_showTextInput);
     row.appendChild(textBtn);
-    // voice note pill (purple)
     const voiceBtn=document.createElement('button');
     voiceBtn.className='note-pill-btn';
-    voiceBtn.style.cssText+='background:rgba(127,119,221,.85);color:#fff;';
     voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
     voiceBtn.addEventListener('click',_showVoiceInput);
     row.appendChild(voiceBtn);
@@ -1417,11 +1414,9 @@ function _buildInlineNotes(c){
       const pillRow=document.createElement('div');pillRow.style.cssText='display:flex;gap:8px';
       const textBtn=document.createElement('button');
       textBtn.className='note-pill-btn';
-      textBtn.style.cssText='background:rgba(26,26,24,.82);color:#eceae6;';
       textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
       const voiceBtn=document.createElement('button');
       voiceBtn.className='note-pill-btn';
-      voiceBtn.style.cssText='background:rgba(127,119,221,.85);color:#fff;';
       voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
       const inputArea=document.createElement('div');
       function _showPills(){
@@ -1477,12 +1472,10 @@ function _buildInlineNotes(c){
         const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';
         const textBtn=document.createElement('button');
         textBtn.className='note-pill-btn';
-        textBtn.style.cssText='background:rgba(26,26,24,.82);color:#eceae6;';
         textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
         textBtn.addEventListener('click',()=>_showTextInput(inputArea,()=>{_rebuildStickies();_showAddBtns();},_showAddBtns));
         const voiceBtn=document.createElement('button');
         voiceBtn.className='note-pill-btn';
-        voiceBtn.style.cssText='background:rgba(127,119,221,.85);color:#fff;';
         voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
         voiceBtn.addEventListener('click',()=>_showVoiceInput(inputArea,()=>{_rebuildStickies();_showAddBtns();},_showAddBtns));
         row.appendChild(textBtn);row.appendChild(voiceBtn);
