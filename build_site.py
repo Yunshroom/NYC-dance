@@ -245,12 +245,38 @@ def load_modega():
     raw = json.loads((HERE / "modega_schedule.json").read_text())
     out = []
     _STUDIO_NAMES = {"Modega", "Mover's Bodega, LLC", "Mover's Bodega"}
+    _HOST_RE = re.compile(r'[Hh]osted with\s+(.+?)(?:\s*\.|$)', re.IGNORECASE)
     for c in raw["classes"]:
         start_dt = parse_dt(c.get("start_time", ""))
         end_dt   = parse_dt(c.get("end_time", ""))
         name = normalize_name(c.get("class_name", ""))
         raw_instr = c.get("instructor", "")
-        instructor = "Modega Staff" if raw_instr in _STUDIO_NAMES else raw_instr
+        if raw_instr in _STUDIO_NAMES:
+            # Try to extract host from description, e.g. "Hosted with Static"
+            desc = c.get("description", "")
+            m = _HOST_RE.search(desc)
+            if m:
+                host = m.group(1).strip()
+                # "Soul Circle: Leo, Liam" → "Soul Circle"; "NIVDO: Law..." → "NIVDO"
+                if ':' in host:
+                    host = host.split(':')[0].strip()
+                # Strip Instagram handles like "(@name)" or "@name"
+                host = re.sub(r'\(@[^)]*\)', '', host).strip()
+                host = re.sub(r',?\s*@\S+', '', host).strip()
+                host = re.sub(r',\s*and\s+@\S+', '', host).strip()
+                # Trim trailing comma/and
+                host = re.sub(r',?\s*and\s*$', '', host).strip().rstrip(',').strip()
+                # If multiple names separated by commas, keep first two max
+                parts = [p.strip() for p in re.split(r',\s*', host) if p.strip()]
+                if len(parts) > 2:
+                    host = parts[0] + ' & ' + parts[1]
+                elif parts:
+                    host = ', '.join(parts)
+                instructor = host if host and host.upper() != 'TBD' else "Modega Staff"
+            else:
+                instructor = "Modega Staff"
+        else:
+            instructor = raw_instr
         out.append(_make_class(
             studio="Modega", studio_key="modega",
             class_name=name, category="",
@@ -360,7 +386,7 @@ a{color:inherit;text-decoration:none}
 .updated-text{font-family:'DM Mono',monospace;font-size:10px;color:#8c8a82;font-weight:400;letter-spacing:.02em}
 
 /* week strip */
-.week-strip{flex:1;display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:6px 0 14px;gap:2px}
+.week-strip{flex:1;display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:6px 0 14px;gap:2px;touch-action:pan-x}
 .week-strip::-webkit-scrollbar{display:none}
 .day-col{flex:1;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:8px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .18s}
 .day-col.selected{background:#1a1a18}
@@ -1711,7 +1737,7 @@ function renderCalendar(){
   strip.innerHTML='';
   let selectedEl=null,todayEl=null;
 
-  for(let i=0;i<7;i++){
+  for(let i=0;i<21;i++){
     const d=new Date(todayDate);d.setDate(d.getDate()+i);
     const key=isoKey(d);
     const col=document.createElement('div');
@@ -1790,7 +1816,8 @@ function buildCard(c,i){
   const color=avatarColor(c.instructor);
   const abbr=initials(c.instructor);
   const timeStr=c.start_display?(c.end_display?`${c.start_display} – ${c.end_display}`:c.start_display):'';
-  const metaStr=c.studio+(timeStr?' · '+timeStr:'');
+  const dayAbbr=c.date_key?(()=>{const[y,mo,d]=c.date_key.split('-').map(Number);return DAY_LETTERS[new Date(y,mo-1,d).getDay()]})():'';
+  const metaStr=c.studio+(dayAbbr?' · '+dayAbbr:'')+(timeStr?' · '+timeStr:'');
   const saved=isSaved(c);
   const stamped=isMyClass(c);
   const customTag=c.is_custom?'<span class="custom-tag">✦ CUSTOM</span>':'';
@@ -2118,6 +2145,25 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
 });
 
 function renderAll(){renderCalendar();renderClasses()}
+
+// ── swipe to change day (schedule tab only) ──
+(function(){
+  let _tx=0,_ty=0;
+  const el=document.getElementById('mainScroll');
+  el.addEventListener('touchstart',e=>{_tx=e.touches[0].clientX;_ty=e.touches[0].clientY;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    if(S.tab!=='schedule')return;
+    const dx=e.changedTouches[0].clientX-_tx;
+    const dy=e.changedTouches[0].clientY-_ty;
+    if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)*1.4)return; // too short or mostly vertical
+    // Build sorted list of all date keys that exist in the calendar
+    const todayDate=new Date();todayDate.setHours(0,0,0,0);
+    const dates=[];for(let i=0;i<21;i++){const d=new Date(todayDate);d.setDate(d.getDate()+i);dates.push(isoKey(d));}
+    const idx=dates.indexOf(S.selectedDate);
+    if(dx<0&&idx<dates.length-1){S.selectedDate=dates[idx+1];renderAll();}  // swipe left → next day
+    else if(dx>0&&idx>0){S.selectedDate=dates[idx-1];renderAll();}           // swipe right → prev day
+  },{passive:true});
+})();
 
 // ── init ──
 (function init(){
