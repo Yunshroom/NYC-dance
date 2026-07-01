@@ -250,7 +250,7 @@ def load_modega():
         end_dt   = parse_dt(c.get("end_time", ""))
         name = normalize_name(c.get("class_name", ""))
         raw_instr = c.get("instructor", "")
-        instructor = "" if raw_instr in _STUDIO_NAMES else raw_instr
+        instructor = "Modega Staff" if raw_instr in _STUDIO_NAMES else raw_instr
         out.append(_make_class(
             studio="Modega", studio_key="modega",
             class_name=name, category="",
@@ -437,10 +437,18 @@ a{color:inherit;text-decoration:none}
 .card-inner{padding:14px;position:relative}
 .card-tap{position:absolute;inset:0;z-index:1}
 .card-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
-.save-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 2px 2px 6px;transition:color .2s;position:relative;z-index:2;flex-shrink:0}
-.save-btn i{font-size:19px;transition:color .2s}
+.card-actions{display:flex;align-items:center;gap:0;position:relative;z-index:2;flex-shrink:0}
+.save-btn,.my-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 3px;transition:color .2s;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.save-btn{padding-left:6px}
+.save-btn i,.my-btn i{font-size:19px;transition:color .2s}
 .save-btn.saved{color:#d4537e}
 .save-btn.saved i{color:#d4537e}
+.my-btn.stamped{color:#f0a830}
+.my-btn.stamped i{color:#f0a830}
+/* My Classes notes */
+.class-notes-wrap{padding:0 14px 12px;position:relative;z-index:2}
+.class-notes-ta{width:100%;padding:8px 10px;border-radius:9px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:rgba(236,234,230,.85);font-size:12px;font-family:inherit;line-height:1.5;resize:none;outline:none;min-height:56px;box-sizing:border-box;-webkit-appearance:none}
+.class-notes-ta::placeholder{color:rgba(236,234,230,.3)}
 
 /* studio + time — now lives in card-header-row beside bookmark */
 .card-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(216,212,204,.65);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
@@ -458,7 +466,7 @@ a{color:inherit;text-decoration:none}
 #bottomNav{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:12px 20px calc(12px + env(safe-area-inset-bottom));z-index:50;pointer-events:none}
 .nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.48);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);border:.5px solid rgba(255,255,255,.13);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.07) inset;pointer-events:all}
 .nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.52);border:.5px solid rgba(255,255,255,.2);box-shadow:0 2px 10px rgba(0,0,0,.3),0 .5px 0 rgba(255,255,255,.07) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
-.nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:10px 15px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:9px 12px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .tab-icon i{font-size:21px;color:rgba(140,132,120,.85);display:block;flex-shrink:0;transition:color .2s}
 .tab-label{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;max-width:0;opacity:0;margin-left:0;transition:max-width .38s cubic-bezier(.34,1.4,.64,1),margin-left .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab.active .tab-icon i{color:#fff}
@@ -572,8 +580,12 @@ a{color:inherit;text-decoration:none}
         <span class="tab-label">Pop up</span>
       </button>
       <button class="nav-tab" data-tab="wishlist" id="navWishlist">
-        <span class="tab-icon"><i class="ph ph-bookmark"></i></span>
+        <span class="tab-icon"><i class="ph ph-shooting-star"></i></span>
         <span class="tab-label">Wishlist</span>
+      </button>
+      <button class="nav-tab" data-tab="myclasses" id="navMyclasses">
+        <span class="tab-icon"><i class="ph ph-stamp"></i></span>
+        <span class="tab-label">My Classes</span>
       </button>
     </div>
   </nav>
@@ -931,6 +943,56 @@ function toggleSaved(c){
   return now;
 }
 
+// ── my classes ──
+let myClassesMap=JSON.parse(localStorage.getItem('nyd_my_classes')||'{}');
+// myClassesMap: {classId → {notes, added_at}}
+function isMyClass(c){return!!myClassesMap[classId(c)]}
+function toggleMyClass(c){
+  const id=classId(c);
+  if(myClassesMap[id]){delete myClassesMap[id];}
+  else{myClassesMap[id]={notes:'',added_at:new Date().toISOString()};}
+  localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
+  return!!myClassesMap[id];
+}
+function saveNotes(c,text){
+  const id=classId(c);
+  if(myClassesMap[id])myClassesMap[id].notes=text;
+  localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
+}
+
+function renderMyClasses(){
+  document.getElementById('pageTitle').textContent='My Classes';
+  document.getElementById('weekStrip').style.display='none';
+  document.getElementById('updatedText').style.visibility='hidden';
+  const listEl=document.getElementById('classesList');
+  const stamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
+  if(!stamped.length){
+    listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class to add it here.</div></div>`;
+    return;
+  }
+  stamped.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+  listEl.innerHTML='';let lastDate='';
+  stamped.forEach((c,i)=>{
+    if(c.date_key!==lastDate){
+      const div=document.createElement('div');div.className='section-divider date-divider';
+      div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
+      listEl.appendChild(div);lastDate=c.date_key;
+    }
+    const card=buildCard(c,i);
+    // Notes area below card
+    const notesWrap=document.createElement('div');
+    notesWrap.className='class-notes-wrap';
+    const ta=document.createElement('textarea');
+    ta.className='class-notes-ta';
+    ta.placeholder='Add notes…';
+    ta.value=myClassesMap[classId(c)]?.notes||'';
+    ta.addEventListener('input',()=>{clearTimeout(ta._nd);ta._nd=setTimeout(()=>saveNotes(c,ta.value),600);});
+    notesWrap.appendChild(ta);
+    card.appendChild(notesWrap);
+    listEl.appendChild(card);
+  });
+}
+
 // ── fav teachers ──
 let favTeachers=new Set(JSON.parse(localStorage.getItem('nyd_fav_t')||'[]'));
 function toggleFavTeacher(name){
@@ -1100,6 +1162,7 @@ function buildCard(c,i){
   const timeStr=c.start_display?(c.end_display?`${c.start_display} – ${c.end_display}`:c.start_display):'';
   const metaStr=c.studio+(timeStr?' · '+timeStr:'');
   const saved=isSaved(c);
+  const stamped=isMyClass(c);
   const customTag=c.is_custom?'<span class="custom-tag">✦ CUSTOM</span>':'';
 
   let capHTML='';
@@ -1115,9 +1178,14 @@ function buildCard(c,i){
     <div class="card-inner">
       <div class="card-header-row">
         <div class="card-meta">${customTag}${esc(metaStr)}</div>
-        <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
-          <i class="${saved?'ph-fill':'ph'} ph-bookmark"></i>
-        </button>
+        <div class="card-actions">
+          <button class="my-btn${stamped?' stamped':''}" aria-label="${stamped?'Unmark':'Mark as attended'}">
+            <i class="${stamped?'ph-fill':'ph'} ph-stamp"></i>
+          </button>
+          <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
+            <i class="${saved?'ph-fill':'ph'} ph-shooting-star"></i>
+          </button>
+        </div>
       </div>
       <div class="card-name">${esc(c.class_name)}</div>
       <div class="card-instructor-row">
@@ -1133,8 +1201,17 @@ function buildCard(c,i){
     const btn=e.currentTarget;
     btn.classList.toggle('saved',nowSaved);
     btn.setAttribute('aria-label',nowSaved?'Unsave':'Save');
-    btn.querySelector('i').className=(nowSaved?'ph-fill':'ph')+' ph-bookmark';
+    btn.querySelector('i').className=(nowSaved?'ph-fill':'ph')+' ph-shooting-star';
     if(S.tab==='saved')setTimeout(renderSaved,60);
+  });
+  div.querySelector('.my-btn').addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    const nowStamped=toggleMyClass(c);
+    const btn=e.currentTarget;
+    btn.classList.toggle('stamped',nowStamped);
+    btn.setAttribute('aria-label',nowStamped?'Unmark':'Mark as attended');
+    btn.querySelector('i').className=(nowStamped?'ph-fill':'ph')+' ph-stamp';
+    if(S.tab==='myclasses')setTimeout(renderMyClasses,60);
   });
   return div;
 }
@@ -1221,7 +1298,7 @@ function buildTeacherChips(){
   const teachers=[...new Set(
     ALL_CLASSES
       .filter(c=>S.studios.has('all')||S.studios.has(c.studio_key))
-      .filter(c=>c.instructor&&!c.instructor.includes('LLC')&&c.instructor!=='Various *'&&c.instructor!=='Modega')
+      .filter(c=>c.instructor&&!c.instructor.includes('LLC')&&c.instructor!=='Various *'&&c.instructor!=='Modega'&&c.instructor!=='Modega Staff')
       .map(c=>c.instructor)
   )].sort();
 
@@ -1292,7 +1369,7 @@ function updateApplyBtn(){
 
 // ── nav capsule ──
 let _navCurrent='schedule',_navBusy=false;
-function _navTabEl(tab){return document.getElementById('nav'+tab[0].toUpperCase()+tab.slice(1))}
+function _navTabEl(tab){const m={schedule:'navSchedule',popup:'navPopup',wishlist:'navWishlist',myclasses:'navMyclasses'};return document.getElementById(m[tab])}
 
 function snapCapsule(tabEl){
   const capsule=document.getElementById('navCapsule');
@@ -1331,9 +1408,12 @@ function switchTab(tab){
       renderAll();
     });
     S.tab='schedule';
-  } else {
+  } else if(tab==='wishlist'){
     _animateNav('wishlist',()=>{renderSaved()});
     S.tab='saved';
+  } else {
+    _animateNav('myclasses',()=>{renderMyClasses()});
+    S.tab='myclasses';
   }
 }
 
@@ -1375,10 +1455,11 @@ document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
 document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
-['navSchedule','navPopup','navWishlist'].forEach(id=>{
+['navSchedule','navPopup','navWishlist','navMyclasses'].forEach(id=>{
   document.getElementById(id).addEventListener('click',()=>{
     if(_navBusy)return;
-    switchTab(id==='navSchedule'?'schedule':id==='navPopup'?'popup':'wishlist');
+    const tab=id==='navSchedule'?'schedule':id==='navPopup'?'popup':id==='navWishlist'?'wishlist':'myclasses';
+    switchTab(tab);
   });
 });
 
@@ -1392,15 +1473,17 @@ function renderAll(){renderCalendar();renderClasses()}
   const future=allDates.filter(d=>d>=today);
   S.selectedDate=future.length?future[0]:allDates[allDates.length-1];
   updateSlider();buildTeacherChips();renderAll();
-  // Init nav capsule + label after first render (active tab is fully sized)
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  // Init nav capsule after Phosphor icons are rendered (use window.onload)
+  const _initCapsule=()=>{
     const initEl=document.getElementById('navSchedule');
     const initLbl=initEl.querySelector('.tab-label');
     initLbl.style.transition='none';
     initLbl.style.opacity='1';
     snapCapsule(initEl);
     requestAnimationFrame(()=>{ initLbl.style.transition=''; });
-  }));
+  };
+  if(document.readyState==='complete') _initCapsule();
+  else window.addEventListener('load',_initCapsule);
 })();
 </script>
 </body>
