@@ -41,7 +41,7 @@ def fmt_date_key(dt, date_str: str) -> str:
 def extract_level(name: str) -> str:
     n = name.lower()
     if any(x in n for x in ["adv. beg", "adv beg", "beg./adv", "adv/beg"]):
-        return "Beginner"
+        return "Adv Beg"
     if any(x in n for x in ["absolute beginner"]):
         return "Beginner"
     if any(x in n for x in ["beginner", " beg ", "beg.", "-beg "]):
@@ -330,7 +330,7 @@ def load_pjm():
             is_canceled=c.get("is_canceled", False),
             booking_url=c.get("booking_url",
                 "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule"),
-            level_override=c.get("level"),
+            level_override=extract_level(name) or c.get("level"),
             date_str=c.get("date", ""),
         ))
     return out
@@ -716,6 +716,7 @@ a{color:inherit;text-decoration:none}
       <div class="fchip-row" id="levelChipRow">
         <button class="fchip" data-level="all">All</button>
         <button class="fchip" data-level="Beginner">Beginner</button>
+        <button class="fchip active" data-level="Adv Beg">Adv Beg</button>
         <button class="fchip active" data-level="All Levels">Open</button>
         <button class="fchip active" data-level="Intermediate">Intermediate</button>
         <button class="fchip active" data-level="Int/Adv">Int/Adv</button>
@@ -771,8 +772,8 @@ function extractGenreJS(n){
 // ── popup: JS level extractor ──
 function extractLevelJS(n){
   n=n.toLowerCase();
-  if(/adv\.?\s*beg|beg\.?\/adv|absolute.?beginner/.test(n))return'Beginner';
-  if(/beginner|\bbeg\b/.test(n))return'Beginner';
+  if(/adv\.?\s*beg|beg\.?\/adv/.test(n))return'Adv Beg';
+  if(/absolute.?beginner|beginner|\bbeg\b/.test(n))return'Beginner';
   if(/all.?level|open.?level|open.?class/.test(n))return'All Levels';
   if(/int\.?\/adv|int\/adv/.test(n))return'Int/Adv';
   if(/intermediate|\binter\b|\bint\b/.test(n))return'Intermediate';
@@ -945,7 +946,7 @@ function renderManualForm(container){
   const instructors=[...new Set(ALL_CLASSES.filter(c=>c.instructor&&c.instructor!=='Modega Staff').map(c=>c.instructor))].sort();
   const studios=[...new Set(ALL_CLASSES.map(c=>c.studio))].sort();
   const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemporary',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Conditioning',other:'Other'};
-  const LEVEL_LABELS=['All Levels','Beginner','Intermediate','Int/Adv','Advanced'];
+  const LEVEL_LABELS=['All Levels','Beginner','Adv Beg','Intermediate','Int/Adv','Advanced'];
 
   container.innerHTML=`
 <div class="popup-manual-form" id="pmfWrap">
@@ -1693,7 +1694,7 @@ function saveFilters(){
 // studios: Set — 'all' means no filter; genres: Set of selected genre keys (multi-select)
 const S={selectedDate:'',studios:new Set(['all']),
   genres:new Set(['street','contemporary','afro','choreo','conditioning','other']),
-  level:new Set(['All Levels','Intermediate','Int/Adv']),
+  level:new Set(['All Levels','Adv Beg','Intermediate','Int/Adv']),
   teacher:'all',timeMin:12,timeMax:24,tab:'schedule'};
 // apply persisted filters on top of defaults
 (function(){try{const raw=localStorage.getItem('nyd_filters');if(raw)_applySerializedFilters(JSON.parse(raw));}catch(e){}})();
