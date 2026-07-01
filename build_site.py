@@ -856,6 +856,7 @@ function doSaveCustomClass(){
   const cls={..._popupParsed,custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
   CUSTOM_CLASSES.push(cls);
   localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));
+  sbSyncCustomClasses();
   const btn=document.getElementById('popupSaveBtn');
   if(btn){
     btn.textContent='✓ Saved to Wishlist';btn.classList.add('saved-ok');
@@ -1023,6 +1024,7 @@ function renderManualForm(container){
       custom_id:`c_${Date.now()}`,saved_at:new Date().toISOString()};
     CUSTOM_CLASSES.push(cls);
     localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));
+    sbSyncCustomClasses();
     const btn=container.querySelector('#pmfSaveBtn');
     btn.textContent='✓ Added!';btn.classList.add('ok');
     setTimeout(()=>{renderPopup();},1200);
@@ -1251,10 +1253,10 @@ async function sbLoadAll(){
       wl.forEach(r=>savedSet.add(r.class_id));
       localStorage.setItem('nyd_saved',JSON.stringify([...savedSet]));
     }
-    // ── custom classes ──
+    // ── custom classes: Supabase is source of truth ──
     const{data:cc}=await _sb.from('custom_classes').select('class_json').eq('user_id',_SB_USER);
-    if(cc&&cc.length){
-      const arr=cc.map(r=>r.class_json);
+    if(cc){
+      const arr=(cc||[]).map(r=>r.class_json);
       localStorage.setItem('nyd_custom',JSON.stringify(arr));
       CUSTOM_CLASSES.length=0;arr.forEach(c=>CUSTOM_CLASSES.push(c));
     }
@@ -2150,6 +2152,7 @@ function switchTab(tab){
     if(_navCurrent==='popup')return;
     _animateNav('popup',()=>{ renderPopup(); });
     S.tab='popup';
+    localStorage.setItem('nyd_tab','popup');
     return;
   }
   if(tab===_navCurrent)return;
@@ -2167,6 +2170,7 @@ function switchTab(tab){
     _animateNav('myclasses',()=>{renderMyClasses()});
     S.tab='myclasses';
   }
+  localStorage.setItem('nyd_tab',tab);
 }
 
 function _animateNav(newTab,callback){
@@ -2279,14 +2283,23 @@ function renderAll(){renderCalendar();renderClasses()}
   const future=allDates.filter(d=>d>=today);
   S.selectedDate=future.length?future[0]:allDates[allDates.length-1];
   syncChipsFromState();buildTeacherChips();renderAll();
-  // Init nav capsule after Phosphor icons are rendered (use window.onload)
+  // Restore last active tab
+  const _savedTab=localStorage.getItem('nyd_tab');
+  if(_savedTab&&_savedTab!=='schedule'){
+    setTimeout(()=>switchTab(_savedTab),50);
+  }
+  // Init nav capsule after Phosphor icons render — snap to whichever tab is active
+  function _navElForTab(t){
+    const map={schedule:'navSchedule',wishlist:'navWishlist',myclasses:'navMyclasses',popup:'navPopup'};
+    return document.getElementById(map[t]||'navSchedule');
+  }
   const _initCapsule=()=>{
-    const initEl=document.getElementById('navSchedule');
-    const initLbl=initEl.querySelector('.tab-label');
-    initLbl.style.transition='none';
-    initLbl.style.opacity='1';
-    snapCapsule(initEl);
-    requestAnimationFrame(()=>{ initLbl.style.transition=''; });
+    const activeEl=_navElForTab(_savedTab&&_savedTab!=='schedule'?_savedTab:'schedule');
+    if(!activeEl)return;
+    const lbl=activeEl.querySelector('.tab-label');
+    if(lbl){lbl.style.transition='none';lbl.style.opacity='1';}
+    snapCapsule(activeEl);
+    requestAnimationFrame(()=>{ if(lbl)lbl.style.transition=''; });
   };
   if(document.readyState==='complete') _initCapsule();
   else window.addEventListener('load',_initCapsule);
