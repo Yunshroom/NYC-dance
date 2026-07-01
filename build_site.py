@@ -1221,55 +1221,36 @@ async function sbSyncFilters(){
 async function sbLoadAll(){
   if(!_sb)return;
   try{
-    // ── my_classes: merge remote + local (union, remote wins on conflict) ──
+    // ── my_classes: Supabase is source of truth ──
+    // Local data is only used as fallback when Supabase has nothing at all.
+    // We never push local-only items up — that would resurrect deleted classes.
     const{data:mc,error:mcErr}=await _sb.from('my_classes').select('class_id,class_json,added_at').eq('user_id',_SB_USER);
     if(mcErr)console.warn('[Supabase] my_classes fetch error',mcErr);
     const{data:notes}=await _sb.from('notes').select('*').eq('user_id',_SB_USER);
-    // Start from local snapshot, then overlay remote on top
-    const merged={...myClassesMap};
-    // Populate remote ID tracker so sbSyncMyClasses knows what to delete later
     _remoteClassIds=new Set((mc||[]).map(r=>r.class_id));
-    (mc||[]).forEach(row=>{
-      const existing=merged[row.class_id];
-      merged[row.class_id]={
-        notes: existing?existing.notes:[],
-        added_at: row.added_at,
-        ...(row.class_json||{})
-      };
-      merged[row.class_id].notes=existing?existing.notes:[];
-    });
-    // Attach remote notes
-    (notes||[]).forEach(n=>{
-      if(merged[n.class_id]){
-        // avoid duplicates
-        const already=merged[n.class_id].notes.some(x=>x.id===n.note_id);
-        if(!already)merged[n.class_id].notes.push({id:n.note_id,text:n.text,type:n.type,created_at:n.created_at});
-      }
-    });
-    // Apply merged map
-    Object.keys(myClassesMap).forEach(k=>delete myClassesMap[k]);
-    Object.assign(myClassesMap,merged);
-    localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
-    // Push any local-only entries up to Supabase so other devices get them
-    const remoteIds=new Set((mc||[]).map(r=>r.class_id));
-    const localOnly=Object.entries(myClassesMap).filter(([id])=>!remoteIds.has(id));
-    if(localOnly.length){
-      const rows=localOnly.map(([id,v])=>({user_id:_SB_USER,class_id:id,class_json:v,added_at:v.added_at||new Date().toISOString()}));
-      await _sb.from('my_classes').upsert(rows,{onConflict:'user_id,class_id'});
-      console.log('[Supabase] pushed',localOnly.length,'local-only classes up');
+    if(mc&&mc.length){
+      // Replace local state entirely with what Supabase has
+      const remote={};
+      mc.forEach(row=>{
+        remote[row.class_id]={notes:[],added_at:row.added_at,...(row.class_json||{})};
+        remote[row.class_id].notes=[];
+      });
+      // Attach notes from Supabase
+      (notes||[]).forEach(n=>{
+        if(remote[n.class_id])remote[n.class_id].notes.push({id:n.note_id,text:n.text,type:n.type,created_at:n.created_at});
+      });
+      Object.keys(myClassesMap).forEach(k=>delete myClassesMap[k]);
+      Object.assign(myClassesMap,remote);
+      localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
     }
-    // ── wishlist: merge remote + local ──
+    // (if Supabase has no data, keep localStorage as-is — first-time device)
+    // ── wishlist: Supabase is source of truth ──
     const{data:wl}=await _sb.from('wishlist').select('class_id').eq('user_id',_SB_USER);
-    const remoteWl=new Set((wl||[]).map(r=>r.class_id));
-    // union local savedSet with remote
-    remoteWl.forEach(id=>savedSet.add(id));
-    // push local-only wishlist items up
-    const wlLocalOnly=[...savedSet].filter(id=>!remoteWl.has(id));
-    if(wlLocalOnly.length){
-      const rows=wlLocalOnly.map(id=>({user_id:_SB_USER,class_id:id,saved_at:new Date().toISOString()}));
-      await _sb.from('wishlist').upsert(rows,{onConflict:'user_id,class_id'});
+    if(wl&&wl.length){
+      savedSet.clear();
+      wl.forEach(r=>savedSet.add(r.class_id));
+      localStorage.setItem('nyd_saved',JSON.stringify([...savedSet]));
     }
-    localStorage.setItem('nyd_saved',JSON.stringify([...savedSet]));
     // ── custom classes ──
     const{data:cc}=await _sb.from('custom_classes').select('class_json').eq('user_id',_SB_USER);
     if(cc&&cc.length){
