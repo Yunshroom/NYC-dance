@@ -790,6 +790,7 @@ const _SB_URL='https://riezaxehqtoaxjysguwe.supabase.co';
 const _SB_KEY='sb_publishable_beWZ6S96-qf51IBebC_IVQ_ufUR_E9_';
 const _SB_USER='yunshroom-test-01';
 let _sb=null;
+let _remoteClassIds=new Set(); // tracks which class_ids exist in Supabase so we can delete removed ones
 (function(){
   try{
     if(_SB_URL&&typeof supabase!=='undefined'){
@@ -804,8 +805,19 @@ let _sb=null;
 async function sbSyncMyClasses(){
   if(!_sb)return;
   try{
+    const currentIds=new Set(Object.keys(myClassesMap));
+    // Delete any classes that were in Supabase but have been removed locally
+    const toDelete=[..._remoteClassIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length){
+      await _sb.from('my_classes').delete().eq('user_id',_SB_USER).in('class_id',toDelete);
+      toDelete.forEach(id=>_remoteClassIds.delete(id));
+    }
+    // Upsert current state
     const rows=Object.entries(myClassesMap).map(([id,v])=>({user_id:_SB_USER,class_id:id,class_json:v,added_at:v.added_at}));
-    if(rows.length)await _sb.from('my_classes').upsert(rows,{onConflict:'user_id,class_id'});
+    if(rows.length){
+      await _sb.from('my_classes').upsert(rows,{onConflict:'user_id,class_id'});
+      currentIds.forEach(id=>_remoteClassIds.add(id));
+    }
   }catch(e){console.warn('[Supabase] sbSyncMyClasses error',e);}
 }
 async function sbSyncNotes(classId){
@@ -858,6 +870,8 @@ async function sbLoadAll(){
     const{data:notes}=await _sb.from('notes').select('*').eq('user_id',_SB_USER);
     // Start from local snapshot, then overlay remote on top
     const merged={...myClassesMap};
+    // Populate remote ID tracker so sbSyncMyClasses knows what to delete later
+    _remoteClassIds=new Set((mc||[]).map(r=>r.class_id));
     (mc||[]).forEach(row=>{
       const existing=merged[row.class_id];
       merged[row.class_id]={
