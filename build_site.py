@@ -471,6 +471,11 @@ a{color:inherit;text-decoration:none}
 .card-canceled{opacity:.48}
 .card-past{opacity:.42}
 .card-past .card-tap{pointer-events:none}
+/* Past class in My Classes tab — flat, muted, no pattern */
+.card-past-mc{background:#1e1c1a !important;color:rgba(180,175,165,.55) !important}
+.card-past-mc .card-meta,.card-past-mc .card-name,.card-past-mc .card-instructor-name{color:rgba(180,175,165,.45) !important}
+.card-past-mc .small-avatar{opacity:.4}
+.card-past-mc .stamp-mark{opacity:.25 !important}
 /* card-inner has no z-index so save-btn can rise above card-tap in card's stacking context */
 .card-inner{padding:14px;position:relative}
 .card-tap{position:absolute;inset:0;z-index:1}
@@ -483,6 +488,12 @@ a{color:inherit;text-decoration:none}
 .save-btn.saved i{color:#d4537e}
 .my-btn.stamped{color:#f0a830}
 .my-btn.stamped i{color:#f0a830}
+.mc-dots-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 6px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mc-dots-btn i{font-size:20px}
+.mc-dots-menu{background:#2a2724;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:190px}
+.mc-dots-item{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;background:none;border:none;color:rgba(236,234,230,.85);font-size:14px;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.mc-dots-item:active{background:rgba(255,255,255,.07)}
+.mc-dots-delete{color:#e06070 !important}
 /* Scrapbook notes */
 .sticky-note{border-radius:4px;padding:11px 13px;position:relative;border-bottom:2px solid rgba(0,0,0,.07);transition:transform .2s}
 .sticky-tape{position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:30px;height:11px;border-radius:2px;opacity:.5}
@@ -1642,7 +1653,7 @@ function renderMyClasses(){
       div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
       listEl.appendChild(div);lastDate=c.date_key;
     }
-    const card=buildCard(c,i);
+    const card=buildCard(c,i,true);
     // Notes button row below card
     const noteRow=document.createElement('div');
     noteRow.style.cssText='padding:0 14px 10px;position:relative;z-index:2;display:flex;align-items:center;gap:6px';
@@ -1875,9 +1886,10 @@ function _attachStamp(div,c,animate){
   return el;
 }
 
-function buildCard(c,i){
+function buildCard(c,i,inMyClasses){
+  const past=isPastClass(c);
   const div=document.createElement('div');
-  div.className=`card ${cardStyle(c)}${c.is_canceled?' card-canceled':''}${isPastClass(c)?' card-past':''}`;
+  div.className=`card ${cardStyle(c)}${c.is_canceled?' card-canceled':''}${past?' card-past':''}${(inMyClasses&&past)?' card-past-mc':''}`;
   div.style.animationDelay=`${Math.min(i*35,200)}ms`;
 
   const color=avatarColor(c.instructor);
@@ -1898,18 +1910,21 @@ function buildCard(c,i){
   }
   const bookHref=c.booking_url&&!c.is_canceled?`<a href="${esc(c.booking_url)}" target="_blank" rel="noopener" class="card-tap" aria-label="Book ${esc(c.class_name)}"></a>`:'';
 
+  // In My Classes tab: three-dots menu instead of stamp+star buttons
+  const actionsHTML=inMyClasses
+    ?`<button class="mc-dots-btn" aria-label="Options"><i class="ph ph-dots-three"></i></button>`
+    :`<button class="my-btn${stamped?' stamped':''}" aria-label="${stamped?'Unmark':'Mark as attended'}">
+        <i class="${stamped?'ph-fill':'ph'} ph-stamp"></i>
+      </button>
+      <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
+        <i class="${saved?'ph-fill':'ph'} ph-shooting-star"></i>
+      </button>`;
+
   div.innerHTML=`${bookHref}
     <div class="card-inner">
       <div class="card-header-row">
         <div class="card-meta">${customTag}${esc(metaStr)}</div>
-        <div class="card-actions">
-          <button class="my-btn${stamped?' stamped':''}" aria-label="${stamped?'Unmark':'Mark as attended'}">
-            <i class="${stamped?'ph-fill':'ph'} ph-stamp"></i>
-          </button>
-          <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
-            <i class="${saved?'ph-fill':'ph'} ph-shooting-star"></i>
-          </button>
-        </div>
+        <div class="card-actions">${actionsHTML}</div>
       </div>
       <div class="card-name">${esc(c.class_name)}</div>
       <div class="card-instructor-row">
@@ -1919,31 +1934,53 @@ function buildCard(c,i){
       ${capHTML}
     </div>`;
 
-  div.querySelector('.save-btn').addEventListener('click',e=>{
-    e.preventDefault();e.stopPropagation();
-    const nowSaved=toggleSaved(c);
-    const btn=e.currentTarget;
-    btn.classList.toggle('saved',nowSaved);
-    btn.setAttribute('aria-label',nowSaved?'Unsave':'Save');
-    btn.querySelector('i').className=(nowSaved?'ph-fill':'ph')+' ph-shooting-star';
-    if(S.tab==='saved')setTimeout(renderSaved,60);
-  });
-  // Render stamp mark if already stamped (no animation on re-render)
-  if(stamped)_attachStamp(div,c,false);
-
-  div.querySelector('.my-btn').addEventListener('click',e=>{
-    e.preventDefault();e.stopPropagation();
-    const nowStamped=toggleMyClass(c);
-    const btn=e.currentTarget;
-    btn.classList.toggle('stamped',nowStamped);
-    btn.setAttribute('aria-label',nowStamped?'Unmark':'Mark as attended');
-    btn.querySelector('i').className=(nowStamped?'ph-fill':'ph')+' ph-stamp';
-    // Add or remove stamp watermark
-    const existing=div.querySelector('.stamp-mark');
-    if(nowStamped){if(!existing)_attachStamp(div,c,true);}
-    else{if(existing)existing.remove();}
-    if(S.tab==='myclasses')setTimeout(renderMyClasses,60);
-  });
+  if(inMyClasses){
+    // Three-dots → dropdown with Remove option
+    if(stamped)_attachStamp(div,c,false);
+    div.querySelector('.mc-dots-btn').addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      // Remove any existing menus
+      document.querySelectorAll('.mc-dots-menu').forEach(m=>m.remove());
+      const menu=document.createElement('div');
+      menu.className='mc-dots-menu';
+      menu.innerHTML=`<button class="mc-dots-item mc-dots-delete"><i class="ph ph-trash"></i> Remove from My Classes</button>`;
+      menu.querySelector('.mc-dots-delete').addEventListener('click',ev=>{
+        ev.stopPropagation();
+        menu.remove();
+        toggleMyClass(c); // removes it
+        setTimeout(renderMyClasses,60);
+      });
+      // Position below the button
+      const btnRect=e.currentTarget.getBoundingClientRect();
+      menu.style.cssText=`position:fixed;right:${window.innerWidth-btnRect.right}px;top:${btnRect.bottom+4}px;z-index:999`;
+      document.body.appendChild(menu);
+      // Dismiss on outside click
+      setTimeout(()=>document.addEventListener('click',function _d(){menu.remove();document.removeEventListener('click',_d);},{once:true}),0);
+    });
+  } else {
+    div.querySelector('.save-btn').addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      const nowSaved=toggleSaved(c);
+      const btn=e.currentTarget;
+      btn.classList.toggle('saved',nowSaved);
+      btn.setAttribute('aria-label',nowSaved?'Unsave':'Save');
+      btn.querySelector('i').className=(nowSaved?'ph-fill':'ph')+' ph-shooting-star';
+      if(S.tab==='saved')setTimeout(renderSaved,60);
+    });
+    if(stamped)_attachStamp(div,c,false);
+    div.querySelector('.my-btn').addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();
+      const nowStamped=toggleMyClass(c);
+      const btn=e.currentTarget;
+      btn.classList.toggle('stamped',nowStamped);
+      btn.setAttribute('aria-label',nowStamped?'Unmark':'Mark as attended');
+      btn.querySelector('i').className=(nowStamped?'ph-fill':'ph')+' ph-stamp';
+      const existing=div.querySelector('.stamp-mark');
+      if(nowStamped){if(!existing)_attachStamp(div,c,true);}
+      else{if(existing)existing.remove();}
+      if(S.tab==='myclasses')setTimeout(renderMyClasses,60);
+    });
+  }
   return div;
 }
 
@@ -2283,11 +2320,21 @@ function renderAll(){renderCalendar();renderClasses()}
   const allDates=[...new Set(ALL_CLASSES.filter(c=>!c.is_canceled).map(c=>c.date_key))].sort();
   const future=allDates.filter(d=>d>=today);
   S.selectedDate=future.length?future[0]:allDates[allDates.length-1];
-  syncChipsFromState();buildTeacherChips();renderAll();
-  // Restore last active tab
+  syncChipsFromState();buildTeacherChips();
+  // Restore last active tab — render the right content immediately, no flash
   const _savedTab=localStorage.getItem('nyd_tab');
-  if(_savedTab&&_savedTab!=='schedule'){
-    setTimeout(()=>switchTab(_savedTab),50);
+  const _tabNav={schedule:'navSchedule',wishlist:'navWishlist',myclasses:'navMyclasses',popup:'navPopup'};
+  if(_savedTab&&_savedTab!=='schedule'&&_tabNav[_savedTab]){
+    // Swap active class on nav buttons immediately
+    document.getElementById('navSchedule').classList.remove('active');
+    document.getElementById(_tabNav[_savedTab]).classList.add('active');
+    _navCurrent=_savedTab;
+    // Render correct content
+    if(_savedTab==='myclasses'){S.tab='myclasses';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderMyClasses();}
+    else if(_savedTab==='wishlist'){S.tab='saved';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderSaved();}
+    else if(_savedTab==='popup'){S.tab='popup';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderPopup();}
+  } else {
+    renderAll();
   }
   // Init nav capsule after Phosphor icons render — snap to whichever tab is active
   function _navElForTab(t){
