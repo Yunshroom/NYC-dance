@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=Permanent+Marker&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%}
@@ -30,7 +31,7 @@ a{color:inherit;text-decoration:none}
 .header-actions{display:flex;align-items:center;gap:6px}
 .icon-btn{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.45);border:.5px solid rgba(26,26,24,.10);transition:background .15s;-webkit-tap-highlight-color:transparent}
 .icon-btn:active{background:rgba(255,255,255,.75)}
-.icon-btn svg{width:15px;height:15px;stroke:#1a1a18;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn i{font-size:17px;color:#1a1a18;display:flex}
 .header-row2{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
 .page-title{font-family:'Permanent Marker',cursive;font-size:28px;font-weight:400;color:#111;line-height:1.1;letter-spacing:.5px}
 .updated-text{font-family:'DM Mono',monospace;font-size:10px;color:#8c8a82;font-weight:400;letter-spacing:.02em}
@@ -115,9 +116,9 @@ a{color:inherit;text-decoration:none}
 .card-tap{position:absolute;inset:0;z-index:1}
 .card-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .save-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 2px 2px 6px;transition:color .2s;position:relative;z-index:2;flex-shrink:0}
-.save-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:fill .2s,stroke .2s}
+.save-btn i{font-size:19px;transition:color .2s}
 .save-btn.saved{color:#d4537e}
-.save-btn.saved svg{fill:#d4537e;stroke:#d4537e}
+.save-btn.saved i{color:#d4537e}
 
 /* studio + time — now lives in card-header-row beside bookmark */
 .card-meta{font-family:'DM Mono',monospace;font-size:10px;color:rgba(216,212,204,.65);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
@@ -136,9 +137,9 @@ a{color:inherit;text-decoration:none}
 .nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.48);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);border:.5px solid rgba(255,255,255,.13);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.07) inset;pointer-events:all}
 .nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.52);border:.5px solid rgba(255,255,255,.2);box-shadow:0 2px 10px rgba(0,0,0,.3),0 .5px 0 rgba(255,255,255,.07) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:10px 15px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tab-icon svg{width:20px;height:20px;stroke:rgba(140,132,120,.85);fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;display:block;flex-shrink:0;transition:stroke .2s}
+.tab-icon i{font-size:21px;color:rgba(140,132,120,.85);display:block;flex-shrink:0;transition:color .2s}
 .tab-label{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;max-width:0;opacity:0;margin-left:0;transition:max-width .38s cubic-bezier(.34,1.4,.64,1),margin-left .38s cubic-bezier(.34,1.4,.64,1)}
-.nav-tab.active .tab-icon svg{stroke:#fff}
+.nav-tab.active .tab-icon i{color:#fff}
 .nav-tab.active .tab-label{max-width:90px;margin-left:6px;opacity:1}
 
 /* drawer */
@@ -191,7 +192,7 @@ a{color:inherit;text-decoration:none}
 .popup-btn-row{display:flex;gap:10px;margin:0 0 14px}
 .popup-act-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 0;border-radius:12px;background:#f0ece6;border:none;font-size:14px;font-weight:500;color:#3a3830;cursor:pointer;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
 .popup-act-btn:active{background:#e4e0da}
-.popup-act-btn svg{stroke:#3a3830;flex-shrink:0}
+.popup-act-btn i{font-size:18px;color:#3a3830;flex-shrink:0}
 .popup-ocr-status{font-size:12px;color:#9a9688;margin-bottom:12px;padding:8px 12px;background:#f8f6f2;border-radius:8px}
 .popup-content-area{margin-bottom:14px}
 .popup-img-preview{width:100%;max-height:340px;object-fit:contain;display:block;border-radius:13px;background:#f0ece6}
@@ -221,7 +222,7 @@ a{color:inherit;text-decoration:none}
         <span class="location-label">New York City</span>
         <div class="header-actions">
           <button class="icon-btn" id="filterBtn" title="Filters">
-            <svg viewBox="0 0 16 16"><path d="M2 4h12M5 8h6M7 12h2"/></svg>
+            <i class="ph ph-funnel"></i>
           </button>
         </div>
       </div>
@@ -241,15 +242,15 @@ a{color:inherit;text-decoration:none}
     <div id="navBar" class="nav-bar">
       <div id="navCapsule" class="nav-capsule"></div>
       <button class="nav-tab active" data-tab="schedule" id="navSchedule">
-        <span class="tab-icon"><svg viewBox="0 0 22 22"><rect x="3" y="4" width="16" height="15" rx="2"/><path d="M7 2v4M15 2v4M3 9h16"/></svg></span>
+        <span class="tab-icon"><i class="ph ph-calendar"></i></span>
         <span class="tab-label">Schedule</span>
       </button>
       <button class="nav-tab" data-tab="popup" id="navPopup">
-        <span class="tab-icon"><svg viewBox="0 0 22 22"><path d="M11 2a7 7 0 0 1 7 7c0 5.25-7 12-7 12S4 14.25 4 9a7 7 0 0 1 7-7z"/><circle cx="11" cy="9" r="2.5"/></svg></span>
+        <span class="tab-icon"><i class="ph ph-sparkle"></i></span>
         <span class="tab-label">Pop up</span>
       </button>
       <button class="nav-tab" data-tab="wishlist" id="navWishlist">
-        <span class="tab-icon"><svg viewBox="0 0 22 22"><path d="M5 3h12a1 1 0 0 1 1 1v15l-7-4-7 4V4a1 1 0 0 1 1-1z"/></svg></span>
+        <span class="tab-icon"><i class="ph ph-bookmark"></i></span>
         <span class="tab-label">Wishlist</span>
       </button>
     </div>
@@ -460,7 +461,7 @@ function doSaveCustomClass(){
       const sd=document.getElementById('popupSummary');
       if(ca){ca.style.display='none';ca.innerHTML='';}
       if(sd){sd.style.display='none';sd.innerHTML='';}
-      btn.innerHTML='<svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg> Save to Wishlist';
+      btn.innerHTML='<i class="ph ph-bookmark-simple"></i> Save to Wishlist';
       btn.classList.remove('saved-ok');btn.style.display='none';
     },2000);
   }
@@ -545,11 +546,11 @@ function renderPopup(){
   <p class="popup-hint">Add a class from a screenshot or copied text — we'll extract the details.</p>
   <div class="popup-btn-row">
     <button class="popup-act-btn" id="popupPasteBtn">
-      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="11" height="14" rx="2"/><path d="M6 6H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/><path d="M9 3a2 2 0 0 1 3.5 0"/></svg>
+      <i class="ph ph-clipboard-text"></i>
       Paste
     </button>
     <label class="popup-act-btn" style="cursor:pointer">
-      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="5" width="18" height="13" rx="2"/><circle cx="10" cy="12" r="3"/><path d="M7 5l1.5-2.5h3L13 5"/></svg>
+      <i class="ph ph-camera"></i>
       Photo
       <input type="file" id="popupPhotoInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
     </label>
@@ -558,7 +559,7 @@ function renderPopup(){
   <div id="popupContent" class="popup-content-area" style="display:none"></div>
   <div id="popupSummary" class="popup-summary" style="display:none"></div>
   <button class="popup-save-btn" id="popupSaveBtn" style="display:none">
-    <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
+    <i class="ph ph-bookmark-simple"></i>
     Save to Wishlist
   </button>
 </div>`;
@@ -678,7 +679,7 @@ function datesWithClasses(){
   return s;
 }
 
-// ── calendar: 28-day scrollable strip (4 weeks from today) ──
+// ── calendar: 7-day strip (today + 6 days) ──
 function renderCalendar(){
   const strip=document.getElementById('weekStrip');
   const dotDates=datesWithClasses();
@@ -696,7 +697,7 @@ function renderCalendar(){
   strip.innerHTML='';
   let selectedEl=null,todayEl=null;
 
-  for(let i=0;i<28;i++){
+  for(let i=0;i<7;i++){
     const d=new Date(todayDate);d.setDate(d.getDate()+i);
     const key=isoKey(d);
     const col=document.createElement('div');
@@ -793,7 +794,7 @@ function buildCard(c,i){
       <div class="card-header-row">
         <div class="card-meta">${customTag}${esc(metaStr)}</div>
         <button class="save-btn${saved?' saved':''}" aria-label="${saved?'Unsave':'Save'}">
-          <svg viewBox="0 0 16 16"><path d="M3 2h10a1 1 0 0 1 1 1v11l-5-3-5 3V3a1 1 0 0 1 1-1z"/></svg>
+          <i class="${saved?'ph-fill':'ph'} ph-bookmark"></i>
         </button>
       </div>
       <div class="card-name">${esc(c.class_name)}</div>
@@ -810,6 +811,7 @@ function buildCard(c,i){
     const btn=e.currentTarget;
     btn.classList.toggle('saved',nowSaved);
     btn.setAttribute('aria-label',nowSaved?'Unsave':'Save');
+    btn.querySelector('i').className=(nowSaved?'ph-fill':'ph')+' ph-bookmark';
     if(S.tab==='saved')setTimeout(renderSaved,60);
   });
   return div;
