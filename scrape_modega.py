@@ -77,6 +77,28 @@ def fetch_week(start_ts: int) -> list[dict]:
 
 # ── Normalise ──────────────────────────────────────────────────────────────────
 
+_STUDIO_NAMES = {"Modega", "Mover's Bodega, LLC", "Mover's Bodega", "Mover's Bodega LLC"}
+
+def _resolve_instructor(raw: dict) -> str:
+    """
+    Sutra returns instructor_name = studio org name when a guest teacher hosts.
+    The real teacher lives in host_name / hostName / hostData[0].name.
+    Priority: host_name (if not studio) > instructor_name (if not studio) > hostData name > ""
+    """
+    candidates = [
+        raw.get("host_name") or raw.get("hostName"),
+        raw.get("instructor_name"),
+    ]
+    # hostData array fallback
+    host_data = raw.get("hostData") or []
+    if host_data and isinstance(host_data, list):
+        candidates.append(host_data[0].get("name"))
+
+    for name in candidates:
+        if name and name.strip() and name.strip() not in _STUDIO_NAMES:
+            return name.strip()
+    return ""   # will be mapped to "Modega Staff" in build_site.py
+
 def normalise(raw: dict) -> dict:
     """Flatten the Arketa class object to the fields we care about."""
     start_ts = raw.get("start_time")
@@ -108,7 +130,7 @@ def normalise(raw: dict) -> dict:
         "start_time": start_iso,
         "end_time": end_iso,
         "duration_minutes": duration_minutes,
-        "instructor": raw.get("instructor_name") or raw.get("host_name", ""),
+        "instructor": _resolve_instructor(raw),
         "location": (raw.get("location") or {}).get("name") or raw.get("location_name", ""),
         "location_address": (raw.get("location") or {}).get("address", ""),
         "location_type": raw.get("location_type", ""),
