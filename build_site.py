@@ -324,7 +324,7 @@ HTML = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#ddb5c8"/>
 <title>NYC Dance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -336,12 +336,12 @@ HTML = r"""<!DOCTYPE html>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;width:100%}
 html{-webkit-text-size-adjust:100%;background:#ddb5c8}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#ddb5c8;overscroll-behavior-y:none;display:flex;justify-content:center}
-button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#ddb5c8;overscroll-behavior-y:none;touch-action:manipulation}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit;touch-action:manipulation}
 a{color:inherit;text-decoration:none}
 
-.app-shell{width:100%;max-width:100%;height:100dvh;height:100svh;background:#eceae6;position:relative;display:flex;flex-direction:column;overflow:hidden}
-@media(min-width:500px){.app-shell{max-width:430px;}}
+.app-shell{width:100%;height:100dvh;height:100svh;background:#eceae6;position:relative;display:flex;flex-direction:column;overflow:hidden}
+@media(min-width:500px){body{display:flex;justify-content:center}.app-shell{max-width:430px;}}
 
 .bg-radial{position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(to bottom,#ddb5c8 0%,rgba(221,181,200,0) 18%),radial-gradient(ellipse 75% 50% at 85% 10%,rgba(208,120,155,.65) 0%,transparent 100%)}
 .bg-dots{position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.32;background-image:radial-gradient(circle,rgba(0,0,0,.28) 1px,transparent 1px);background-size:2.5px 2.5px}
