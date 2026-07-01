@@ -2350,36 +2350,25 @@ function updateApplyBtn(){
 
 // ── nav capsule ──
 let _navCurrent='schedule',_navBusy=false;
-function _navTabEl(tab){const m={schedule:'navSchedule',popup:'navPopup',wishlist:'navWishlist',myclasses:'navMyclasses'};return document.getElementById(m[tab])}
+function _navTabEl(tab){const m={schedule:'navSchedule',popup:'navPopup',wishlist:'navWishlist',myclasses:'navMyclasses'};return document.getElementById(m[tab]);}
 
 function snapCapsule(tabEl){
-  const capsule=document.getElementById('navCapsule');
-  capsule.style.transition='none';
-  capsule.getBoundingClientRect();
-  capsule.style.left=tabEl.offsetLeft+'px';
-  capsule.style.width=tabEl.offsetWidth+'px';
-  requestAnimationFrame(()=>{capsule.style.transition=''});
-}
-function slideCapsule(tabEl){
-  const capsule=document.getElementById('navCapsule');
-  capsule.style.left=tabEl.offsetLeft+'px';
-  capsule.style.width=tabEl.offsetWidth+'px';
-  // Re-sync after tab fully expands (label CSS transition = 380ms)
-  setTimeout(()=>{
-    capsule.style.transition='none';
-    capsule.style.left=tabEl.offsetLeft+'px';
-    capsule.style.width=tabEl.offsetWidth+'px';
-    requestAnimationFrame(()=>{capsule.style.transition=''});
-  },420);
+  const c=document.getElementById('navCapsule');
+  if(!c||!tabEl)return;
+  c.style.transition='none';
+  c.getBoundingClientRect(); // force reflow
+  c.style.left=tabEl.offsetLeft+'px';
+  c.style.width=tabEl.offsetWidth+'px';
+  requestAnimationFrame(()=>{c.style.transition='';});
 }
 
 // ── tab switching ──
 function switchTab(tab){
+  if(_navBusy)return;
   if(tab==='popup'){
     if(_navCurrent==='popup')return;
-    _animateNav('popup',()=>{ renderPopup(); });
-    S.tab='popup';
-    localStorage.setItem('nyd_tab','popup');
+    _animateNav('popup',()=>renderPopup());
+    S.tab='popup';localStorage.setItem('nyd_tab','popup');
     return;
   }
   if(tab===_navCurrent)return;
@@ -2391,43 +2380,46 @@ function switchTab(tab){
     });
     S.tab='schedule';
   } else if(tab==='wishlist'){
-    _animateNav('wishlist',()=>{renderSaved()});
+    _animateNav('wishlist',()=>renderSaved());
     S.tab='saved';
   } else {
-    _animateNav('myclasses',()=>{renderMyClasses()});
+    _animateNav('myclasses',()=>renderMyClasses());
     S.tab='myclasses';
   }
   localStorage.setItem('nyd_tab',tab);
 }
 
 function _animateNav(newTab,callback){
+  if(_navBusy)return;
+  _navBusy=true;
   const oldEl=_navTabEl(_navCurrent);
   const newEl=_navTabEl(newTab);
-  // 1. fade out old label
-  const oldLbl=oldEl.querySelector('.tab-label');
-  oldLbl.style.opacity='0';
-  oldLbl.style.transition='opacity 0.1s';
+  const capsule=document.getElementById('navCapsule');
+
+  // Step 1: measure new tab's position NOW (before expansion) and start sliding capsule
+  const startLeft=newEl.offsetLeft;
+  const startW=newEl.offsetWidth;
+  capsule.style.left=startLeft+'px';
+  capsule.style.width=startW+'px';
+
+  // Step 2: swap active classes — CSS handles label expand/collapse transitions
+  oldEl.classList.remove('active');
+  newEl.classList.add('active');
+  _navCurrent=newTab;
+
+  // Step 3: once the label CSS transition finishes (~380ms), snap capsule to final size
   setTimeout(()=>{
-    // 2. swap active classes — keep new label hidden until capsule lands
-    oldEl.classList.remove('active');
-    newEl.classList.add('active');
-    const newLbl=newEl.querySelector('.tab-label');
-    newLbl.style.transition='none';
-    newLbl.style.opacity='0';
-    _navCurrent=newTab;
-    // 3. slide capsule (initial measurement — tab not yet fully expanded)
+    capsule.style.transition='none';
+    capsule.getBoundingClientRect();
+    capsule.style.left=newEl.offsetLeft+'px';
+    capsule.style.width=newEl.offsetWidth+'px';
     requestAnimationFrame(()=>{
-      slideCapsule(newEl);
-      // 4. show new label after capsule settles
-      setTimeout(()=>{
-        newLbl.style.transition='opacity 0.18s';
-        newLbl.style.opacity='1';
-        _navBusy=false;
-      },350);
+      capsule.style.transition='';
+      _navBusy=false;
     });
-    callback();
-  },110);
-  _navBusy=true;
+  },400);
+
+  callback();
 }
 
 // ── event listeners ──
@@ -2525,18 +2517,10 @@ function renderAll(){renderCalendar();renderClasses()}
   } else {
     renderAll();
   }
-  // Init nav capsule after Phosphor icons render — snap to whichever tab is active
-  function _navElForTab(t){
-    const map={schedule:'navSchedule',wishlist:'navWishlist',myclasses:'navMyclasses',popup:'navPopup'};
-    return document.getElementById(map[t]||'navSchedule');
-  }
+  // Snap capsule to active tab after Phosphor icons load (they affect icon size)
   const _initCapsule=()=>{
-    const activeEl=_navElForTab(_savedTab&&_savedTab!=='schedule'?_savedTab:'schedule');
-    if(!activeEl)return;
-    const lbl=activeEl.querySelector('.tab-label');
-    if(lbl){lbl.style.transition='none';lbl.style.opacity='1';}
-    snapCapsule(activeEl);
-    requestAnimationFrame(()=>{ if(lbl)lbl.style.transition=''; });
+    const activeEl=_navTabEl(_navCurrent);
+    if(activeEl)snapCapsule(activeEl);
   };
   if(document.readyState==='complete') _initCapsule();
   else window.addEventListener('load',_initCapsule);
