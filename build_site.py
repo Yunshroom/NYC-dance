@@ -589,6 +589,16 @@ a{color:inherit;text-decoration:none}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
+/* stamp watermark */
+.stamp-mark{position:absolute;right:14px;top:50%;pointer-events:none;transform-origin:center center}
+@keyframes stampPress{
+  0%  {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*1.35));opacity:0}
+  30% {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*0.9));opacity:calc(var(--so)*1.5)}
+  60% {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*1.04));opacity:var(--so)}
+  100%{transform:translateY(-50%) rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
+}
+.stamp-mark.stamp-enter{animation:stampPress .42s cubic-bezier(.22,.68,0,1.2) both}
+.stamp-mark.stamp-show{transform:translateY(-50%) rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
 </style>
 </head>
 <body>
@@ -1808,6 +1818,56 @@ function renderSaved(){
 }
 
 // ── card builder ──
+// ── stamp watermark ──
+const STAMP_SVG=`<svg viewBox="0 0 130 130" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+<defs><path id="st-arc" d="M 11,65 A 54,54 0 1,1 119,65"/></defs>
+<circle cx="65" cy="65" r="60" fill="none" stroke="rgba(236,234,230,1)" stroke-width="1.4" stroke-dasharray="2.6,2.6"/>
+<circle cx="65" cy="65" r="52" fill="none" stroke="rgba(236,234,230,1)" stroke-width="0.85"/>
+<text font-family="DM Mono,monospace" font-size="10" font-weight="700" letter-spacing="5.5" fill="rgba(236,234,230,1)">
+  <textPath href="#st-arc" startOffset="50%" text-anchor="middle">CLASS TAKEN</textPath>
+</text>
+<g stroke="rgba(236,234,230,1)" stroke-linecap="round" fill="rgba(236,234,230,1)">
+  <circle cx="37" cy="49" r="5.5" stroke="none"/>
+  <line x1="37" y1="55" x2="37" y2="72" stroke-width="2.3"/>
+  <line x1="37" y1="60" x2="25" y2="54" stroke-width="2.3"/>
+  <line x1="37" y1="60" x2="49" y2="53" stroke-width="2.3"/>
+  <line x1="37" y1="72" x2="28" y2="86" stroke-width="2.3"/>
+  <line x1="37" y1="72" x2="46" y2="83" stroke-width="2.3"/>
+  <circle cx="65" cy="46" r="5.5" stroke="none"/>
+  <line x1="65" y1="52" x2="65" y2="70" stroke-width="2.3"/>
+  <line x1="65" y1="57" x2="52" y2="48" stroke-width="2.3"/>
+  <line x1="65" y1="57" x2="78" y2="48" stroke-width="2.3"/>
+  <line x1="65" y1="70" x2="57" y2="85" stroke-width="2.3"/>
+  <line x1="65" y1="70" x2="73" y2="85" stroke-width="2.3"/>
+  <circle cx="93" cy="49" r="5.5" stroke="none"/>
+  <line x1="93" y1="55" x2="93" y2="72" stroke-width="2.3"/>
+  <line x1="93" y1="60" x2="81" y2="53" stroke-width="2.3"/>
+  <line x1="93" y1="60" x2="105" y2="54" stroke-width="2.3"/>
+  <line x1="93" y1="72" x2="84" y2="86" stroke-width="2.3"/>
+  <line x1="93" y1="72" x2="102" y2="83" stroke-width="2.3"/>
+</g>
+<text x="29" y="107" font-size="9" fill="rgba(236,234,230,1)" font-family="sans-serif">✦</text>
+<text x="94" y="107" font-size="9" fill="rgba(236,234,230,1)" font-family="sans-serif">✦</text>
+</svg>`;
+
+function _stampParams(id){
+  // Deterministic seed from classId so stamp looks the same on re-render
+  let h=0;for(const ch of id)h=(h*31+ch.charCodeAt(0))>>>0;
+  const rot=((h%29)-14).toFixed(1)+'deg';           // -14° to +14°
+  const sc=(0.82+(h>>8&0xFF)/255*0.33).toFixed(2);  // 0.82–1.15
+  const op=(0.30+(h>>16&0xFF)/255*0.26).toFixed(2); // 0.30–0.56
+  return{rot,sc,op};
+}
+function _attachStamp(div,c,animate){
+  const p=_stampParams(classId(c));
+  const el=document.createElement('div');
+  el.className='stamp-mark'+(animate?' stamp-enter':' stamp-show');
+  el.style.cssText=`--sr:${p.rot};--ss:${p.sc};--so:${p.op}`;
+  el.innerHTML=STAMP_SVG;
+  div.appendChild(el);
+  return el;
+}
+
 function buildCard(c,i){
   const div=document.createElement('div');
   div.className=`card ${cardStyle(c)}${c.is_canceled?' card-canceled':''}${isPastClass(c)?' card-past':''}`;
@@ -1861,6 +1921,9 @@ function buildCard(c,i){
     btn.querySelector('i').className=(nowSaved?'ph-fill':'ph')+' ph-shooting-star';
     if(S.tab==='saved')setTimeout(renderSaved,60);
   });
+  // Render stamp mark if already stamped (no animation on re-render)
+  if(stamped)_attachStamp(div,c,false);
+
   div.querySelector('.my-btn').addEventListener('click',e=>{
     e.preventDefault();e.stopPropagation();
     const nowStamped=toggleMyClass(c);
@@ -1868,6 +1931,10 @@ function buildCard(c,i){
     btn.classList.toggle('stamped',nowStamped);
     btn.setAttribute('aria-label',nowStamped?'Unmark':'Mark as attended');
     btn.querySelector('i').className=(nowStamped?'ph-fill':'ph')+' ph-stamp';
+    // Add or remove stamp watermark
+    const existing=div.querySelector('.stamp-mark');
+    if(nowStamped){if(!existing)_attachStamp(div,c,true);}
+    else{if(existing)existing.remove();}
     if(S.tab==='myclasses')setTimeout(renderMyClasses,60);
   });
   return div;
@@ -2146,22 +2213,56 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
 
 function renderAll(){renderCalendar();renderClasses()}
 
-// ── swipe to change day (schedule tab only) ──
+// ── swipe to change day with slide animation (schedule tab only) ──
 (function(){
-  let _tx=0,_ty=0;
-  const el=document.getElementById('mainScroll');
-  el.addEventListener('touchstart',e=>{_tx=e.touches[0].clientX;_ty=e.touches[0].clientY;},{passive:true});
-  el.addEventListener('touchend',e=>{
-    if(S.tab!=='schedule')return;
+  let _tx=0,_ty=0,_busy=false;
+  const scroller=document.getElementById('mainScroll');
+  const _dates=()=>{const t=new Date();t.setHours(0,0,0,0);const a=[];for(let i=0;i<21;i++){const d=new Date(t);d.setDate(d.getDate()+i);a.push(isoKey(d));}return a;};
+
+  scroller.addEventListener('touchstart',e=>{
+    _tx=e.touches[0].clientX;_ty=e.touches[0].clientY;
+  },{passive:true});
+
+  scroller.addEventListener('touchend',e=>{
+    if(S.tab!=='schedule'||_busy)return;
     const dx=e.changedTouches[0].clientX-_tx;
     const dy=e.changedTouches[0].clientY-_ty;
-    if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)*1.4)return; // too short or mostly vertical
-    // Build sorted list of all date keys that exist in the calendar
-    const todayDate=new Date();todayDate.setHours(0,0,0,0);
-    const dates=[];for(let i=0;i<21;i++){const d=new Date(todayDate);d.setDate(d.getDate()+i);dates.push(isoKey(d));}
+    if(Math.abs(dx)<44||Math.abs(dx)<Math.abs(dy)*1.5)return;
+
+    const dates=_dates();
     const idx=dates.indexOf(S.selectedDate);
-    if(dx<0&&idx<dates.length-1){S.selectedDate=dates[idx+1];renderAll();}  // swipe left → next day
-    else if(dx>0&&idx>0){S.selectedDate=dates[idx-1];renderAll();}           // swipe right → prev day
+    let nextDate=null;
+    const dir=dx<0?-1:1; // -1=left(next), +1=right(prev)
+    if(dir===-1&&idx<dates.length-1)nextDate=dates[idx+1];
+    else if(dir===1&&idx>0)nextDate=dates[idx-1];
+    if(!nextDate)return;
+
+    _busy=true;
+    const list=document.getElementById('classesList');
+    const OUT_X=dir*-28; // slide out direction
+    const IN_X=dir*28;   // new content enters from opposite
+
+    // 1. Slide out + fade
+    list.style.transition='transform 0.17s ease-in,opacity 0.17s ease-in';
+    list.style.transform=`translateX(${OUT_X}%)`;
+    list.style.opacity='0';
+
+    setTimeout(()=>{
+      // 2. Update state & render
+      S.selectedDate=nextDate;
+      renderAll();
+      // 3. Instantly position new content off-screen on opposite side
+      list.style.transition='none';
+      list.style.transform=`translateX(${IN_X}%)`;
+      list.style.opacity='0';
+      // 4. Slide in
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        list.style.transition='transform 0.24s cubic-bezier(.25,.46,.45,.94),opacity 0.2s ease-out';
+        list.style.transform='translateX(0)';
+        list.style.opacity='1';
+        setTimeout(()=>_busy=false,260);
+      }));
+    },190);
   },{passive:true});
 })();
 
