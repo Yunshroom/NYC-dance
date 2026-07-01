@@ -469,13 +469,16 @@ a{color:inherit;text-decoration:none}
 .card-choreo-2{background:linear-gradient(155deg,#0a2020 0%,#040e0e 72%);background-image:repeating-linear-gradient(28deg,rgba(255,255,255,.048) 0,rgba(255,255,255,.048) 1px,transparent 1px,transparent 9px),linear-gradient(155deg,#0a2020 0%,#040e0e 72%)}
 
 .card-canceled{opacity:.48}
-.card-past{opacity:.42}
+.card-past{opacity:.5}
 .card-past .card-tap{pointer-events:none}
-/* Past class in My Classes tab — flat, muted, no pattern */
-.card-past-mc{background:#1e1c1a !important;color:rgba(180,175,165,.55) !important}
-.card-past-mc .card-meta,.card-past-mc .card-name,.card-past-mc .card-instructor-name{color:rgba(180,175,165,.45) !important}
-.card-past-mc .small-avatar{opacity:.4}
-.card-past-mc .stamp-mark{opacity:.25 !important}
+/* Past class in My Classes tab — flat grey, no stripe pattern, muted text */
+.card-past-mc{background:#1d1b19 !important;background-image:none !important}
+.card-past-mc .card-meta{color:rgba(160,155,145,.45) !important}
+.card-past-mc .card-name{color:rgba(190,185,175,.5) !important}
+.card-past-mc .card-instructor-name{color:rgba(160,155,145,.4) !important}
+.card-past-mc .small-avatar{opacity:.3}
+.card-past-mc .stamp-mark{opacity:.18 !important}
+.card-past-mc .inline-notes-toggle{opacity:.5}
 /* card-inner has no z-index so save-btn can rise above card-tap in card's stacking context */
 .card-inner{padding:14px;position:relative}
 .card-tap{position:absolute;inset:0;z-index:1}
@@ -488,6 +491,13 @@ a{color:inherit;text-decoration:none}
 .save-btn.saved i{color:#d4537e}
 .my-btn.stamped{color:#f0a830}
 .my-btn.stamped i{color:#f0a830}
+/* inline notes */
+.inline-notes-wrap{padding:0 12px 12px;position:relative;z-index:2}
+.inline-notes-toggle{display:flex;align-items:center;gap:6px;width:100%;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(236,234,230,.65);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;-webkit-tap-highlight-color:transparent;text-align:left}
+.inline-notes-toggle i{font-size:13px}
+.inline-notes-caret{margin-left:auto}
+.inline-notes-panel{background:#eceae6;border-radius:12px;padding:12px;margin-top:8px;position:relative;overflow:hidden}
+.inline-notes-panel::before{content:'';position:absolute;inset:0;opacity:.18;background-image:radial-gradient(circle,rgba(0,0,0,.33) 1px,transparent 1px);background-size:2.5px 2.5px;pointer-events:none}
 .mc-dots-btn{color:rgba(232,228,220,.4);line-height:1;padding:2px 6px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mc-dots-btn i{font-size:20px}
 .mc-dots-menu{background:#2a2724;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:190px}
@@ -1284,7 +1294,11 @@ async function sbLoadAll(){
     });
     console.log('[Supabase] sync complete — my_classes:',Object.keys(myClassesMap).length,'wishlist:',savedSet.size);
     if(typeof syncChipsFromState==='function')syncChipsFromState();
-    if(typeof renderAll==='function')renderAll();
+    // Re-render the currently active tab so remote data shows up correctly
+    if(S.tab==='myclasses'&&typeof renderMyClasses==='function')renderMyClasses();
+    else if(S.tab==='saved'&&typeof renderSaved==='function')renderSaved();
+    else if(S.tab==='popup'&&typeof renderPopup==='function')renderPopup();
+    else if(typeof renderAll==='function')renderAll();
   }catch(e){console.warn('[Supabase] sbLoadAll error',e);}
 }
 // Load remote data on startup (fire-and-forget; local data shown first)
@@ -1634,8 +1648,183 @@ function renderNoteDetail(c){
   _showAddButtons();
 }
 
+function _buildInlineNotes(c){
+  const id=classId(c);
+  const wrap=document.createElement('div');
+  wrap.className='inline-notes-wrap';
+
+  const notes=(myClassesMap[id]?.notes)||[];
+  let expanded=notes.length>0; // start open if has notes
+
+  // ── toggle header ──
+  const toggle=document.createElement('button');
+  toggle.className='inline-notes-toggle';
+  function _updateToggle(){
+    const n=(myClassesMap[id]?.notes||[]).length;
+    toggle.innerHTML=`<i class="ph ph-note-pencil"></i><span>Notes${n?' ('+n+')':''}</span><i class="ph ph-caret-${expanded?'up':'down'} inline-notes-caret"></i>`;
+  }
+  _updateToggle();
+
+  // ── scrapbook panel ──
+  const panel=document.createElement('div');
+  panel.className='inline-notes-panel';
+  panel.style.display=expanded?'block':'none';
+
+  function _rebuildStickies(){
+    const ns=(myClassesMap[id]?.notes)||[];
+    stickyCon.innerHTML='';
+    if(!ns.length){
+      const emp=document.createElement('div');
+      emp.style.cssText='color:#9a9688;font-family:"DM Mono",monospace;font-size:11px;padding:4px 0 8px;text-align:center';
+      emp.textContent='no notes yet';
+      stickyCon.appendChild(emp);
+    } else {
+      ns.forEach((n,i)=>stickyCon.appendChild(_buildSticky(n,i,false)));
+    }
+    _updateToggle();
+  }
+
+  function _buildSticky(n,i,isNew){
+    const col=stickyColor(i);
+    const rot=noteRot(i);
+    const dt=new Date(n.created_at);
+    const hh=dt.getHours(),mm=dt.getMinutes(),period=hh>=12?'PM':'AM';
+    const dh=hh%12||12;
+    const timeStr=`${dh}:${String(mm).padStart(2,'0')} ${period}`;
+    const card=document.createElement('div');
+    card.className='sticky-note'+(isNew?' note-in':'');
+    card.style.cssText=`background:${col.bg};--r:${rot}deg;transform:rotate(${rot}deg);`;
+    const tape=document.createElement('div');tape.className='sticky-tape';tape.style.background=col.tape;card.appendChild(tape);
+    const meta=document.createElement('div');
+    meta.style.cssText='display:flex;align-items:center;gap:5px;margin-bottom:5px';
+    meta.innerHTML=n.type==='voice'
+      ?`<i class="ph-fill ph-microphone" style="font-size:11px;color:#7f77dd"></i><span style="font-family:'DM Mono',monospace;font-size:10px;color:#9a9688">${timeStr} · voice</span>`
+      :`<span style="font-family:'DM Mono',monospace;font-size:10px;color:#9a9688">${timeStr}</span>`;
+    card.appendChild(meta);
+    const txt=document.createElement('p');
+    txt.style.cssText='font-family:"DM Sans",sans-serif;font-size:13px;color:#2a2820;margin:0;line-height:1.55';
+    txt.textContent=n.text;card.appendChild(txt);
+    const del=document.createElement('button');
+    del.setAttribute('aria-label','delete note');
+    del.style.cssText='position:absolute;top:8px;right:8px;background:none;border:none;cursor:pointer;color:rgba(26,26,24,.25);padding:2px;line-height:1';
+    del.innerHTML='<i class="ph ph-x" style="font-size:12px"></i>';
+    del.addEventListener('click',()=>{deleteNote(c,n.id);sbSyncNotes(id);_rebuildStickies();});
+    card.appendChild(del);
+    return card;
+  }
+
+  // sticky container
+  const stickyCon=document.createElement('div');
+  stickyCon.style.cssText='display:flex;flex-direction:column;gap:10px;margin-bottom:10px';
+  panel.appendChild(stickyCon);
+  _rebuildStickies();
+
+  // add buttons area
+  const inputArea=document.createElement('div');
+  panel.appendChild(inputArea);
+
+  function _showAddBtns(){
+    inputArea.innerHTML='';
+    const row=document.createElement('div');row.style.cssText='display:flex;gap:8px';
+    const textBtn=document.createElement('button');
+    textBtn.className='note-pill-btn';
+    textBtn.style.cssText+='background:rgba(26,26,24,.82);color:#eceae6;';
+    textBtn.innerHTML='<i class="ph ph-pencil-simple" style="font-size:14px"></i> text note';
+    textBtn.addEventListener('click',_showTextInput);
+    const voiceBtn=document.createElement('button');
+    voiceBtn.className='note-pill-btn';
+    voiceBtn.style.cssText+='background:rgba(127,119,221,.85);color:#fff;';
+    voiceBtn.innerHTML='<i class="ph ph-microphone" style="font-size:14px"></i> voice note';
+    voiceBtn.addEventListener('click',_showVoiceInput);
+    row.appendChild(textBtn);row.appendChild(voiceBtn);
+    inputArea.appendChild(row);
+  }
+
+  function _showTextInput(){
+    inputArea.innerHTML='';
+    const wrap2=document.createElement('div');wrap2.style.cssText='display:flex;flex-direction:column;gap:8px';
+    const box=document.createElement('div');box.style.cssText='background:#fffdf5;border-radius:8px;padding:10px 12px;border:1px solid rgba(26,26,24,.1)';
+    const ta=document.createElement('textarea');
+    ta.placeholder='write anything — feelings, techniques, reminders…';ta.rows=3;
+    ta.style.cssText='width:100%;border:none;background:transparent;font-family:"DM Sans",sans-serif;font-size:13px;color:#1a1a18;resize:none;outline:none;box-sizing:border-box;line-height:1.5';
+    box.appendChild(ta);wrap2.appendChild(box);
+    const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px;justify-content:flex-end';
+    const cancelBtn=document.createElement('button');
+    cancelBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#9a9688;background:none;border:none;cursor:pointer;padding:6px 10px';
+    cancelBtn.textContent='cancel';cancelBtn.addEventListener('click',_showAddBtns);
+    const saveBtn=document.createElement('button');
+    saveBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#f5f1ea;background:#1a1a18;border:none;border-radius:999px;cursor:pointer;padding:7px 16px';
+    saveBtn.textContent='add note';
+    saveBtn.addEventListener('click',()=>{
+      const text=ta.value.trim();if(!text)return;
+      addNote(c,text,'text');sbSyncNotes(id);_rebuildStickies();_showAddBtns();
+    });
+    ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))saveBtn.click();});
+    btnRow.appendChild(cancelBtn);btnRow.appendChild(saveBtn);
+    wrap2.appendChild(btnRow);inputArea.appendChild(wrap2);
+    setTimeout(()=>ta.focus(),50);
+  }
+
+  let _isRecording=false,_recognition=null,_pendingTranscript='';
+  function _showVoiceInput(){
+    inputArea.innerHTML='';_pendingTranscript='';_isRecording=false;
+    const wrap2=document.createElement('div');wrap2.style.cssText='display:flex;flex-direction:column;gap:8px';
+    const voiceBox=document.createElement('div');
+    voiceBox.style.cssText='background:#f3f2ff;border-radius:8px;padding:14px 12px;border:1px solid rgba(127,119,221,.2);text-align:center';
+    const micWrap=document.createElement('div');
+    micWrap.style.cssText='width:52px;height:52px;border-radius:50%;background:#7f77dd;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;cursor:pointer';
+    micWrap.innerHTML='<i class="ph-fill ph-microphone" style="font-size:24px;color:#fff"></i>';
+    const statusTxt=document.createElement('p');
+    statusTxt.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#7f77dd;margin:0 0 6px';
+    statusTxt.textContent='tap to record';
+    const transcriptBox=document.createElement('div');
+    transcriptBox.style.cssText='display:none;background:#fffdf5;border-radius:6px;padding:8px 10px;font-size:13px;font-family:"DM Sans",sans-serif;color:#1a1a18;text-align:left;margin-top:6px;line-height:1.5;min-height:32px';
+    voiceBox.appendChild(micWrap);voiceBox.appendChild(statusTxt);voiceBox.appendChild(transcriptBox);
+    wrap2.appendChild(voiceBox);
+    const btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px;justify-content:flex-end';
+    const cancelBtn=document.createElement('button');
+    cancelBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#9a9688;background:none;border:none;cursor:pointer;padding:6px 10px';
+    cancelBtn.textContent='cancel';cancelBtn.addEventListener('click',()=>{if(_recognition)_recognition.stop();_showAddBtns();});
+    const saveBtn=document.createElement('button');
+    saveBtn.style.cssText='font-family:"DM Mono",monospace;font-size:11px;color:#f5f1ea;background:#7f77dd;border:none;border-radius:999px;cursor:pointer;padding:7px 16px;display:none';
+    saveBtn.textContent='save note';
+    saveBtn.addEventListener('click',()=>{
+      const t=_pendingTranscript.trim();if(!t)return;
+      addNote(c,t,'voice');sbSyncNotes(id);_rebuildStickies();_showAddBtns();
+    });
+    btnRow.appendChild(cancelBtn);btnRow.appendChild(saveBtn);
+    wrap2.appendChild(btnRow);inputArea.appendChild(wrap2);
+    function _startRecording(){
+      _isRecording=true;micWrap.style.background='#e06070';statusTxt.textContent='recording…';micWrap.querySelector('i').classList.add('rec-pulse');
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(SR){
+        _recognition=new SR();_recognition.continuous=true;_recognition.interimResults=true;
+        _recognition.onresult=ev=>{let s='';for(let i=ev.resultIndex;i<ev.results.length;i++)s+=ev.results[i][0].transcript;_pendingTranscript=s;transcriptBox.style.display='block';transcriptBox.textContent=s;};
+        _recognition.onend=()=>{_isRecording=false;micWrap.style.background='#7f77dd';statusTxt.textContent='done';micWrap.querySelector('i').classList.remove('rec-pulse');if(_pendingTranscript)saveBtn.style.display='';};
+        _recognition.start();
+      } else {
+        setTimeout(()=>{_pendingTranscript='(voice note)';transcriptBox.style.display='block';transcriptBox.textContent=_pendingTranscript;_isRecording=false;micWrap.style.background='#7f77dd';statusTxt.textContent='done';saveBtn.style.display='';},1200);
+      }
+    }
+    micWrap.addEventListener('click',()=>{if(!_isRecording)_startRecording();else{if(_recognition)_recognition.stop();}});
+  }
+
+  _showAddBtns();
+
+  // wire toggle
+  toggle.addEventListener('click',e=>{
+    e.preventDefault();e.stopPropagation();
+    expanded=!expanded;
+    panel.style.display=expanded?'block':'none';
+    _updateToggle();
+  });
+
+  wrap.appendChild(toggle);
+  wrap.appendChild(panel);
+  return wrap;
+}
+
 function renderMyClasses(){
-  if(_notesClass){renderNoteDetail(_notesClass);return;}
   document.getElementById('pageTitle').textContent='My Classes';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
@@ -1654,16 +1843,8 @@ function renderMyClasses(){
       listEl.appendChild(div);lastDate=c.date_key;
     }
     const card=buildCard(c,i,true);
-    // Notes button row below card
-    const noteRow=document.createElement('div');
-    noteRow.style.cssText='padding:0 14px 10px;position:relative;z-index:2;display:flex;align-items:center;gap:6px';
-    const noteCount=(myClassesMap[classId(c)]?.notes||[]).length;
-    noteRow.innerHTML=`<button style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);font-size:12px;color:rgba(236,234,230,.75);cursor:pointer;-webkit-tap-highlight-color:transparent"><i class="ph ph-note-pencil"></i> Notes${noteCount?' ('+noteCount+')':''}</button>`;
-    noteRow.querySelector('button').addEventListener('click',e=>{
-      e.preventDefault();e.stopPropagation();
-      _notesClass=c;renderMyClasses();
-    });
-    card.appendChild(noteRow);
+    // Inline notes section
+    card.appendChild(_buildInlineNotes(c));
     listEl.appendChild(card);
   });
 }
