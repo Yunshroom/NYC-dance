@@ -637,7 +637,7 @@ a{color:inherit;text-decoration:none}
     </div>
 
     <div class="fsection">
-      <div class="fsection-label">Genre</div>
+      <div class="fsection-label">Style</div>
       <div class="fchip-row" id="genreChipRow">
         <button class="fchip active" data-genre="street"><span class="gdot" style="background:#6b3fa0"></span>Street</button>
         <button class="fchip" data-genre="ballet"><span class="gdot" style="background:#1a6e38"></span>Ballet</button>
@@ -1096,6 +1096,7 @@ let myClassesMap=(()=>{
 // create table if not exists notes(user_id text, note_id text, class_id text, text text, type text, created_at timestamptz default now(), primary key(user_id,note_id));
 // create table if not exists wishlist(user_id text, class_id text, class_json jsonb, saved_at timestamptz default now(), primary key(user_id,class_id));
 // create table if not exists custom_classes(user_id text, class_id text, class_json jsonb, created_at timestamptz default now(), primary key(user_id,class_id));
+// create table if not exists user_preferences(user_id text, pref_key text, value_json text, updated_at timestamptz default now(), primary key(user_id,pref_key));
 const _SB_URL='YOUR_SUPABASE_URL';
 const _SB_KEY='YOUR_SUPABASE_ANON_KEY';
 const _SB_USER='yunshroom-test-01';
@@ -1145,6 +1146,20 @@ async function sbSyncCustomClasses(){
     if(rows.length)await _sb.from('custom_classes').upsert(rows,{onConflict:'user_id,class_id'});
   }catch(e){console.warn('[Supabase] sbSyncCustomClasses error',e);}
 }
+async function sbSyncFavTeachers(){
+  if(!_sb)return;
+  try{
+    const val=JSON.stringify([...favTeachers]);
+    await _sb.from('user_preferences').upsert([{user_id:_SB_USER,pref_key:'fav_teachers',value_json:val}],{onConflict:'user_id,pref_key'});
+  }catch(e){console.warn('[Supabase] sbSyncFavTeachers error',e);}
+}
+async function sbSyncFilters(){
+  if(!_sb)return;
+  try{
+    const val=JSON.stringify(_serializeFilters());
+    await _sb.from('user_preferences').upsert([{user_id:_SB_USER,pref_key:'filters',value_json:val}],{onConflict:'user_id,pref_key'});
+  }catch(e){console.warn('[Supabase] sbSyncFilters error',e);}
+}
 async function sbLoadAll(){
   if(!_sb)return;
   try{
@@ -1175,7 +1190,20 @@ async function sbLoadAll(){
       localStorage.setItem('nyd_custom',JSON.stringify(arr));
       CUSTOM_CLASSES.length=0;arr.forEach(c=>CUSTOM_CLASSES.push(c));
     }
+    // Load preferences (fav teachers + filters)
+    const{data:prefs}=await _sb.from('user_preferences').select('pref_key,value_json').eq('user_id',_SB_USER);
+    (prefs||[]).forEach(p=>{
+      if(p.pref_key==='fav_teachers'){
+        try{const arr=JSON.parse(p.value_json);favTeachers=new Set(arr);localStorage.setItem('nyd_fav_t',p.value_json);}catch(e){}
+      }
+      if(p.pref_key==='filters'){
+        try{const f=JSON.parse(p.value_json);_applySerializedFilters(f);localStorage.setItem('nyd_filters',p.value_json);}catch(e){}
+      }
+    });
     console.log('[Supabase] loaded remote data');
+    // re-render with remote filters/data if page is on schedule tab
+    if(typeof syncChipsFromState==='function')syncChipsFromState();
+    if(typeof renderAll==='function')renderAll();
   }catch(e){console.warn('[Supabase] sbLoadAll error',e);}
 }
 // Load remote data on startup (fire-and-forget; local data shown first)
@@ -1564,7 +1592,33 @@ let favTeachers=new Set(JSON.parse(localStorage.getItem('nyd_fav_t')||'[]'));
 function toggleFavTeacher(name){
   if(favTeachers.has(name))favTeachers.delete(name);else favTeachers.add(name);
   localStorage.setItem('nyd_fav_t',JSON.stringify([...favTeachers]));
+  sbSyncFavTeachers();
 }
+
+// ── filter persistence helpers ──
+function _serializeFilters(){
+  return{studios:[...S.studios],genres:[...S.genres],level:[...S.level],teacher:S.teacher,timeMin:S.timeMin,timeMax:S.timeMax};
+}
+function _applySerializedFilters(f){
+  if(f.studios)S.studios=new Set(f.studios);
+  if(f.genres)S.genres=new Set(f.genres);
+  if(f.level)S.level=new Set(f.level);
+  if(f.teacher!==undefined)S.teacher=f.teacher;
+  if(f.timeMin!==undefined)S.timeMin=f.timeMin;
+  if(f.timeMax!==undefined)S.timeMax=f.timeMax;
+}
+function saveFilters(){
+  const s=JSON.stringify(_serializeFilters());
+  localStorage.setItem('nyd_filters',s);
+  sbSyncFilters();
+}
+// load from localStorage on init (Supabase may overwrite later)
+(function(){
+  try{
+    const raw=localStorage.getItem('nyd_filters');
+    if(raw)_applySerializedFilters(JSON.parse(raw));
+  }catch(e){}
+})();
 
 // ── state ──
 // studios: Set — 'all' means no filter; genres: Set of selected genre keys (multi-select)
@@ -1572,6 +1626,8 @@ const S={selectedDate:'',studios:new Set(['all']),
   genres:new Set(['street','contemporary','afro','choreo','conditioning','other']),
   level:new Set(['All Levels','Intermediate','Int/Adv']),
   teacher:'all',timeMin:12,timeMax:24,tab:'schedule'};
+// apply persisted filters on top of defaults
+(function(){try{const raw=localStorage.getItem('nyd_filters');if(raw)_applySerializedFilters(JSON.parse(raw));}catch(e){}})();
 
 // ── genre → card style ──
 const GENRE_STYLES={
@@ -1790,12 +1846,36 @@ function buildCard(c,i){
   return div;
 }
 
+// ── sync chip UI from S state (used after loading persisted filters) ──
+function syncChipsFromState(){
+  // studio chips
+  document.querySelectorAll('#studioChipRow .fchip').forEach(c=>{
+    const v=c.dataset.studio;
+    c.classList.toggle('active',v==='all'?S.studios.has('all'):S.studios.has(v));
+  });
+  // genre chips
+  document.querySelectorAll('#genreChipRow .fchip').forEach(c=>{
+    c.classList.toggle('active',S.genres.has(c.dataset.genre));
+  });
+  // level chips
+  document.querySelectorAll('#levelChipRow .fchip').forEach(c=>{
+    const v=c.dataset.level;
+    c.classList.toggle('active',v==='all'?S.level.has('all'):S.level.has(v));
+  });
+  // sliders
+  const rMin=document.getElementById('rangeMin');
+  const rMax=document.getElementById('rangeMax');
+  if(rMin)rMin.value=S.timeMin;
+  if(rMax)rMax.value=S.timeMax;
+  updateSlider();
+}
+
 // ── drawer ──
 function openDrawer(){
   document.getElementById('drawerOverlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
   document.body.style.overflow='hidden';
-  buildTeacherChips();updateApplyBtn();
+  syncChipsFromState();buildTeacherChips();updateApplyBtn();
 }
 function closeDrawer(){
   document.getElementById('drawerOverlay').classList.remove('open');
@@ -2027,7 +2107,7 @@ document.getElementById('rangeMax').addEventListener('input',updateSlider);
 document.getElementById('filterBtn').addEventListener('click',openDrawer);
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
-document.getElementById('applyBtn').addEventListener('click',()=>{closeDrawer();renderAll()});
+document.getElementById('applyBtn').addEventListener('click',()=>{saveFilters();closeDrawer();renderAll()});
 document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
 ['navSchedule','navPopup','navWishlist','navMyclasses'].forEach(id=>{
   document.getElementById(id).addEventListener('click',()=>{
@@ -2046,7 +2126,7 @@ function renderAll(){renderCalendar();renderClasses()}
   const allDates=[...new Set(ALL_CLASSES.filter(c=>!c.is_canceled).map(c=>c.date_key))].sort();
   const future=allDates.filter(d=>d>=today);
   S.selectedDate=future.length?future[0]:allDates[allDates.length-1];
-  updateSlider();buildTeacherChips();renderAll();
+  syncChipsFromState();buildTeacherChips();renderAll();
   // Init nav capsule after Phosphor icons are rendered (use window.onload)
   const _initCapsule=()=>{
     const initEl=document.getElementById('navSchedule');
