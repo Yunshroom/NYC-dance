@@ -1062,6 +1062,7 @@ function renderPopup(){
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   const _ntB=document.getElementById('notesToggleBtn');if(_ntB)_ntB.style.display='none';
+  document.getElementById('filterBtn').style.display='';
   const listEl=document.getElementById('classesList');
 
   // Sort CUSTOM_CLASSES by date desc (most recent first)
@@ -1894,7 +1895,7 @@ function renderMyClasses(){
   document.getElementById('pageTitle').textContent='My Classes';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
-  // Show notes toggle btn
+  document.getElementById('filterBtn').style.display='none';
   const ntBtn=document.getElementById('notesToggleBtn');
   if(ntBtn)ntBtn.style.display='';
   const listEl=document.getElementById('classesList');
@@ -1903,7 +1904,12 @@ function renderMyClasses(){
     listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class card to add it here.</div></div>`;
     return;
   }
-  stamped.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+  // Upcoming first, past at the bottom; within same day sort by start time
+  const today=new Date();today.setHours(0,0,0,0);
+  const _dk=c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d);}
+  const upcoming=stamped.filter(c=>_dk(c)>=today).sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+  const past=stamped.filter(c=>_dk(c)<today).sort((a,b)=>b.date_key<a.date_key?-1:b.date_key>a.date_key?1:b.start_hour-a.start_hour);
+  stamped.length=0;[...upcoming,...past].forEach(c=>stamped.push(c));
   listEl.innerHTML='';let lastDate='';
   stamped.forEach((c,i)=>{
     if(c.date_key!==lastDate){
@@ -2093,7 +2099,7 @@ function renderSaved(){
   document.getElementById('pageTitle').textContent='Wishlist';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
-  // Show notes toggle btn
+  document.getElementById('filterBtn').style.display='none';
   const ntBtn2=document.getElementById('notesToggleBtn');
   if(ntBtn2)ntBtn2.style.display='';
   const listEl=document.getElementById('classesList');
@@ -2158,7 +2164,7 @@ function buildCard(c,i,inMyClasses){
   const metaStr=c.studio+(dayAbbr?' · '+dayAbbr:'')+(timeStr?' · '+timeStr:'');
   const saved=isSaved(c);
   const stamped=isMyClass(c);
-  const customTag=c.is_custom?'<span class="custom-tag">✦ CUSTOM</span>':'';
+  const customTag=c.is_custom?'<span class="custom-tag">✦ POP UP</span>':'';
 
   let capHTML='';
   if(c.max_capacity>0&&c.total_booked!=null){
@@ -2521,6 +2527,7 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
 
 function renderAll(){
   const _ntB=document.getElementById('notesToggleBtn');if(_ntB)_ntB.style.display='none';
+  document.getElementById('filterBtn').style.display='';
   renderCalendar();renderClasses();
 }
 
