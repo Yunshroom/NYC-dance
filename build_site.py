@@ -2895,7 +2895,9 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
   const _redirectTo=(location.hostname==='localhost'||location.protocol==='file:')?'https://nyc-dance-rho.vercel.app':location.origin+'/';
   const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:_redirectTo}});
   if(error){
-    errEl.textContent=error.message;errEl.style.display='block';
+    console.error('[Auth] signInWithOtp error:',JSON.stringify(error),error);
+    const msg=error.message||(error.error_description)||JSON.stringify(error)||'Something went wrong — try again.';
+    errEl.textContent=msg;errEl.style.display='block';
     btn.disabled=false;btn.textContent='SEND MAGIC LINK →';
   } else {
     document.getElementById('loginForm').style.display='none';
