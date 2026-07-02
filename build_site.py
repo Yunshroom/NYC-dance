@@ -616,6 +616,27 @@ a{color:inherit;text-decoration:none}
 .pmf-save.ok{background:#1a7a46}
 /* custom classes list in popup tab */
 .popup-classes-header{font-size:12px;font-weight:600;color:#9a9688;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:4px}
+/* ── saved tab section headers ── */
+.saved-section-header{font-size:13px;font-weight:700;color:rgba(200,195,185,.6);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px;padding:4px 0 2px;margin-bottom:4px}
+.saved-section-header i{font-size:16px}
+/* ── profile tab ── */
+.profile-pane{padding:4px 0 80px}
+.profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#db2777);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 10px;letter-spacing:-.5px}
+.profile-email{text-align:center;font-size:13px;color:rgba(200,195,185,.6);margin-bottom:24px;letter-spacing:.01em}
+.profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-card{background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 14px;display:flex;flex-direction:column;gap:4px}
+.stat-card.full{grid-column:1/-1}
+.stat-num{font-size:32px;font-weight:800;color:#f5f1ea;line-height:1;letter-spacing:-1px}
+.stat-label{font-size:11px;font-weight:600;color:rgba(200,195,185,.5);text-transform:uppercase;letter-spacing:.07em}
+.stat-sub{font-size:12px;color:rgba(200,195,185,.55);margin-top:2px}
+.genre-bars{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.genre-bar-row{display:flex;align-items:center;gap:8px}
+.genre-bar-label{font-size:11px;color:rgba(200,195,185,.6);width:72px;flex-shrink:0;text-transform:capitalize}
+.genre-bar-track{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.genre-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#a78bfa,#f472b6)}
+.genre-bar-count{font-size:11px;color:rgba(200,195,185,.45);width:18px;text-align:right;flex-shrink:0}
+.profile-signout-btn{width:100%;margin-top:8px;padding:14px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(200,195,185,.6);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}
+.profile-signout-btn:active{background:rgba(255,255,255,.1);color:#f5f1ea}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
@@ -699,17 +720,17 @@ a{color:inherit;text-decoration:none}
         <span class="tab-icon"><i class="ph ph-calendar"></i></span>
         <span class="tab-label">Schedule</span>
       </button>
-      <button class="nav-tab" data-tab="popup" id="navPopup">
-        <span class="tab-icon"><i class="ph ph-sparkle"></i></span>
-        <span class="tab-label">Pop up</span>
-      </button>
       <button class="nav-tab" data-tab="wishlist" id="navWishlist">
         <span class="tab-icon"><i class="ph ph-shooting-star"></i></span>
-        <span class="tab-label">Wishlist</span>
+        <span class="tab-label">Saved</span>
       </button>
       <button class="nav-tab" data-tab="myclasses" id="navMyclasses">
         <span class="tab-icon"><i class="ph ph-stamp"></i></span>
         <span class="tab-label">My Classes</span>
+      </button>
+      <button class="nav-tab" data-tab="profile" id="navProfile">
+        <span class="tab-icon"><i class="ph ph-user-circle"></i></span>
+        <span class="tab-label">Profile</span>
       </button>
     </div>
   </nav>
@@ -1101,7 +1122,7 @@ function renderManualForm(container){
     sbSyncCustomClasses();
     const btn=container.querySelector('#pmfSaveBtn');
     btn.textContent='✓ Added!';btn.classList.add('ok');
-    setTimeout(()=>{renderPopup();},1200);
+    setTimeout(()=>{renderSaved();},1200);
   });
 }
 
@@ -1422,7 +1443,7 @@ async function sbLoadAll(){
     // Re-render the currently active tab so remote data shows up correctly
     if(S.tab==='myclasses'&&typeof renderMyClasses==='function')renderMyClasses();
     else if(S.tab==='saved'&&typeof renderSaved==='function')renderSaved();
-    else if(S.tab==='popup'&&typeof renderPopup==='function')renderPopup();
+    else if(S.tab==='profile'&&typeof renderProfile==='function')renderProfile();
     else if(typeof renderAll==='function')renderAll();
   }catch(e){console.warn('[Supabase] sbLoadAll error',e);}
 }
@@ -2043,6 +2064,116 @@ function renderMyClasses(){
   });
 }
 
+// ── profile tab ──
+function renderProfile(){
+  document.getElementById('pageTitle').textContent='Profile';
+  document.getElementById('weekStrip').style.display='none';
+  document.getElementById('updatedText').style.visibility='hidden';
+  document.getElementById('filterBtn').style.display='none';
+  const ntBtn=document.getElementById('notesToggleBtn');if(ntBtn)ntBtn.style.display='none';
+  const listEl=document.getElementById('classesList');
+
+  // Compute stats from stamped classes
+  const stamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
+  const total=stamped.length;
+  const upcoming=stamped.filter(c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d)>=new Date(new Date().setHours(0,0,0,0));}).length;
+  const past=total-upcoming;
+
+  // Genre breakdown
+  const genreCounts={};
+  stamped.forEach(c=>{const g=c.genre||c.subgenre||'other';genreCounts[g]=(genreCounts[g]||0)+1;});
+  const topGenres=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxG=topGenres[0]?topGenres[0][1]:1;
+
+  // Top studio
+  const studioCounts={};
+  stamped.forEach(c=>{if(c.studio)studioCounts[c.studio]=(studioCounts[c.studio]||0)+1;});
+  const topStudio=Object.entries(studioCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  // Fav instructor
+  const instrCounts={};
+  stamped.forEach(c=>{if(c.instructor&&c.instructor!=='Modega Staff')instrCounts[c.instructor]=(instrCounts[c.instructor]||0)+1;});
+  const topInstr=Object.entries(instrCounts).sort((a,b)=>b[1]-a[1])[0];
+
+  // Notes written
+  let noteCount=0;
+  Object.values(myClassesMap).forEach(v=>{if(v.notes)noteCount+=v.notes.length;});
+
+  // Wishlist count
+  const wishCount=ALL_CLASSES.filter(c=>isSaved(c)).length;
+
+  // Avatar initials from email
+  const email=document.getElementById('signOutEmail').textContent||'';
+  const avatarLetter=email?email[0].toUpperCase():'?';
+
+  // Genre label map
+  const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemp',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Cond.',other:'Other'};
+
+  const genreBarsHTML=topGenres.map(([g,n])=>`
+    <div class="genre-bar-row">
+      <span class="genre-bar-label">${GENRE_LABELS[g]||g}</span>
+      <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${Math.round(n/maxG*100)}%"></div></div>
+      <span class="genre-bar-count">${n}</span>
+    </div>`).join('');
+
+  const milestones=[5,10,20,30,50,75,100,150,200];
+  const next=milestones.find(m=>m>past)||null;
+  const milestoneHTML=next
+    ? `<div class="stat-sub">${next-past} more to reach ${next} ✦</div>`
+    : `<div class="stat-sub">Century dancer 🏆</div>`;
+
+  listEl.innerHTML=`
+<div class="profile-pane">
+  <div class="profile-avatar">${avatarLetter}</div>
+  <div class="profile-email">${email}</div>
+  <div class="profile-stats-grid">
+    <div class="stat-card full">
+      <div class="stat-num">${past}</div>
+      <div class="stat-label">Classes Taken</div>
+      ${milestoneHTML}
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${upcoming}</div>
+      <div class="stat-label">Upcoming</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${wishCount}</div>
+      <div class="stat-label">Wishlisted</div>
+    </div>
+    ${topInstr?`<div class="stat-card full">
+      <div class="stat-label">Favourite Teacher</div>
+      <div class="stat-num" style="font-size:20px;letter-spacing:-.3px;margin-top:4px">${topInstr[0]}</div>
+      <div class="stat-sub">${topInstr[1]} class${topInstr[1]>1?'es':''} together</div>
+    </div>`:''}
+    ${topStudio?`<div class="stat-card full">
+      <div class="stat-label">Favourite Studio</div>
+      <div class="stat-num" style="font-size:20px;letter-spacing:-.3px;margin-top:4px">${topStudio[0]}</div>
+      <div class="stat-sub">${topStudio[1]} visit${topStudio[1]>1?'s':''}</div>
+    </div>`:''}
+    ${topGenres.length?`<div class="stat-card full">
+      <div class="stat-label">By Style</div>
+      <div class="genre-bars">${genreBarsHTML}</div>
+    </div>`:''}
+    <div class="stat-card">
+      <div class="stat-num">${noteCount}</div>
+      <div class="stat-label">Notes Written</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${CUSTOM_CLASSES.length}</div>
+      <div class="stat-label">Pop-ups Added</div>
+    </div>
+  </div>
+  <button class="profile-signout-btn" id="profileSignOutBtn"><i class="ph ph-sign-out"></i> SIGN OUT</button>
+</div>`;
+
+  document.getElementById('profileSignOutBtn').addEventListener('click',async()=>{
+    if(!confirm('Sign out?'))return;
+    await _sb.auth.signOut();
+    ['nyd_my_classes','nyd_wishlist','nyd_custom','nyd_tab','nyd_notes'].forEach(k=>localStorage.removeItem(k));
+    location.reload();
+  });
+}
+
 // ── fav teachers ──
 let favTeachers=new Set(JSON.parse(localStorage.getItem('nyd_fav_t')||'[]'));
 function toggleFavTeacher(name){
@@ -2215,34 +2346,112 @@ function renderClasses(){
 
 // ── wishlist tab ──
 function renderSaved(){
-  document.getElementById('pageTitle').textContent='Wishlist';
+  document.getElementById('pageTitle').textContent='Saved';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   document.getElementById('filterBtn').style.display='none';
   const ntBtn2=document.getElementById('notesToggleBtn');
   if(ntBtn2)ntBtn2.style.display='';
   const listEl=document.getElementById('classesList');
+  listEl.innerHTML='';
+
+  // ── Wishlist section ──
   const savedFromSchedule=ALL_CLASSES.filter(c=>isSaved(c));
-  const allSaved=[...savedFromSchedule]; // custom classes live only in Pop up/My Classes
-  if(!allSaved.length){
-    listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap the bookmark on any card to save it here.</div></div>`;
-    return;
+  const wlHeader=document.createElement('div');
+  wlHeader.className='saved-section-header';
+  wlHeader.innerHTML='<i class="ph ph-shooting-star"></i> Wishlist';
+  listEl.appendChild(wlHeader);
+
+  if(!savedFromSchedule.length){
+    const empty=document.createElement('div');
+    empty.className='empty-state';empty.style.paddingTop='16px';
+    empty.innerHTML='<div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap ★ on any card to save it here.</div>';
+    listEl.appendChild(empty);
+  } else {
+    savedFromSchedule.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+    let lastDate='';
+    savedFromSchedule.forEach((c,i)=>{
+      if(c.date_key!==lastDate){
+        const div=document.createElement('div');div.className='section-divider date-divider';
+        div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
+        listEl.appendChild(div);lastDate=c.date_key;
+      }
+      const card=buildCard(c,i);
+      const cid=classId(c);
+      if(!myClassesMap[cid])myClassesMap[cid]={notes:[],added_at:null,_wishlistOnly:true};
+      card.appendChild(_buildInlineNotes(c));
+      listEl.appendChild(card);
+    });
   }
-  allSaved.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
-  listEl.innerHTML='';let lastDate='';
-  allSaved.forEach((c,i)=>{
-    if(c.date_key!==lastDate){
-      const div=document.createElement('div');div.className='section-divider date-divider';
-      div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
-      listEl.appendChild(div);lastDate=c.date_key;
-    }
-    const card=buildCard(c,i);
-    // Inline notes on wishlist — ensure myClassesMap entry exists for notes storage
-    const cid=classId(c);
-    if(!myClassesMap[cid])myClassesMap[cid]={notes:[],added_at:null,_wishlistOnly:true};
-    card.appendChild(_buildInlineNotes(c));
-    listEl.appendChild(card);
+
+  // ── Pop Ups section ──
+  const popHeader=document.createElement('div');
+  popHeader.className='saved-section-header';
+  popHeader.style.marginTop='28px';
+  popHeader.innerHTML='<i class="ph ph-sparkle"></i> Pop Ups';
+  listEl.appendChild(popHeader);
+
+  // Add popup UI inline
+  const popupWrap=document.createElement('div');
+  popupWrap.className='popup-pane';popupWrap.style.paddingTop='8px';
+  popupWrap.innerHTML=`
+    <div class="popup-btn-row" style="gap:8px">
+      <button class="popup-act-btn" id="popupPasteBtn" style="flex:1"><i class="ph ph-clipboard-text"></i>Paste</button>
+      <label class="popup-act-btn" style="flex:1;cursor:pointer"><i class="ph ph-camera"></i>Photo
+        <input type="file" id="popupPhotoInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
+      </label>
+      <button class="popup-act-btn" id="popupManualBtn" style="flex:1"><i class="ph ph-pencil-simple"></i>Manual</button>
+    </div>
+    <div id="popupOcrStatus" class="popup-ocr-status" style="display:none"></div>
+    <div id="popupManualWrap"></div>
+    <div id="popupContent" class="popup-content-area" style="display:none"></div>
+    <div id="popupSummary" class="popup-summary" style="display:none"></div>
+    <button class="popup-save-btn" id="popupSaveBtn" style="display:none"><i class="ph ph-bookmark-simple"></i>Save to Wishlist</button>`;
+  listEl.appendChild(popupWrap);
+
+  // Wire popup events
+  _popupParsed=null;
+  let _manualOpen=false;
+  document.getElementById('popupManualBtn').addEventListener('click',()=>{
+    _manualOpen=!_manualOpen;
+    const wrap=document.getElementById('popupManualWrap');
+    if(_manualOpen){renderManualForm(wrap);}else{wrap.innerHTML='';}
   });
+  document.getElementById('popupPasteBtn').addEventListener('click',async()=>{
+    const status=document.getElementById('popupOcrStatus');
+    try{
+      const text=await navigator.clipboard.readText();
+      if(text){
+        const ca=document.getElementById('popupContent');ca.style.display='';
+        ca.innerHTML=`<textarea class="popup-textarea" readonly>${esc(text)}</textarea>`;
+        const cls=parseClassText(text);if(cls)_showParsedSummary(cls);
+      }
+    }catch(e){
+      const ca=document.getElementById('popupContent');ca.style.display='';
+      ca.innerHTML='<textarea id="popupManualTA" class="popup-textarea" placeholder="Paste your text here…"></textarea>';
+      document.getElementById('popupManualTA').focus();
+      document.getElementById('popupManualTA').addEventListener('input',function(){
+        clearTimeout(window._ppD);
+        window._ppD=setTimeout(()=>{const cls=parseClassText(this.value);if(cls)_showParsedSummary(cls);},600);
+      });
+      if(status){status.style.display='';status.textContent='Tap & hold the box above, then choose Paste.';setTimeout(()=>{status.style.display='none';},4000);}
+    }
+  });
+  document.getElementById('popupPhotoInput').addEventListener('change',handlePopupPhoto);
+  document.getElementById('popupSaveBtn').addEventListener('click',doSaveCustomClass);
+
+  // Custom classes list
+  const sorted=[...CUSTOM_CLASSES].sort((a,b)=>b.date_key.localeCompare(a.date_key));
+  if(sorted.length){
+    const customHeader=document.createElement('div');
+    customHeader.className='popup-classes-header';
+    customHeader.textContent=`Your Pop-ups (${sorted.length})`;
+    listEl.appendChild(customHeader);
+    sorted.forEach((c,i)=>{
+      const card=buildCard(c,i,false);
+      listEl.appendChild(card);
+    });
+  }
 }
 
 // ── card builder ──
@@ -2550,7 +2759,7 @@ function updateApplyBtn(){
 
 // ── nav capsule ──
 let _navCurrent='schedule',_navBusy=false;
-function _navTabEl(tab){const m={schedule:'navSchedule',popup:'navPopup',wishlist:'navWishlist',myclasses:'navMyclasses'};return document.getElementById(m[tab]);}
+function _navTabEl(tab){const m={schedule:'navSchedule',wishlist:'navWishlist',myclasses:'navMyclasses',profile:'navProfile'};return document.getElementById(m[tab]);}
 
 function snapCapsule(tabEl){
   const c=document.getElementById('navCapsule');
@@ -2565,13 +2774,6 @@ function snapCapsule(tabEl){
 // ── tab switching ──
 function switchTab(tab){
   if(_navBusy)return;
-  if(tab==='popup'){
-    if(_navCurrent==='popup')return;
-    _animateNav('popup',()=>renderPopup());
-    S.tab='popup';localStorage.setItem('nyd_tab','popup');
-    const _ntBtnP=document.getElementById('notesToggleBtn');if(_ntBtnP)_ntBtnP.style.display='none';
-    return;
-  }
   if(tab===_navCurrent)return;
   const _ntBtn=document.getElementById('notesToggleBtn');
   if(tab==='schedule'){
@@ -2586,10 +2788,13 @@ function switchTab(tab){
     _animateNav('wishlist',()=>renderSaved());
     S.tab='saved';
     if(_ntBtn)_ntBtn.style.display='';
+  } else if(tab==='profile'){
+    _animateNav('profile',()=>renderProfile());
+    S.tab='profile';
+    if(_ntBtn)_ntBtn.style.display='none';
   } else {
     _animateNav('myclasses',()=>renderMyClasses());
     S.tab='myclasses';
-    // notesToggleBtn is shown inside renderMyClasses
   }
   localStorage.setItem('nyd_tab',tab);
 }
@@ -2636,10 +2841,10 @@ document.getElementById('notesToggleBtn').addEventListener('click',_toggleNotesH
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{saveFilters();closeDrawer();renderAll()});
 document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
-['navSchedule','navPopup','navWishlist','navMyclasses'].forEach(id=>{
+['navSchedule','navWishlist','navMyclasses','navProfile'].forEach(id=>{
   document.getElementById(id).addEventListener('click',()=>{
     if(_navBusy)return;
-    const tab=id==='navSchedule'?'schedule':id==='navPopup'?'popup':id==='navWishlist'?'wishlist':'myclasses';
+    const tab=id==='navSchedule'?'schedule':id==='navWishlist'?'wishlist':id==='navMyclasses'?'myclasses':'profile';
     switchTab(tab);
   });
 });
@@ -2745,16 +2950,14 @@ function renderAll(){
   syncChipsFromState();buildTeacherChips();
   // Restore last active tab — render the right content immediately, no flash
   const _savedTab=localStorage.getItem('nyd_tab');
-  const _tabNav={schedule:'navSchedule',wishlist:'navWishlist',myclasses:'navMyclasses',popup:'navPopup'};
+  const _tabNav={schedule:'navSchedule',wishlist:'navWishlist',myclasses:'navMyclasses',profile:'navProfile'};
   if(_savedTab&&_savedTab!=='schedule'&&_tabNav[_savedTab]){
-    // Swap active class on nav buttons immediately
     document.getElementById('navSchedule').classList.remove('active');
     document.getElementById(_tabNav[_savedTab]).classList.add('active');
     _navCurrent=_savedTab;
-    // Render correct content
     if(_savedTab==='myclasses'){S.tab='myclasses';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderMyClasses();}
     else if(_savedTab==='wishlist'){S.tab='saved';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderSaved();}
-    else if(_savedTab==='popup'){S.tab='popup';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderPopup();}
+    else if(_savedTab==='profile'){S.tab='profile';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderProfile();}
   } else {
     renderAll();
   }
