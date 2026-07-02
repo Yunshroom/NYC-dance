@@ -648,8 +648,6 @@ a{color:inherit;text-decoration:none}
 .genre-bar-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
 .genre-bar-fill{height:100%;border-radius:4px;background:rgba(200,195,185,.5)}
 .genre-bar-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);width:18px;text-align:right;flex-shrink:0}
-.profile-signout-btn{width:100%;margin-top:4px;padding:14px;border-radius:14px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);border:none;color:rgba(200,195,185,.5);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent;overflow:hidden}
-.profile-signout-btn:active{opacity:.7}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
@@ -683,11 +681,6 @@ a{color:inherit;text-decoration:none}
 .login-hint{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.28);margin-top:14px;letter-spacing:.04em}
 .login-error{font-family:'DM Mono',monospace;font-size:11px;color:#e06070;margin-top:10px;display:none}
 /* sign-out in header */
-.signout-wrap{display:none;align-items:center;gap:6px}
-.signout-email{font-size:11px;color:rgba(200,195,185,.45);letter-spacing:.02em;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.signout-btn{background:none;border:none;cursor:pointer;color:rgba(200,195,185,.55);padding:6px 4px;-webkit-tap-highlight-color:transparent;line-height:1}
-.signout-btn i{font-size:18px;display:block}
-.signout-btn:active{color:#f5f1ea}
 </style>
 </head>
 <body>
@@ -706,12 +699,6 @@ a{color:inherit;text-decoration:none}
           <button class="icon-btn" id="filterBtn" title="Filters">
             <i class="ph ph-funnel"></i>
           </button>
-          <div class="signout-wrap" id="signOutWrap">
-            <span class="signout-email" id="signOutEmail"></span>
-            <button class="signout-btn" id="signOutBtn" title="Sign out">
-              <i class="ph ph-sign-out"></i>
-            </button>
-          </div>
         </div>
       </div>
       <div class="header-row2">
@@ -1282,18 +1269,12 @@ let _currentUserName='';
 function _hideLoginScreen(label,email){
   const s=document.getElementById('loginScreen');
   if(s){s.classList.add('hidden');setTimeout(()=>{s.style.display='none';},320);}
-  const wrap=document.getElementById('signOutWrap');
-  if(wrap)wrap.style.display='flex';
-  const emailEl=document.getElementById('signOutEmail');
-  if(emailEl&&label)emailEl.textContent=label;
   if(email)_currentUserEmail=email;
   if(label)_currentUserName=label;
 }
 function _showLoginScreen(){
   const s=document.getElementById('loginScreen');
   if(s){s.style.display='flex';requestAnimationFrame(()=>s.classList.remove('hidden'));}
-  const wrap=document.getElementById('signOutWrap');
-  if(wrap)wrap.style.display='none';
 }
 
 // ── Legacy data migration (one-time on first login) ──
@@ -2184,15 +2165,7 @@ function renderProfile(){
       <div class="genre-bars">${genreBarsHTML}</div>
     </div>`:''}
   </div>
-  <button class="profile-signout-btn" id="profileSignOutBtn"><i class="ph ph-sign-out"></i> Sign out</button>
 </div>`;
-
-  document.getElementById('profileSignOutBtn').addEventListener('click',async()=>{
-    if(!confirm('Sign out?'))return;
-    await _sb.auth.signOut();
-    ['nyd_my_classes','nyd_wishlist','nyd_custom','nyd_tab','nyd_notes'].forEach(k=>localStorage.removeItem(k));
-    location.reload();
-  });
 }
 
 // ── fav teachers ──
@@ -2918,15 +2891,6 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
   document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
 });
 
-// ── Sign out ──
-document.getElementById('signOutBtn').addEventListener('click',async()=>{
-  if(!confirm('Sign out?'))return;
-  await _sb.auth.signOut();
-  // Clear local state
-  localStorage.removeItem('nyd_my_classes');localStorage.removeItem('nyd_saved');
-  localStorage.removeItem('nyd_custom');localStorage.removeItem('nyd_tab');
-  location.reload();
-});
 
 function renderAll(){
   const _ntB=document.getElementById('notesToggleBtn');if(_ntB)_ntB.style.display='none';
