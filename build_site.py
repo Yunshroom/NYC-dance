@@ -630,6 +630,28 @@ a{color:inherit;text-decoration:none}
 }
 .stamp-mark.stamp-enter{animation:stampPress .42s cubic-bezier(.22,.68,0,1.2) both}
 .stamp-mark.stamp-show{transform:rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
+/* ── Login screen ── */
+#loginScreen{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#1c100e 0%,#0e0a08 100%);padding:32px 24px;text-align:center;transition:opacity .3s}
+#loginScreen.hidden{opacity:0;pointer-events:none}
+.login-logo{font-size:42px;margin-bottom:10px}
+.login-title{font-family:'DM Sans',sans-serif;font-size:28px;font-weight:600;color:#f5f1ea;margin:0 0 4px}
+.login-sub{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.45);letter-spacing:.1em;text-transform:uppercase;margin:0 0 36px}
+.login-card{width:100%;max-width:320px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.12);border-radius:20px;padding:24px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.login-input{width:100%;background:rgba(255,255,255,.07);border:.5px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:15px;color:#f5f1ea;outline:none;box-sizing:border-box;margin-bottom:12px;-webkit-appearance:none}
+.login-input::placeholder{color:rgba(200,195,185,.35)}
+.login-input:focus{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)}
+.login-btn{width:100%;padding:13px;border:none;border-radius:10px;background:#f5f1ea;color:#1a1a18;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.08em;cursor:pointer;transition:opacity .15s}
+.login-btn:active{opacity:.75}
+.login-btn:disabled{opacity:.45;cursor:default}
+.login-sent{display:none;text-align:center;padding:4px 0}
+.login-sent-icon{font-size:32px;margin-bottom:10px}
+.login-sent p{font-family:'DM Mono',monospace;font-size:11px;color:rgba(200,195,185,.65);line-height:1.7;margin:0}
+.login-hint{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.28);margin-top:14px;letter-spacing:.04em}
+.login-error{font-family:'DM Mono',monospace;font-size:11px;color:#e06070;margin-top:10px;display:none}
+/* sign-out in header */
+.signout-btn{background:none;border:none;cursor:pointer;color:rgba(200,195,185,.55);padding:6px 4px;-webkit-tap-highlight-color:transparent;line-height:1;display:none}
+.signout-btn i{font-size:18px;display:block}
+.signout-btn:active{color:#f5f1ea}
 </style>
 </head>
 <body>
@@ -647,6 +669,9 @@ a{color:inherit;text-decoration:none}
           </button>
           <button class="icon-btn" id="filterBtn" title="Filters">
             <i class="ph ph-funnel"></i>
+          </button>
+          <button class="signout-btn" id="signOutBtn" title="Sign out">
+            <i class="ph ph-sign-out"></i>
           </button>
         </div>
       </div>
@@ -683,6 +708,25 @@ a{color:inherit;text-decoration:none}
       </button>
     </div>
   </nav>
+</div>
+
+<!-- ── Login screen (shown until authenticated) ── -->
+<div id="loginScreen">
+  <div class="login-logo">🎟</div>
+  <h1 class="login-title">NYC Dance</h1>
+  <p class="login-sub">New York City · 2026</p>
+  <div class="login-card">
+    <div id="loginForm">
+      <input class="login-input" id="loginEmail" type="email" placeholder="your@email.com" autocomplete="email" inputmode="email"/>
+      <button class="login-btn" id="loginBtn">SEND MAGIC LINK →</button>
+      <p class="login-error" id="loginError"></p>
+    </div>
+    <div class="login-sent" id="loginSent">
+      <div class="login-sent-icon">📬</div>
+      <p>Check your inbox<br><strong id="loginSentEmail" style="color:rgba(232,228,220,.9)"></strong></p>
+    </div>
+    <p class="login-hint">no password needed · link expires in 1 hour</p>
+  </div>
 </div>
 
 <div class="drawer-overlay" id="drawerOverlay"></div>
@@ -1162,9 +1206,10 @@ let myClassesMap=(()=>{
   Object.values(raw).forEach(v=>{if(typeof v.notes==='string')v.notes=v.notes?[{id:'n0',text:v.notes,type:'text',created_at:v.added_at}]:[];});
   return raw;
 })();
-// ── Supabase ────────────────────────────────────────────────────────────────
-// Fill in YOUR project URL and anon key after creating the Supabase project.
-// Auth will be added later; all data is tied to this mock user ID.
+// ── Supabase + Auth ──────────────────────────────────────────────────────────
+// Magic-link auth: user enters email → clicks link → auto logged in.
+// Each user gets their own isolated data via auth.uid().
+// Legacy data under 'yunshroom-test-01' is migrated on first login.
 //
 // SQL schema (run in Supabase SQL editor):
 // create table if not exists my_classes(user_id text, class_id text, class_json jsonb, added_at timestamptz default now(), primary key(user_id,class_id));
@@ -1172,24 +1217,90 @@ let myClassesMap=(()=>{
 // create table if not exists wishlist(user_id text, class_id text, class_json jsonb, saved_at timestamptz default now(), primary key(user_id,class_id));
 // create table if not exists custom_classes(user_id text, class_id text, class_json jsonb, created_at timestamptz default now(), primary key(user_id,class_id));
 // create table if not exists user_preferences(user_id text, pref_key text, value_json text, updated_at timestamptz default now(), primary key(user_id,pref_key));
+//
+// RLS (run after first migration is confirmed):
+// alter table my_classes enable row level security;
+// alter table notes enable row level security;
+// alter table wishlist enable row level security;
+// alter table custom_classes enable row level security;
+// alter table user_preferences enable row level security;
+// create policy "own rows" on my_classes using (auth.uid()::text=user_id) with check (auth.uid()::text=user_id);
+// create policy "own rows" on notes using (auth.uid()::text=user_id) with check (auth.uid()::text=user_id);
+// create policy "own rows" on wishlist using (auth.uid()::text=user_id) with check (auth.uid()::text=user_id);
+// create policy "own rows" on custom_classes using (auth.uid()::text=user_id) with check (auth.uid()::text=user_id);
+// create policy "own rows" on user_preferences using (auth.uid()::text=user_id) with check (auth.uid()::text=user_id);
 const _SB_URL='https://riezaxehqtoaxjysguwe.supabase.co';
 const _SB_KEY='sb_publishable_beWZ6S96-qf51IBebC_IVQ_ufUR_E9_';
-const _SB_USER='yunshroom-test-01';
+const _SB_LEGACY_USER='yunshroom-test-01'; // old hardcoded ID — migrated on first login
+let _SB_USER=null; // set after authentication
 let _sb=null;
 let _remoteClassIds=new Set(); // tracks which class_ids exist in Supabase so we can delete removed ones
-(function(){
+
+// ── Login screen helpers ──
+function _hideLoginScreen(){
+  const s=document.getElementById('loginScreen');
+  if(s){s.classList.add('hidden');setTimeout(()=>{s.style.display='none';},320);}
+  document.getElementById('signOutBtn').style.display='';
+}
+function _showLoginScreen(){
+  const s=document.getElementById('loginScreen');
+  if(s){s.style.display='flex';requestAnimationFrame(()=>s.classList.remove('hidden'));}
+  document.getElementById('signOutBtn').style.display='none';
+}
+
+// ── Legacy data migration (one-time on first login) ──
+async function migrateLegacyData(newUserId){
+  if(!_sb||!_SB_USER)return;
+  console.log('[Auth] migrating legacy data to',newUserId);
+  try{
+    const[mc,nt,wl,cc,pr]=await Promise.all([
+      _sb.from('my_classes').select('*').eq('user_id',_SB_LEGACY_USER),
+      _sb.from('notes').select('*').eq('user_id',_SB_LEGACY_USER),
+      _sb.from('wishlist').select('*').eq('user_id',_SB_LEGACY_USER),
+      _sb.from('custom_classes').select('*').eq('user_id',_SB_LEGACY_USER),
+      _sb.from('user_preferences').select('*').eq('user_id',_SB_LEGACY_USER),
+    ]);
+    const remap=(rows)=>(rows||[]).map(r=>({...r,user_id:newUserId}));
+    if(mc.data?.length)await _sb.from('my_classes').upsert(remap(mc.data),{onConflict:'user_id,class_id'});
+    if(nt.data?.length)await _sb.from('notes').upsert(remap(nt.data),{onConflict:'user_id,note_id'});
+    if(wl.data?.length)await _sb.from('wishlist').upsert(remap(wl.data),{onConflict:'user_id,class_id'});
+    if(cc.data?.length)await _sb.from('custom_classes').upsert(remap(cc.data),{onConflict:'user_id,class_id'});
+    if(pr.data?.length)await _sb.from('user_preferences').upsert(remap(pr.data),{onConflict:'user_id,pref_key'});
+    console.log('[Auth] migration complete');
+  }catch(e){console.warn('[Auth] migration error',e);}
+}
+
+// ── Supabase client init + auth listener ──
+(async function(){
   try{
     if(_SB_URL&&typeof supabase!=='undefined'){
-      _sb=supabase.createClient(_SB_URL,_SB_KEY);
+      _sb=supabase.createClient(_SB_URL,_SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
       console.log('[Supabase] connected');
+      // onAuthStateChange fires immediately with INITIAL_SESSION on every page load
+      _sb.auth.onAuthStateChange(async(event,session)=>{
+        if(session){
+          _SB_USER=session.user.id;
+          // One-time migration of legacy data
+          if(!localStorage.getItem('nyd_migrated')){
+            await migrateLegacyData(_SB_USER);
+            localStorage.setItem('nyd_migrated','1');
+          }
+          _hideLoginScreen();
+          sbLoadAll();
+        } else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){
+          _SB_USER=null;
+          _showLoginScreen();
+        }
+      });
     } else {
-      console.log('[Supabase] not configured yet — running in local-only mode');
+      console.log('[Supabase] not configured — local-only mode');
+      _showLoginScreen();
     }
   }catch(e){console.warn('[Supabase] init error',e);}
 })();
 
 async function sbSyncMyClasses(){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     const currentIds=new Set(Object.keys(myClassesMap));
     // Delete any classes that were in Supabase but have been removed locally
@@ -1207,7 +1318,7 @@ async function sbSyncMyClasses(){
   }catch(e){console.warn('[Supabase] sbSyncMyClasses error',e);}
 }
 async function sbSyncNotes(classId){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     const entry=myClassesMap[classId];if(!entry)return;
     const rows=(entry.notes||[]).map(n=>({user_id:_SB_USER,note_id:n.id,class_id:classId,text:n.text,type:n.type,created_at:n.created_at}));
@@ -1217,7 +1328,7 @@ async function sbSyncNotes(classId){
   }catch(e){console.warn('[Supabase] sbSyncNotes error',e);}
 }
 async function sbSyncWishlist(){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     const ids=JSON.parse(localStorage.getItem('nyd_saved')||'[]');
     const rows=ids.map(id=>({user_id:_SB_USER,class_id:id,saved_at:new Date().toISOString()}));
@@ -1226,7 +1337,7 @@ async function sbSyncWishlist(){
   }catch(e){console.warn('[Supabase] sbSyncWishlist error',e);}
 }
 async function sbSyncCustomClasses(){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     const rows=CUSTOM_CLASSES.map(c=>({user_id:_SB_USER,class_id:classId(c),class_json:c,created_at:new Date().toISOString()}));
     await _sb.from('custom_classes').delete().eq('user_id',_SB_USER);
@@ -1234,21 +1345,21 @@ async function sbSyncCustomClasses(){
   }catch(e){console.warn('[Supabase] sbSyncCustomClasses error',e);}
 }
 async function sbSyncFavTeachers(){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     const val=JSON.stringify([...favTeachers]);
     await _sb.from('user_preferences').upsert([{user_id:_SB_USER,pref_key:'fav_teachers',value_json:val}],{onConflict:'user_id,pref_key'});
   }catch(e){console.warn('[Supabase] sbSyncFavTeachers error',e);}
 }
 async function sbSyncFilters(){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     const val=JSON.stringify(_serializeFilters());
     await _sb.from('user_preferences').upsert([{user_id:_SB_USER,pref_key:'filters',value_json:val}],{onConflict:'user_id,pref_key'});
   }catch(e){console.warn('[Supabase] sbSyncFilters error',e);}
 }
 async function sbLoadAll(){
-  if(!_sb)return;
+  if(!_sb||!_SB_USER)return;
   try{
     // ── my_classes: Supabase is source of truth ──
     // Local data is only used as fallback when Supabase has nothing at all.
@@ -1306,8 +1417,7 @@ async function sbLoadAll(){
     else if(typeof renderAll==='function')renderAll();
   }catch(e){console.warn('[Supabase] sbLoadAll error',e);}
 }
-// Load remote data on startup (fire-and-forget; local data shown first)
-sbLoadAll();
+// sbLoadAll() is triggered by the auth state listener, not directly on startup
 
 // myClassesMap: {classId → {notes, added_at}}
 function isMyClass(c){const e=myClassesMap[classId(c)];return!!(e&&!e._wishlistOnly)}
@@ -2523,6 +2633,36 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
     const tab=id==='navSchedule'?'schedule':id==='navPopup'?'popup':id==='navWishlist'?'wishlist':'myclasses';
     switchTab(tab);
   });
+});
+
+// ── Login form ──
+document.getElementById('loginBtn').addEventListener('click',async()=>{
+  const email=document.getElementById('loginEmail').value.trim();
+  const errEl=document.getElementById('loginError');
+  errEl.style.display='none';
+  if(!email||!email.includes('@')){errEl.textContent='Please enter a valid email.';errEl.style.display='block';return;}
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.textContent='SENDING…';
+  const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href}});
+  if(error){
+    errEl.textContent=error.message;errEl.style.display='block';
+    btn.disabled=false;btn.textContent='SEND MAGIC LINK →';
+  } else {
+    document.getElementById('loginForm').style.display='none';
+    document.getElementById('loginSentEmail').textContent=email;
+    document.getElementById('loginSent').style.display='block';
+  }
+});
+document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+
+// ── Sign out ──
+document.getElementById('signOutBtn').addEventListener('click',async()=>{
+  if(!confirm('Sign out?'))return;
+  await _sb.auth.signOut();
+  // Clear local state
+  localStorage.removeItem('nyd_my_classes');localStorage.removeItem('nyd_saved');
+  localStorage.removeItem('nyd_custom');localStorage.removeItem('nyd_tab');
+  location.reload();
 });
 
 function renderAll(){
