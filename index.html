@@ -18,7 +18,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#ddb5c8;o
 button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit;touch-action:manipulation}
 a{color:inherit;text-decoration:none}
 
-.app-shell{width:100%;height:100dvh;height:100svh;background:#eceae6;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.app-shell{width:100%;height:100dvh;height:100svh;background:#eceae6;position:relative;display:flex;flex-direction:column;overflow:hidden;transition:background .3s}
+.app-shell.dark-mode{background:#0e0a08}
 @media(min-width:500px){body{display:flex;justify-content:center}.app-shell{max-width:430px;}}
 
 .bg-radial{position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(to bottom,#ddb5c8 0%,rgba(221,181,200,0) 18%),radial-gradient(ellipse 75% 50% at 85% 10%,rgba(208,120,155,.65) 0%,transparent 100%)}
@@ -262,24 +263,34 @@ a{color:inherit;text-decoration:none}
 /* ── saved tab section headers ── */
 .saved-section-header{font-size:13px;font-weight:700;color:rgba(200,195,185,.6);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px;padding:4px 0 2px;margin-bottom:4px}
 .saved-section-header i{font-size:16px}
+/* ── popup add FAB ── */
+.popup-add-fab{display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:50px;background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.18);color:#f5f1ea;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;margin-bottom:4px}
+.popup-add-fab i{font-size:20px}
+.popup-add-fab:active{background:rgba(255,255,255,.18)}
+.popup-add-options{display:flex;gap:8px;margin-bottom:12px;animation:fadeSlideDown .2s ease}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.popup-add-opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;background:rgba(255,255,255,.07);border:.5px solid rgba(255,255,255,.12);color:rgba(200,195,185,.8);font-size:12px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.popup-add-opt i{font-size:22px;color:#f5f1ea}
+.popup-add-opt:active{background:rgba(255,255,255,.14)}
 /* ── profile tab ── */
 .profile-pane{padding:4px 0 80px}
-.profile-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#db2777);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 10px;letter-spacing:-.5px}
-.profile-email{text-align:center;font-size:13px;color:rgba(200,195,185,.6);margin-bottom:24px;letter-spacing:.01em}
+.profile-avatar{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#db2777);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:8px auto 10px;letter-spacing:-.5px}
+.profile-email{text-align:center;font-size:13px;color:rgba(200,195,185,.5);margin-bottom:24px;letter-spacing:.01em}
 .profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-.stat-card{background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 14px;display:flex;flex-direction:column;gap:4px}
+.stat-card{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 14px;display:flex;flex-direction:column;gap:4px}
 .stat-card.full{grid-column:1/-1}
-.stat-num{font-size:32px;font-weight:800;color:#f5f1ea;line-height:1;letter-spacing:-1px}
-.stat-label{font-size:11px;font-weight:600;color:rgba(200,195,185,.5);text-transform:uppercase;letter-spacing:.07em}
-.stat-sub{font-size:12px;color:rgba(200,195,185,.55);margin-top:2px}
-.genre-bars{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.stat-num{font-size:34px;font-weight:800;color:#f5f1ea;line-height:1;letter-spacing:-1.5px}
+.stat-label{font-size:11px;font-weight:600;color:rgba(200,195,185,.45);text-transform:uppercase;letter-spacing:.07em}
+.stat-sub{font-size:12px;color:rgba(200,195,185,.5);margin-top:3px}
+.stat-name{font-size:19px;font-weight:700;color:#f5f1ea;margin-top:4px;letter-spacing:-.3px}
+.genre-bars{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .genre-bar-row{display:flex;align-items:center;gap:8px}
-.genre-bar-label{font-size:11px;color:rgba(200,195,185,.6);width:72px;flex-shrink:0;text-transform:capitalize}
+.genre-bar-label{font-size:12px;color:rgba(200,195,185,.6);width:72px;flex-shrink:0;text-transform:capitalize}
 .genre-bar-track{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
 .genre-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#a78bfa,#f472b6)}
-.genre-bar-count{font-size:11px;color:rgba(200,195,185,.45);width:18px;text-align:right;flex-shrink:0}
-.profile-signout-btn{width:100%;margin-top:8px;padding:14px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(200,195,185,.6);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}
-.profile-signout-btn:active{background:rgba(255,255,255,.1);color:#f5f1ea}
+.genre-bar-count{font-size:12px;color:rgba(200,195,185,.45);width:20px;text-align:right;flex-shrink:0}
+.profile-signout-btn{width:100%;margin-top:8px;padding:15px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(200,195,185,.55);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.05em;-webkit-tap-highlight-color:transparent}
+.profile-signout-btn:active{background:rgba(255,80,80,.15);color:#fca5a5;border-color:rgba(255,80,80,.2)}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
@@ -365,7 +376,7 @@ a{color:inherit;text-decoration:none}
       </button>
       <button class="nav-tab" data-tab="wishlist" id="navWishlist">
         <span class="tab-icon"><i class="ph ph-shooting-star"></i></span>
-        <span class="tab-label">Saved</span>
+        <span class="tab-label">Wishlist</span>
       </button>
       <button class="nav-tab" data-tab="myclasses" id="navMyclasses">
         <span class="tab-icon"><i class="ph ph-stamp"></i></span>
@@ -1675,6 +1686,7 @@ function _toggleNotesHidden(){
 }
 
 function renderMyClasses(){
+  document.querySelector('.app-shell').classList.remove('dark-mode');
   document.getElementById('pageTitle').textContent='My Classes';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
@@ -1714,6 +1726,7 @@ function renderProfile(){
   document.getElementById('updatedText').style.visibility='hidden';
   document.getElementById('filterBtn').style.display='none';
   const ntBtn=document.getElementById('notesToggleBtn');if(ntBtn)ntBtn.style.display='none';
+  document.querySelector('.app-shell').classList.add('dark-mode');
   const listEl=document.getElementById('classesList');
 
   // Compute stats from stamped classes
@@ -1785,12 +1798,12 @@ function renderProfile(){
     </div>
     ${topInstr?`<div class="stat-card full">
       <div class="stat-label">Favourite Teacher</div>
-      <div class="stat-num" style="font-size:20px;letter-spacing:-.3px;margin-top:4px">${topInstr[0]}</div>
+      <div class="stat-name">${topInstr[0]}</div>
       <div class="stat-sub">${topInstr[1]} class${topInstr[1]>1?'es':''} together</div>
     </div>`:''}
     ${topStudio?`<div class="stat-card full">
       <div class="stat-label">Favourite Studio</div>
-      <div class="stat-num" style="font-size:20px;letter-spacing:-.3px;margin-top:4px">${topStudio[0]}</div>
+      <div class="stat-name">${topStudio[0]}</div>
       <div class="stat-sub">${topStudio[1]} visit${topStudio[1]>1?'s':''}</div>
     </div>`:''}
     ${topGenres.length?`<div class="stat-card full">
@@ -1989,7 +2002,8 @@ function renderClasses(){
 
 // ── wishlist tab ──
 function renderSaved(){
-  document.getElementById('pageTitle').textContent='Saved';
+  document.querySelector('.app-shell').classList.remove('dark-mode');
+  document.getElementById('pageTitle').textContent='Wishlist';
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   document.getElementById('filterBtn').style.display='none';
@@ -1998,68 +2012,58 @@ function renderSaved(){
   const listEl=document.getElementById('classesList');
   listEl.innerHTML='';
 
-  // ── Wishlist section ──
-  const savedFromSchedule=ALL_CLASSES.filter(c=>isSaved(c));
-  const wlHeader=document.createElement('div');
-  wlHeader.className='saved-section-header';
-  wlHeader.innerHTML='<i class="ph ph-shooting-star"></i> Wishlist';
-  listEl.appendChild(wlHeader);
-
-  if(!savedFromSchedule.length){
-    const empty=document.createElement('div');
-    empty.className='empty-state';empty.style.paddingTop='16px';
-    empty.innerHTML='<div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap ★ on any card to save it here.</div>';
-    listEl.appendChild(empty);
-  } else {
-    savedFromSchedule.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
-    let lastDate='';
-    savedFromSchedule.forEach((c,i)=>{
-      if(c.date_key!==lastDate){
-        const div=document.createElement('div');div.className='section-divider date-divider';
-        div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
-        listEl.appendChild(div);lastDate=c.date_key;
-      }
-      const card=buildCard(c,i);
-      const cid=classId(c);
-      if(!myClassesMap[cid])myClassesMap[cid]={notes:[],added_at:null,_wishlistOnly:true};
-      card.appendChild(_buildInlineNotes(c));
-      listEl.appendChild(card);
-    });
-  }
-
-  // ── Pop Ups section ──
+  // ── Pop Ups section (top) ──
   const popHeader=document.createElement('div');
   popHeader.className='saved-section-header';
-  popHeader.style.marginTop='28px';
   popHeader.innerHTML='<i class="ph ph-sparkle"></i> Pop Ups';
   listEl.appendChild(popHeader);
 
-  // Add popup UI inline
+  // Single FAB add button
   const popupWrap=document.createElement('div');
   popupWrap.className='popup-pane';popupWrap.style.paddingTop='8px';
   popupWrap.innerHTML=`
-    <div class="popup-btn-row" style="gap:8px">
-      <button class="popup-act-btn" id="popupPasteBtn" style="flex:1"><i class="ph ph-clipboard-text"></i>Paste</button>
-      <label class="popup-act-btn" style="flex:1;cursor:pointer"><i class="ph ph-camera"></i>Photo
-        <input type="file" id="popupPhotoInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
-      </label>
-      <button class="popup-act-btn" id="popupManualBtn" style="flex:1"><i class="ph ph-pencil-simple"></i>Manual</button>
+    <button class="popup-add-fab" id="popupAddFab"><i class="ph ph-plus-circle"></i> Add a class</button>
+    <div id="popupAddOptions" style="display:none">
+      <div class="popup-add-options">
+        <button class="popup-add-opt" id="popupManualBtn"><i class="ph ph-pencil-simple"></i>Manual</button>
+        <button class="popup-add-opt" id="popupGalleryBtn"><i class="ph ph-image"></i>Gallery
+          <input type="file" id="popupPhotoInput" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
+        </button>
+        <button class="popup-add-opt" id="popupPasteBtn"><i class="ph ph-clipboard-text"></i>Paste</button>
+      </div>
     </div>
     <div id="popupOcrStatus" class="popup-ocr-status" style="display:none"></div>
     <div id="popupManualWrap"></div>
     <div id="popupContent" class="popup-content-area" style="display:none"></div>
     <div id="popupSummary" class="popup-summary" style="display:none"></div>
-    <button class="popup-save-btn" id="popupSaveBtn" style="display:none"><i class="ph ph-bookmark-simple"></i>Save to Wishlist</button>`;
+    <button class="popup-save-btn" id="popupSaveBtn" style="display:none"><i class="ph ph-bookmark-simple"></i>Save to Pop Ups</button>`;
   listEl.appendChild(popupWrap);
 
-  // Wire popup events
+  // Wire FAB toggle
   _popupParsed=null;
+  let _fabOpen=false;
+  document.getElementById('popupAddFab').addEventListener('click',()=>{
+    _fabOpen=!_fabOpen;
+    document.getElementById('popupAddOptions').style.display=_fabOpen?'':'none';
+    const fab=document.getElementById('popupAddFab');
+    fab.innerHTML=_fabOpen?'<i class="ph ph-x-circle"></i> Cancel':'<i class="ph ph-plus-circle"></i> Add a class';
+  });
+
+  // Manual
   let _manualOpen=false;
   document.getElementById('popupManualBtn').addEventListener('click',()=>{
     _manualOpen=!_manualOpen;
     const wrap=document.getElementById('popupManualWrap');
     if(_manualOpen){renderManualForm(wrap);}else{wrap.innerHTML='';}
   });
+
+  // Gallery (photo)
+  document.getElementById('popupGalleryBtn').addEventListener('click',()=>{
+    document.getElementById('popupPhotoInput').click();
+  });
+  document.getElementById('popupPhotoInput').addEventListener('change',handlePopupPhoto);
+
+  // Paste
   document.getElementById('popupPasteBtn').addEventListener('click',async()=>{
     const status=document.getElementById('popupOcrStatus');
     try{
@@ -2080,7 +2084,6 @@ function renderSaved(){
       if(status){status.style.display='';status.textContent='Tap & hold the box above, then choose Paste.';setTimeout(()=>{status.style.display='none';},4000);}
     }
   });
-  document.getElementById('popupPhotoInput').addEventListener('change',handlePopupPhoto);
   document.getElementById('popupSaveBtn').addEventListener('click',doSaveCustomClass);
 
   // Custom classes list
@@ -2092,6 +2095,36 @@ function renderSaved(){
     listEl.appendChild(customHeader);
     sorted.forEach((c,i)=>{
       const card=buildCard(c,i,false);
+      listEl.appendChild(card);
+    });
+  }
+
+  // ── Wishlist section (bottom) ──
+  const wlHeader=document.createElement('div');
+  wlHeader.className='saved-section-header';
+  wlHeader.style.marginTop='28px';
+  wlHeader.innerHTML='<i class="ph ph-shooting-star"></i> Wishlist';
+  listEl.appendChild(wlHeader);
+
+  const savedFromSchedule=ALL_CLASSES.filter(c=>isSaved(c));
+  if(!savedFromSchedule.length){
+    const empty=document.createElement('div');
+    empty.className='empty-state';empty.style.paddingTop='16px';
+    empty.innerHTML='<div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap ★ on any card to save it here.</div>';
+    listEl.appendChild(empty);
+  } else {
+    savedFromSchedule.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+    let lastDate='';
+    savedFromSchedule.forEach((c,i)=>{
+      if(c.date_key!==lastDate){
+        const div=document.createElement('div');div.className='section-divider date-divider';
+        div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
+        listEl.appendChild(div);lastDate=c.date_key;
+      }
+      const card=buildCard(c,i);
+      const cid=classId(c);
+      if(!myClassesMap[cid])myClassesMap[cid]={notes:[],added_at:null,_wishlistOnly:true};
+      card.appendChild(_buildInlineNotes(c));
       listEl.appendChild(card);
     });
   }
@@ -2421,6 +2454,7 @@ function switchTab(tab){
   const _ntBtn=document.getElementById('notesToggleBtn');
   if(tab==='schedule'){
     _animateNav('schedule',()=>{
+      document.querySelector('.app-shell').classList.remove('dark-mode');
       document.getElementById('weekStrip').style.display='';
       document.getElementById('updatedText').style.visibility='visible';
       renderAll();
