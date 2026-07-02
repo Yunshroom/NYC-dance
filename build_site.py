@@ -756,6 +756,7 @@ a{color:inherit;text-decoration:none}
   <p class="login-sub">New York City · 2026</p>
   <div class="login-card">
     <div id="loginForm">
+      <input class="login-input" id="loginName" type="text" placeholder="your name" autocomplete="name" autocapitalize="words"/>
       <input class="login-input" id="loginEmail" type="email" placeholder="your@email.com" autocomplete="email" inputmode="email"/>
       <button class="login-btn" id="loginBtn">SEND MAGIC LINK →</button>
       <p class="login-error" id="loginError"></p>
@@ -1276,13 +1277,17 @@ let _sb=null;
 let _remoteClassIds=new Set(); // tracks which class_ids exist in Supabase so we can delete removed ones
 
 // ── Login screen helpers ──
-function _hideLoginScreen(email){
+let _currentUserEmail='';
+let _currentUserName='';
+function _hideLoginScreen(label,email){
   const s=document.getElementById('loginScreen');
   if(s){s.classList.add('hidden');setTimeout(()=>{s.style.display='none';},320);}
   const wrap=document.getElementById('signOutWrap');
   if(wrap)wrap.style.display='flex';
   const emailEl=document.getElementById('signOutEmail');
-  if(emailEl&&email)emailEl.textContent=email;
+  if(emailEl&&label)emailEl.textContent=label;
+  if(email)_currentUserEmail=email;
+  if(label)_currentUserName=label;
 }
 function _showLoginScreen(){
   const s=document.getElementById('loginScreen');
@@ -1323,12 +1328,14 @@ async function migrateLegacyData(newUserId){
       _sb.auth.onAuthStateChange(async(event,session)=>{
         if(session){
           _SB_USER=session.user.id;
-          // One-time migration of legacy data
-          if(!localStorage.getItem('nyd_migrated')){
-            await migrateLegacyData(_SB_USER);
-            localStorage.setItem('nyd_migrated','1');
+          // Save pending name if set at login time
+          const _pendingName=localStorage.getItem('nyd_pending_name');
+          if(_pendingName&&!session.user.user_metadata?.display_name){
+            await _sb.auth.updateUser({data:{display_name:_pendingName}});
+            localStorage.removeItem('nyd_pending_name');
           }
-          _hideLoginScreen(session.user.email);
+          const displayName=session.user.user_metadata?.display_name||'';
+          _hideLoginScreen(displayName||session.user.email, session.user.email);
           sbLoadAll();
         } else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){
           _SB_USER=null;
@@ -2117,9 +2124,9 @@ function renderProfile(){
   // Wishlist count
   const wishCount=ALL_CLASSES.filter(c=>isSaved(c)).length;
 
-  // Avatar initials from email
-  const email=document.getElementById('signOutEmail').textContent||'';
-  const avatarLetter=email?email[0].toUpperCase():'?';
+  const email=_currentUserEmail||'';
+  const displayName=_currentUserName&&_currentUserName!==email?_currentUserName:'';
+  const avatarLetter=(displayName||email||'?')[0].toUpperCase();
 
   // Genre label map
   const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemp',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Cond.',other:'Other'};
@@ -2144,7 +2151,7 @@ function renderProfile(){
     <div class="profile-hero-num">${past}</div>
     ${milestoneHTML}
   </div>
-  <div class="profile-email-row">${email}</div>
+  <div class="profile-email-row">${displayName?`<strong style="color:rgba(200,195,185,.65);font-weight:600">${displayName}</strong> · `:''}${email}</div>
   <div class="profile-grid">
     <div class="stat-card">
       <div class="stat-label">Upcoming</div>
@@ -2886,17 +2893,19 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
 
 // ── Login form ──
 document.getElementById('loginBtn').addEventListener('click',async()=>{
+  const name=document.getElementById('loginName').value.trim();
   const email=document.getElementById('loginEmail').value.trim();
   const errEl=document.getElementById('loginError');
   errEl.style.display='none';
   if(!email||!email.includes('@')){errEl.textContent='Please enter a valid email.';errEl.style.display='block';return;}
   const btn=document.getElementById('loginBtn');
   btn.disabled=true;btn.textContent='SENDING…';
+  if(name)localStorage.setItem('nyd_pending_name',name);
   const _redirectTo=(location.hostname==='localhost'||location.protocol==='file:')?'https://nyc-dance-rho.vercel.app':location.origin+'/';
-  const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:_redirectTo}});
+  const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:_redirectTo,data:{display_name:name||undefined}}});
   if(error){
     console.error('[Auth] signInWithOtp error:',JSON.stringify(error),error);
-    const msg=error.message||(error.error_description)||JSON.stringify(error)||'Something went wrong — try again.';
+    const msg=error.message||error.error_description||JSON.stringify(error)||'Something went wrong — try again.';
     errEl.textContent=msg;errEl.style.display='block';
     btn.disabled=false;btn.textContent='SEND MAGIC LINK →';
   } else {
@@ -2905,7 +2914,9 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
     document.getElementById('loginSent').style.display='block';
   }
 });
-document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+['loginEmail','loginName'].forEach(id=>{
+  document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+});
 
 // ── Sign out ──
 document.getElementById('signOutBtn').addEventListener('click',async()=>{
