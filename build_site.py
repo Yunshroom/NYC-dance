@@ -525,12 +525,12 @@ a{color:inherit;text-decoration:none}
 .cap-bar-fill{height:2px;border-radius:1px;background:rgba(255,255,255,.42)}
 .cap-text{font-family:'DM Mono',monospace;font-size:10px;color:rgba(232,228,220,.48);margin-top:4px;letter-spacing:.02em}
 
-/* ── glassmorphic pill nav ── */
+/* ── glassmorphic pill nav — readable on both light & dark backgrounds ── */
 #bottomNav{position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:center;padding:12px 20px calc(12px + env(safe-area-inset-bottom));z-index:50;pointer-events:none}
-.nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(14,12,10,.48);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);border:.5px solid rgba(255,255,255,.13);border-radius:50px;padding:5px;box-shadow:0 8px 32px rgba(0,0,0,.28),0 1px 0 rgba(255,255,255,.07) inset;pointer-events:all}
-.nav-capsule{position:absolute;border-radius:40px;background:rgba(50,44,38,.52);border:.5px solid rgba(255,255,255,.2);box-shadow:0 2px 10px rgba(0,0,0,.3),0 .5px 0 rgba(255,255,255,.07) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
+.nav-bar{position:relative;display:inline-flex;align-items:center;gap:2px;background:rgba(22,18,14,.72);backdrop-filter:blur(32px) saturate(2);-webkit-backdrop-filter:blur(32px) saturate(2);border:.5px solid rgba(255,255,255,.18);border-radius:50px;padding:5px;box-shadow:0 4px 6px rgba(0,0,0,.12),0 12px 36px rgba(0,0,0,.38),0 1px 0 rgba(255,255,255,.1) inset;pointer-events:all}
+.nav-capsule{position:absolute;border-radius:40px;background:rgba(62,54,44,.72);border:.5px solid rgba(255,255,255,.22);box-shadow:0 2px 10px rgba(0,0,0,.35),0 .5px 0 rgba(255,255,255,.1) inset;top:5px;bottom:5px;left:5px;pointer-events:none;transition:left .38s cubic-bezier(.34,1.4,.64,1),width .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab{position:relative;z-index:1;display:flex;align-items:center;gap:0;padding:9px 12px;border-radius:40px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.tab-icon i{font-size:21px;color:rgba(140,132,120,.85);display:block;flex-shrink:0;transition:color .2s}
+.tab-icon i{font-size:21px;color:rgba(200,194,184,.7);display:block;flex-shrink:0;transition:color .2s}
 .tab-label{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;max-width:0;opacity:0;margin-left:0;transition:max-width .38s cubic-bezier(.34,1.4,.64,1),margin-left .38s cubic-bezier(.34,1.4,.64,1)}
 .nav-tab.active .tab-icon i{color:#fff}
 .nav-tab.active .tab-label{max-width:90px;margin-left:6px;opacity:1}
@@ -619,17 +619,17 @@ a{color:inherit;text-decoration:none}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
-/* stamp watermark */
-.stamp-mark{position:absolute;right:14px;top:50%;pointer-events:none;transform-origin:center center;width:132px;height:132px;}
+/* stamp watermark — pinned to top-right, doesn't move when card grows */
+.stamp-mark{position:absolute;right:10px;top:10px;pointer-events:none;transform-origin:center center;width:132px;height:132px;}
 .stamp-mark img{width:100%;height:100%;display:block;mix-blend-mode:multiply;}
 @keyframes stampPress{
-  0%  {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*1.35));opacity:0}
-  30% {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*0.9));opacity:calc(var(--so)*1.5)}
-  60% {transform:translateY(-50%) rotate(var(--sr)) scale(calc(var(--ss)*1.04));opacity:var(--so)}
-  100%{transform:translateY(-50%) rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
+  0%  {transform:rotate(var(--sr)) scale(calc(var(--ss)*1.35));opacity:0}
+  30% {transform:rotate(var(--sr)) scale(calc(var(--ss)*0.9));opacity:calc(var(--so)*1.5)}
+  60% {transform:rotate(var(--sr)) scale(calc(var(--ss)*1.04));opacity:var(--so)}
+  100%{transform:rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
 }
 .stamp-mark.stamp-enter{animation:stampPress .42s cubic-bezier(.22,.68,0,1.2) both}
-.stamp-mark.stamp-show{transform:translateY(-50%) rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
+.stamp-mark.stamp-show{transform:rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
 </style>
 </head>
 <body>
@@ -1795,20 +1795,7 @@ function _buildInlineNotes(c){
       wrap.appendChild(inputArea);
 
     } else {
-      // ── MODE B: has notes → show Notes (N) toggle ──
-      let expanded=false;
-      const toggle=document.createElement('button');
-      toggle.className='inline-notes-toggle';
-      function _updateToggle(){
-        const n=(myClassesMap[id]?.notes||[]).length;
-        toggle.innerHTML=`<i class="ph ph-note-pencil"></i><span>Notes (${n})</span><i class="ph ph-caret-${expanded?'up':'down'} inline-notes-caret"></i>`;
-      }
-      _updateToggle();
-
-      const panel=document.createElement('div');
-      panel.className='inline-notes-panel';
-      panel.style.display='none';
-
+      // ── MODE B: has notes → show stickies + add buttons directly (global toggle hides/shows) ──
       const stickyCon=document.createElement('div');
       stickyCon.style.cssText='display:flex;flex-direction:column;gap:10px;margin-bottom:10px';
 
@@ -1816,10 +1803,8 @@ function _buildInlineNotes(c){
         const ns=(myClassesMap[id]?.notes)||[];
         stickyCon.innerHTML='';
         ns.forEach((n,i)=>stickyCon.appendChild(_buildSticky(n,i,false,()=>{
-          // after delete: if 0 notes left, switch to pill mode
           if(!(myClassesMap[id]?.notes||[]).length)_render();else _rebuildStickies();
         })));
-        _updateToggle();
       }
 
       const inputArea=document.createElement('div');
@@ -1841,18 +1826,8 @@ function _buildInlineNotes(c){
 
       _rebuildStickies();
       _showAddBtns();
-      panel.appendChild(stickyCon);
-      panel.appendChild(inputArea);
-
-      toggle.addEventListener('click',e=>{
-        e.preventDefault();e.stopPropagation();
-        expanded=!expanded;
-        panel.style.display=expanded?'block':'none';
-        _updateToggle();
-      });
-
-      wrap.appendChild(toggle);
-      wrap.appendChild(panel);
+      wrap.appendChild(stickyCon);
+      wrap.appendChild(inputArea);
     }
   }
 
@@ -2123,7 +2098,7 @@ function renderSaved(){
   if(ntBtn2)ntBtn2.style.display='';
   const listEl=document.getElementById('classesList');
   const savedFromSchedule=ALL_CLASSES.filter(c=>isSaved(c));
-  const allSaved=[...savedFromSchedule,...CUSTOM_CLASSES];
+  const allSaved=[...savedFromSchedule]; // custom classes live only in Pop up/My Classes
   if(!allSaved.length){
     listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap the bookmark on any card to save it here.</div></div>`;
     return;
@@ -2227,7 +2202,7 @@ function buildCard(c,i,inMyClasses){
       document.querySelectorAll('.mc-dots-menu').forEach(m=>m.remove());
       const menu=document.createElement('div');
       menu.className='mc-dots-menu';
-      menu.innerHTML=`<button class="mc-dots-item mc-dots-cal"><i class="ph ph-calendar-plus"></i> Add to Calendar</button><button class="mc-dots-item mc-dots-delete"><i class="ph ph-trash"></i> Remove from My Classes</button>`;
+      menu.innerHTML=`<button class="mc-dots-item mc-dots-cal"><i class="ph ph-calendar-blank"></i> Add to Calendar</button><button class="mc-dots-item mc-dots-delete"><i class="ph ph-trash"></i> Remove from My Classes</button>`;
       menu.querySelector('.mc-dots-cal').addEventListener('click',ev=>{
         ev.stopPropagation();
         menu.remove();
