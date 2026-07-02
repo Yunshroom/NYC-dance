@@ -375,8 +375,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:#ddb5c8;o
 button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit;touch-action:manipulation}
 a{color:inherit;text-decoration:none}
 
-.app-shell{width:100%;height:100dvh;height:100svh;background:#eceae6;position:relative;display:flex;flex-direction:column;overflow:hidden;transition:background .3s}
-.app-shell.dark-mode{background:#0e0a08}
+.app-shell{width:100%;height:100dvh;height:100svh;background:#eceae6;position:relative;display:flex;flex-direction:column;overflow:hidden}
 @media(min-width:500px){body{display:flex;justify-content:center}.app-shell{max-width:430px;}}
 
 .bg-radial{position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(to bottom,#ddb5c8 0%,rgba(221,181,200,0) 18%),radial-gradient(ellipse 75% 50% at 85% 10%,rgba(208,120,155,.65) 0%,transparent 100%)}
@@ -621,33 +620,36 @@ a{color:inherit;text-decoration:none}
 .saved-section-header{font-size:13px;font-weight:700;color:rgba(200,195,185,.6);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px;padding:4px 0 2px;margin-bottom:4px}
 .saved-section-header i{font-size:16px}
 /* ── popup add FAB ── */
-.popup-add-fab{display:flex;align-items:center;gap:10px;padding:13px 20px;border-radius:50px;background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.18);color:#f5f1ea;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.04em;-webkit-tap-highlight-color:transparent;margin-bottom:4px}
-.popup-add-fab i{font-size:20px}
-.popup-add-fab:active{background:rgba(255,255,255,.18)}
-.popup-add-options{display:flex;gap:8px;margin-bottom:12px;animation:fadeSlideDown .2s ease}
-@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.popup-add-opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;border-radius:14px;background:rgba(255,255,255,.07);border:.5px solid rgba(255,255,255,.12);color:rgba(200,195,185,.8);font-size:12px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.popup-add-opt i{font-size:22px;color:#f5f1ea}
-.popup-add-opt:active{background:rgba(255,255,255,.14)}
+.popup-add-fab{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);border:none;color:#f5f1ea;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:6px}
+.popup-add-fab i{font-size:17px}
+.popup-add-fab:active{opacity:.8}
+.popup-add-options{display:flex;gap:8px;margin-bottom:12px;animation:fadeSlideDown .18s ease}
+@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.popup-add-opt{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:13px 8px;border-radius:13px;background:#f0ece6;border:none;color:#3a3830;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.04em;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent}
+.popup-add-opt i{font-size:22px;color:#3a3830}
+.popup-add-opt:active{background:#e4e0da}
 /* ── profile tab ── */
 .profile-pane{padding:4px 0 80px}
-.profile-avatar{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#db2777);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:8px auto 10px;letter-spacing:-.5px}
-.profile-email{text-align:center;font-size:13px;color:rgba(200,195,185,.5);margin-bottom:24px;letter-spacing:.01em}
-.profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-.stat-card{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.1);border-radius:16px;padding:16px 14px;display:flex;flex-direction:column;gap:4px}
+.profile-hero{border-radius:14px;overflow:hidden;margin-bottom:10px;padding:20px 18px 22px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);position:relative}
+.profile-hero-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.profile-hero-num{font-family:'Permanent Marker',cursive;font-size:64px;color:#f5f1ea;line-height:1;margin-bottom:2px}
+.profile-hero-sub{font-family:'DM Mono',monospace;font-size:11px;color:rgba(200,195,185,.5);letter-spacing:.04em}
+.profile-email-row{font-family:'DM Mono',monospace;font-size:11px;color:rgba(200,195,185,.38);letter-spacing:.04em;margin-bottom:14px}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.stat-card{border-radius:14px;overflow:hidden;padding:16px 14px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(60deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);display:flex;flex-direction:column;gap:3px}
 .stat-card.full{grid-column:1/-1}
-.stat-num{font-size:34px;font-weight:800;color:#f5f1ea;line-height:1;letter-spacing:-1.5px}
-.stat-label{font-size:11px;font-weight:600;color:rgba(200,195,185,.45);text-transform:uppercase;letter-spacing:.07em}
-.stat-sub{font-size:12px;color:rgba(200,195,185,.5);margin-top:3px}
-.stat-name{font-size:19px;font-weight:700;color:#f5f1ea;margin-top:4px;letter-spacing:-.3px}
-.genre-bars{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.stat-num{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;color:#f5f1ea;line-height:1;letter-spacing:-1px}
+.stat-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.stat-sub{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.45);margin-top:4px;letter-spacing:.02em}
+.stat-name{font-family:'DM Sans',sans-serif;font-size:17px;font-weight:500;color:#f5f1ea;margin-top:5px;line-height:1.2}
+.genre-bars{display:flex;flex-direction:column;gap:9px;margin-top:10px}
 .genre-bar-row{display:flex;align-items:center;gap:8px}
-.genre-bar-label{font-size:12px;color:rgba(200,195,185,.6);width:72px;flex-shrink:0;text-transform:capitalize}
-.genre-bar-track{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
-.genre-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#a78bfa,#f472b6)}
-.genre-bar-count{font-size:12px;color:rgba(200,195,185,.45);width:20px;text-align:right;flex-shrink:0}
-.profile-signout-btn{width:100%;margin-top:8px;padding:15px;background:rgba(255,255,255,.05);border:.5px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(200,195,185,.55);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:.05em;-webkit-tap-highlight-color:transparent}
-.profile-signout-btn:active{background:rgba(255,80,80,.15);color:#fca5a5;border-color:rgba(255,80,80,.2)}
+.genre-bar-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.55);width:66px;flex-shrink:0;text-transform:capitalize;letter-spacing:.02em}
+.genre-bar-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.genre-bar-fill{height:100%;border-radius:4px;background:rgba(200,195,185,.5)}
+.genre-bar-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);width:18px;text-align:right;flex-shrink:0}
+.profile-signout-btn{width:100%;margin-top:4px;padding:14px;border-radius:14px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);border:none;color:rgba(200,195,185,.5);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent;overflow:hidden}
+.profile-signout-btn:active{opacity:.7}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
@@ -2082,8 +2084,8 @@ function renderProfile(){
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   document.getElementById('filterBtn').style.display='none';
+  document.querySelector('.app-shell').classList.remove('dark-mode');
   const ntBtn=document.getElementById('notesToggleBtn');if(ntBtn)ntBtn.style.display='none';
-  document.querySelector('.app-shell').classList.add('dark-mode');
   const listEl=document.getElementById('classesList');
 
   // Compute stats from stamped classes
@@ -2137,21 +2139,28 @@ function renderProfile(){
 
   listEl.innerHTML=`
 <div class="profile-pane">
-  <div class="profile-avatar">${avatarLetter}</div>
-  <div class="profile-email">${email}</div>
-  <div class="profile-stats-grid">
-    <div class="stat-card full">
-      <div class="stat-num">${past}</div>
-      <div class="stat-label">Classes Taken</div>
-      ${milestoneHTML}
-    </div>
+  <div class="profile-hero">
+    <div class="profile-hero-label">Classes Taken</div>
+    <div class="profile-hero-num">${past}</div>
+    ${milestoneHTML}
+  </div>
+  <div class="profile-email-row">${email}</div>
+  <div class="profile-grid">
     <div class="stat-card">
-      <div class="stat-num">${upcoming}</div>
       <div class="stat-label">Upcoming</div>
+      <div class="stat-num">${upcoming}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-num">${wishCount}</div>
       <div class="stat-label">Wishlisted</div>
+      <div class="stat-num">${wishCount}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Notes</div>
+      <div class="stat-num">${noteCount}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pop-ups</div>
+      <div class="stat-num">${CUSTOM_CLASSES.length}</div>
     </div>
     ${topInstr?`<div class="stat-card full">
       <div class="stat-label">Favourite Teacher</div>
@@ -2167,16 +2176,8 @@ function renderProfile(){
       <div class="stat-label">By Style</div>
       <div class="genre-bars">${genreBarsHTML}</div>
     </div>`:''}
-    <div class="stat-card">
-      <div class="stat-num">${noteCount}</div>
-      <div class="stat-label">Notes Written</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num">${CUSTOM_CLASSES.length}</div>
-      <div class="stat-label">Pop-ups Added</div>
-    </div>
   </div>
-  <button class="profile-signout-btn" id="profileSignOutBtn"><i class="ph ph-sign-out"></i> SIGN OUT</button>
+  <button class="profile-signout-btn" id="profileSignOutBtn"><i class="ph ph-sign-out"></i> Sign out</button>
 </div>`;
 
   document.getElementById('profileSignOutBtn').addEventListener('click',async()=>{
