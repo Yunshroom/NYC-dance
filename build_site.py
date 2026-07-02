@@ -617,8 +617,8 @@ a{color:inherit;text-decoration:none}
 /* custom classes list in popup tab */
 .popup-classes-header{font-size:12px;font-weight:600;color:#9a9688;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:4px}
 /* ── saved tab section headers ── */
-.saved-section-header{font-size:13px;font-weight:700;color:rgba(200,195,185,.6);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:7px;padding:4px 0 2px;margin-bottom:4px}
-.saved-section-header i{font-size:16px}
+.saved-section-header{font-size:11px;font-weight:600;color:#6b6860;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:6px;padding:4px 0 2px;margin-bottom:4px}
+.saved-section-header i{font-size:14px;color:#6b6860}
 /* ── popup add FAB ── */
 .popup-add-fab{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);border:none;color:#f5f1ea;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:6px}
 .popup-add-fab i{font-size:17px}
