@@ -2892,7 +2892,7 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
   if(!email||!email.includes('@')){errEl.textContent='Please enter a valid email.';errEl.style.display='block';return;}
   const btn=document.getElementById('loginBtn');
   btn.disabled=true;btn.textContent='SENDING…';
-  const _redirectTo=(location.hostname==='localhost'||location.protocol==='file:')?'https://nyc-dance.vercel.app':location.origin+'/';
+  const _redirectTo=(location.hostname==='localhost'||location.protocol==='file:')?'https://nyc-dance-rho.vercel.app':location.origin+'/';
   const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:_redirectTo}});
   if(error){
     errEl.textContent=error.message;errEl.style.display='block';
