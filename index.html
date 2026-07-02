@@ -292,7 +292,9 @@ a{color:inherit;text-decoration:none}
 .login-hint{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.28);margin-top:14px;letter-spacing:.04em}
 .login-error{font-family:'DM Mono',monospace;font-size:11px;color:#e06070;margin-top:10px;display:none}
 /* sign-out in header */
-.signout-btn{background:none;border:none;cursor:pointer;color:rgba(200,195,185,.55);padding:6px 4px;-webkit-tap-highlight-color:transparent;line-height:1;display:none}
+.signout-wrap{display:none;align-items:center;gap:6px}
+.signout-email{font-size:11px;color:rgba(200,195,185,.45);letter-spacing:.02em;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.signout-btn{background:none;border:none;cursor:pointer;color:rgba(200,195,185,.55);padding:6px 4px;-webkit-tap-highlight-color:transparent;line-height:1}
 .signout-btn i{font-size:18px;display:block}
 .signout-btn:active{color:#f5f1ea}
 </style>
@@ -313,9 +315,12 @@ a{color:inherit;text-decoration:none}
           <button class="icon-btn" id="filterBtn" title="Filters">
             <i class="ph ph-funnel"></i>
           </button>
-          <button class="signout-btn" id="signOutBtn" title="Sign out">
-            <i class="ph ph-sign-out"></i>
-          </button>
+          <div class="signout-wrap" id="signOutWrap">
+            <span class="signout-email" id="signOutEmail"></span>
+            <button class="signout-btn" id="signOutBtn" title="Sign out">
+              <i class="ph ph-sign-out"></i>
+            </button>
+          </div>
         </div>
       </div>
       <div class="header-row2">
@@ -880,15 +885,19 @@ let _sb=null;
 let _remoteClassIds=new Set(); // tracks which class_ids exist in Supabase so we can delete removed ones
 
 // ── Login screen helpers ──
-function _hideLoginScreen(){
+function _hideLoginScreen(email){
   const s=document.getElementById('loginScreen');
   if(s){s.classList.add('hidden');setTimeout(()=>{s.style.display='none';},320);}
-  document.getElementById('signOutBtn').style.display='';
+  const wrap=document.getElementById('signOutWrap');
+  if(wrap)wrap.style.display='flex';
+  const emailEl=document.getElementById('signOutEmail');
+  if(emailEl&&email)emailEl.textContent=email;
 }
 function _showLoginScreen(){
   const s=document.getElementById('loginScreen');
   if(s){s.style.display='flex';requestAnimationFrame(()=>s.classList.remove('hidden'));}
-  document.getElementById('signOutBtn').style.display='none';
+  const wrap=document.getElementById('signOutWrap');
+  if(wrap)wrap.style.display='none';
 }
 
 // ── Legacy data migration (one-time on first login) ──
@@ -928,7 +937,7 @@ async function migrateLegacyData(newUserId){
             await migrateLegacyData(_SB_USER);
             localStorage.setItem('nyd_migrated','1');
           }
-          _hideLoginScreen();
+          _hideLoginScreen(session.user.email);
           sbLoadAll();
         } else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){
           _SB_USER=null;
