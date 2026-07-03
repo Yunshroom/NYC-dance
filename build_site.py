@@ -724,6 +724,28 @@ a{color:inherit;text-decoration:none}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
+/* ── swipe-left actions ── */
+.swipe-row{position:relative;overflow:hidden;margin-bottom:10px;border-radius:14px;}
+.swipe-row>.swipe-inner>.card{margin-bottom:0;border-radius:14px;}
+.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;}
+.swipe-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:76px;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;}
+.swipe-action-btn i{font-size:22px;}
+.sa-note{background:#4f46e5;}
+.sa-delete{background:#b91c1c;}
+.sa-edit{background:#7c3aed;}
+.swipe-inner{position:relative;z-index:1;transform:translateX(0);transition:transform .2s ease;touch-action:pan-y;}
+.swipe-inner.is-swiping{transition:none;}
+/* upcoming / past section headers */
+.updown-header{display:flex;align-items:center;gap:10px;margin:20px 0 10px;}
+.updown-header:first-child{margin-top:4px}
+.updown-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
+.updown-header.upcoming .updown-label{color:#f0a830;}
+.updown-header.past .updown-label{color:rgba(200,195,185,.4);}
+.updown-line{flex:1;height:1px;opacity:.2;}
+.updown-header.upcoming .updown-line{background:#f0a830;}
+.updown-header.past .updown-line{background:rgba(200,195,185,.4);}
+/* greyed-out past wishlist card */
+.card-past-wl{opacity:.38;filter:saturate(.3);}
 /* stamp watermark — fixed to top-right corner of page */
 #pageStamp{position:fixed;top:10px;right:10px;z-index:900;pointer-events:none;width:96px;height:96px;opacity:0;transform:rotate(-8deg) scale(0.85);transition:opacity .35s,transform .35s;}
 #pageStamp.stamp-visible{opacity:.38;transform:rotate(-8deg) scale(1);}
@@ -2115,6 +2137,75 @@ function _toggleNotesHidden(){
   }
 }
 
+// ── swipe-left wrapper ──
+let _openSwipeRow=null;
+function _wrapSwipe(card,notesEl,{onNote,onDelete,onEdit}){
+  const row=document.createElement('div');row.className='swipe-row';
+  const hasEdit=!!onEdit;
+  const numBtns=hasEdit?3:2;
+  const actionW=numBtns*76;
+  // Build action buttons (left-to-right behind card)
+  const actions=document.createElement('div');actions.className='swipe-actions';
+  if(hasEdit){
+    const eb=document.createElement('button');eb.className='swipe-action-btn sa-edit';
+    eb.innerHTML='<i class="ph ph-pencil-simple-line"></i>Edit';
+    eb.addEventListener('click',()=>{_closeSwipe(row,inner);onEdit();});
+    actions.appendChild(eb);
+  }
+  const nb=document.createElement('button');nb.className='swipe-action-btn sa-note';
+  nb.innerHTML='<i class="ph ph-note-pencil"></i>Note';
+  nb.addEventListener('click',()=>{_closeSwipe(row,inner);onNote();});
+  const db=document.createElement('button');db.className='swipe-action-btn sa-delete';
+  db.innerHTML='<i class="ph ph-trash"></i>Remove';
+  db.addEventListener('click',()=>{_closeSwipe(row,inner);onDelete();});
+  actions.appendChild(nb);actions.appendChild(db);
+  // Inner draggable layer
+  const inner=document.createElement('div');inner.className='swipe-inner';
+  inner.appendChild(card);
+  if(notesEl)inner.appendChild(notesEl);
+  row.appendChild(actions);row.appendChild(inner);
+  // Touch tracking
+  let sX=0,sY=0,curX=0,revealed=false,tracking=false;
+  inner.addEventListener('touchstart',e=>{
+    sX=e.touches[0].clientX;sY=e.touches[0].clientY;
+    tracking=true;inner.classList.add('is-swiping');
+  },{passive:true});
+  inner.addEventListener('touchmove',e=>{
+    if(!tracking)return;
+    const dx=e.touches[0].clientX-sX;
+    const dy=e.touches[0].clientY-sY;
+    if(!revealed&&Math.abs(dy)>Math.abs(dx)&&Math.abs(dx)<8){tracking=false;inner.classList.remove('is-swiping');return;}
+    const base=revealed?-actionW:0;
+    curX=Math.max(-actionW,Math.min(0,base+dx));
+    inner.style.transform=`translateX(${curX}px)`;
+  },{passive:true});
+  inner.addEventListener('touchend',()=>{
+    inner.classList.remove('is-swiping');tracking=false;
+    if(!revealed&&curX<-actionW*0.35){
+      if(_openSwipeRow&&_openSwipeRow!==row){
+        const oi=_openSwipeRow.querySelector('.swipe-inner');
+        if(oi){oi.style.transform='translateX(0)';}
+      }
+      _openSwipeRow=row;
+      inner.style.transform=`translateX(-${actionW}px)`;revealed=true;
+    }else{
+      inner.style.transform='translateX(0)';revealed=false;
+      if(_openSwipeRow===row)_openSwipeRow=null;
+    }
+    curX=revealed?-actionW:0;
+  });
+  return row;
+}
+function _closeSwipe(row,inner){
+  inner.style.transform='translateX(0)';
+  if(_openSwipeRow===row)_openSwipeRow=null;
+}
+function _focusNoteInput(notesEl){
+  if(!notesEl)return;
+  const btn=notesEl.querySelector('.note-pill-btn');
+  if(btn){btn.scrollIntoView({behavior:'smooth',block:'nearest'});btn.click();}
+}
+
 function renderMyClasses(){
   document.querySelector('.app-shell').classList.remove('dark-mode');
   document.getElementById('pageTitle').textContent='My Classes';
@@ -2124,10 +2215,8 @@ function renderMyClasses(){
   const ntBtn=document.getElementById('notesToggleBtn');
   if(ntBtn)ntBtn.style.display='';
   const listEl=document.getElementById('classesList');
-  // Classes from the live schedule that are stamped
   const scheduledStamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
   const scheduledIds=new Set(scheduledStamped.map(c=>classId(c)));
-  // Historical classes: in myClassesMap but not in the live schedule
   const historicalStamped=Object.entries(myClassesMap)
     .filter(([id,v])=>!scheduledIds.has(id)&&!v._wishlistOnly&&v.date_key)
     .map(([id,v])=>({...v,_historyId:id}));
@@ -2136,24 +2225,51 @@ function renderMyClasses(){
     listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class card to add it here.</div></div>`;
     return;
   }
-  // Upcoming first, past at the bottom; within same day sort by start time
   const today=new Date();today.setHours(0,0,0,0);
   const _dk=c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d);}
   const upcoming=stamped.filter(c=>_dk(c)>=today).sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
   const past=stamped.filter(c=>_dk(c)<today).sort((a,b)=>b.date_key<a.date_key?-1:b.date_key>a.date_key?1:b.start_hour-a.start_hour);
-  stamped.length=0;[...upcoming,...past].forEach(c=>stamped.push(c));
-  listEl.innerHTML='';let lastDate='';
-  stamped.forEach((c,i)=>{
-    if(c.date_key!==lastDate){
-      const div=document.createElement('div');div.className='section-divider date-divider';
-      div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
-      listEl.appendChild(div);lastDate=c.date_key;
-    }
+  listEl.innerHTML='';
+  function _addDateDivider(dateKey){
+    const div=document.createElement('div');div.className='section-divider date-divider';
+    div.innerHTML=`${formatDateFull(dateKey)}<div class="section-line"></div>`;
+    listEl.appendChild(div);
+  }
+  function _appendCard(c,i){
+    const isCustom=c.studio_key==='custom';
     const card=buildCard(c,i,true);
-    // Inline notes section
-    card.appendChild(_buildInlineNotes(c));
-    listEl.appendChild(card);
-  });
+    const notesEl=_buildInlineNotes(c);
+    const cid=classId(c);
+    const swipeRow=_wrapSwipe(card,notesEl,{
+      onNote:()=>_focusNoteInput(notesEl),
+      onDelete:()=>{
+        // unstamp
+        const ex=myClassesMap[cid];
+        if(ex&&ex.notes&&ex.notes.length){ex._wishlistOnly=true;}
+        else{delete myClassesMap[cid];}
+        localStorage.setItem('nyd_my_classes',JSON.stringify(myClassesMap));
+        sbSyncMyClasses();
+        swipeRow.style.transition='opacity .25s';swipeRow.style.opacity='0';
+        setTimeout(()=>{swipeRow.remove();},260);
+      },
+      onEdit:isCustom?()=>_focusNoteInput(notesEl):null,
+    });
+    listEl.appendChild(swipeRow);
+  }
+  if(upcoming.length){
+    const hdr=document.createElement('div');hdr.className='updown-header upcoming';
+    hdr.innerHTML='<span class="updown-label">Upcoming</span><div class="updown-line"></div>';
+    listEl.appendChild(hdr);
+    let lastDate='';
+    upcoming.forEach((c,i)=>{if(c.date_key!==lastDate){_addDateDivider(c.date_key);lastDate=c.date_key;}_appendCard(c,i);});
+  }
+  if(past.length){
+    const hdr=document.createElement('div');hdr.className='updown-header past';
+    hdr.innerHTML='<div class="updown-line"></div><span class="updown-label">Past</span><div class="updown-line"></div>';
+    listEl.appendChild(hdr);
+    let lastDate='';
+    past.forEach((c,i)=>{if(c.date_key!==lastDate){_addDateDivider(c.date_key);lastDate=c.date_key;}_appendCard(c,i);});
+  }
 }
 
 // ── profile tab ──
@@ -2582,8 +2698,8 @@ function renderSaved(){
   });
   document.getElementById('popupSaveBtn').addEventListener('click',doSaveCustomClass);
 
-  // Custom classes list
-  const sorted=[...CUSTOM_CLASSES].sort((a,b)=>b.date_key.localeCompare(a.date_key));
+  // Custom classes list — exclude ones already stamped as My Class
+  const sorted=[...CUSTOM_CLASSES].filter(c=>!isMyClass(c)).sort((a,b)=>b.date_key.localeCompare(a.date_key));
   if(sorted.length){
     const customHeader=document.createElement('div');
     customHeader.className='popup-classes-header';
@@ -2591,7 +2707,19 @@ function renderSaved(){
     listEl.appendChild(customHeader);
     sorted.forEach((c,i)=>{
       const card=buildCard(c,i,false);
-      listEl.appendChild(card);
+      const notesEl=_buildInlineNotes(c);
+      const swipeRow=_wrapSwipe(card,notesEl,{
+        onNote:()=>_focusNoteInput(notesEl),
+        onDelete:()=>{
+          const idx=CUSTOM_CLASSES.findIndex(x=>classId(x)===classId(c));
+          if(idx!==-1)CUSTOM_CLASSES.splice(idx,1);
+          localStorage.setItem('nyd_custom_classes',JSON.stringify(CUSTOM_CLASSES));
+          swipeRow.style.transition='opacity .25s';swipeRow.style.opacity='0';
+          setTimeout(()=>{swipeRow.remove();},260);
+        },
+        onEdit:()=>_focusNoteInput(notesEl),
+      });
+      listEl.appendChild(swipeRow);
     });
   }
 
@@ -2609,20 +2737,47 @@ function renderSaved(){
     empty.innerHTML='<div class="empty-icon">🔖</div><div class="empty-title">No saved classes yet</div><div class="empty-sub">Tap ★ on any card to save it here.</div>';
     listEl.appendChild(empty);
   } else {
-    savedFromSchedule.sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
-    let lastDate='';
-    savedFromSchedule.forEach((c,i)=>{
-      if(c.date_key!==lastDate){
-        const div=document.createElement('div');div.className='section-divider date-divider';
-        div.innerHTML=`${formatDateFull(c.date_key)}<div class="section-line"></div>`;
-        listEl.appendChild(div);lastDate=c.date_key;
-      }
-      const card=buildCard(c,i);
+    const today=new Date();today.setHours(0,0,0,0);
+    const _dk=c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d);};
+    const wlUpcoming=savedFromSchedule.filter(c=>_dk(c)>=today).sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
+    const wlPast=savedFromSchedule.filter(c=>_dk(c)<today).sort((a,b)=>b.date_key<a.date_key?-1:b.date_key>a.date_key?1:b.start_hour-a.start_hour);
+    function _addWLDateDivider(dateKey){
+      const div=document.createElement('div');div.className='section-divider date-divider';
+      div.innerHTML=`${formatDateFull(dateKey)}<div class="section-line"></div>`;
+      listEl.appendChild(div);
+    }
+    function _appendWLCard(c,i,pastWL){
+      const card=buildCard(c,i,false);
+      const notesEl=_buildInlineNotes(c);
       const cid=classId(c);
       if(!myClassesMap[cid])myClassesMap[cid]={notes:[],added_at:null,_wishlistOnly:true};
-      card.appendChild(_buildInlineNotes(c));
-      listEl.appendChild(card);
-    });
+      const swipeRow=_wrapSwipe(card,notesEl,{
+        onNote:()=>_focusNoteInput(notesEl),
+        onDelete:()=>{
+          savedSet.delete(cid);
+          localStorage.setItem('nyd_saved',JSON.stringify([...savedSet]));
+          sbSyncWishlist();
+          swipeRow.style.transition='opacity .25s';swipeRow.style.opacity='0';
+          setTimeout(()=>{swipeRow.remove();},260);
+        },
+      });
+      if(pastWL)swipeRow.classList.add('card-past-wl');
+      listEl.appendChild(swipeRow);
+    }
+    if(wlUpcoming.length){
+      const hdr=document.createElement('div');hdr.className='updown-header upcoming';
+      hdr.innerHTML='<span class="updown-label">Upcoming</span><div class="updown-line"></div>';
+      listEl.appendChild(hdr);
+      let lastDate='';
+      wlUpcoming.forEach((c,i)=>{if(c.date_key!==lastDate){_addWLDateDivider(c.date_key);lastDate=c.date_key;}_appendWLCard(c,i,false);});
+    }
+    if(wlPast.length){
+      const hdr=document.createElement('div');hdr.className='updown-header past';
+      hdr.innerHTML='<div class="updown-line"></div><span class="updown-label">Past</span><div class="updown-line"></div>';
+      listEl.appendChild(hdr);
+      let lastDate='';
+      wlPast.forEach((c,i)=>{if(c.date_key!==lastDate){_addWLDateDivider(c.date_key);lastDate=c.date_key;}_appendWLCard(c,i,true);});
+    }
   }
 }
 
