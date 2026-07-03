@@ -1303,10 +1303,11 @@ async function migrateLegacyData(newUserId){
 (async function(){
   try{
     if(_SB_URL&&typeof supabase!=='undefined'){
-      _sb=supabase.createClient(_SB_URL,_SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+      _sb=supabase.createClient(_SB_URL,_SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
       console.log('[Supabase] connected');
       // onAuthStateChange fires immediately with INITIAL_SESSION on every page load
       _sb.auth.onAuthStateChange(async(event,session)=>{
+        console.log('[Auth] event=',event,'session=',!!session);
         if(session){
           _SB_USER=session.user.id;
           // Save pending name if set at login time
@@ -1320,9 +1321,24 @@ async function migrateLegacyData(newUserId){
           sbLoadAll();
         } else if(event==='INITIAL_SESSION'||event==='SIGNED_OUT'){
           _SB_USER=null;
-          _showLoginScreen();
+          // If URL has auth tokens (magic link callback), don't show login yet — wait for SIGNED_IN
+          const _hasAuthParams=location.hash.includes('access_token')||location.hash.includes('error=')||location.search.includes('code=');
+          if(!_hasAuthParams||event==='SIGNED_OUT'){
+            _showLoginScreen();
+          } else {
+            console.log('[Auth] auth params detected in URL, waiting for SIGNED_IN…');
+          }
         }
       });
+      // Also handle the case where Supabase processes a PKCE code in the URL
+      // by explicitly exchanging if we detect a code param
+      if(location.search.includes('code=')){
+        console.log('[Auth] PKCE code detected, exchanging…');
+        _sb.auth.exchangeCodeForSession(new URLSearchParams(location.search).get('code')).then(({data,error})=>{
+          if(error)console.error('[Auth] code exchange error',error);
+          else console.log('[Auth] code exchange success');
+        });
+      }
     } else {
       console.log('[Supabase] not configured — local-only mode');
       _showLoginScreen();
