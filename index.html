@@ -1699,7 +1699,14 @@ function renderMyClasses(){
   const ntBtn=document.getElementById('notesToggleBtn');
   if(ntBtn)ntBtn.style.display='';
   const listEl=document.getElementById('classesList');
-  const stamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
+  // Classes from the live schedule that are stamped
+  const scheduledStamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
+  const scheduledIds=new Set(scheduledStamped.map(c=>classId(c)));
+  // Historical classes: in myClassesMap but not in the live schedule
+  const historicalStamped=Object.entries(myClassesMap)
+    .filter(([id,v])=>!scheduledIds.has(id)&&!v._wishlistOnly&&v.date_key)
+    .map(([id,v])=>({...v,_historyId:id}));
+  const stamped=[...scheduledStamped,...historicalStamped];
   if(!stamped.length){
     listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class card to add it here.</div></div>`;
     return;
@@ -1734,8 +1741,13 @@ function renderProfile(){
   const ntBtn=document.getElementById('notesToggleBtn');if(ntBtn)ntBtn.style.display='none';
   const listEl=document.getElementById('classesList');
 
-  // Compute stats from stamped classes
-  const stamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
+  // Compute stats from stamped classes (schedule + historical)
+  const _schedStamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
+  const _schedIds=new Set(_schedStamped.map(c=>classId(c)));
+  const _histStamped=Object.entries(myClassesMap)
+    .filter(([id,v])=>!_schedIds.has(id)&&!v._wishlistOnly&&v.date_key)
+    .map(([id,v])=>({...v,_historyId:id}));
+  const stamped=[..._schedStamped,..._histStamped];
   const total=stamped.length;
   const upcoming=stamped.filter(c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d)>=new Date(new Date().setHours(0,0,0,0));}).length;
   const past=total-upcoming;
