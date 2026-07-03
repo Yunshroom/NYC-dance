@@ -680,6 +680,9 @@ a{color:inherit;text-decoration:none}
 .login-sent p{font-family:'DM Mono',monospace;font-size:11px;color:rgba(200,195,185,.65);line-height:1.7;margin:0}
 .login-hint{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.28);margin-top:14px;letter-spacing:.04em}
 .login-error{font-family:'DM Mono',monospace;font-size:11px;color:#e06070;margin-top:10px;display:none}
+.login-otp-input{font-size:22px;letter-spacing:.2em;text-align:center;font-family:'DM Mono',monospace}
+.login-otp-input::-webkit-inner-spin-button,.login-otp-input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.login-back-btn{background:none;border:none;color:rgba(200,195,185,.35);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.04em;cursor:pointer;margin-top:14px;width:100%;text-align:center;padding:4px}
 /* sign-out in header */
 </style>
 </head>
@@ -745,14 +748,18 @@ a{color:inherit;text-decoration:none}
     <div id="loginForm">
       <input class="login-input" id="loginName" type="text" placeholder="your name" autocomplete="name" autocapitalize="words"/>
       <input class="login-input" id="loginEmail" type="email" placeholder="your@email.com" autocomplete="email" inputmode="email"/>
-      <button class="login-btn" id="loginBtn">SEND MAGIC LINK →</button>
+      <button class="login-btn" id="loginBtn">SEND CODE →</button>
       <p class="login-error" id="loginError"></p>
     </div>
     <div class="login-sent" id="loginSent">
       <div class="login-sent-icon">📬</div>
-      <p>Check your inbox<br><strong id="loginSentEmail" style="color:rgba(232,228,220,.9)"></strong></p>
+      <p style="margin-bottom:16px">Code sent to<br><strong id="loginSentEmail" style="color:rgba(232,228,220,.9)"></strong></p>
+      <input class="login-input login-otp-input" id="loginOtp" type="number" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"/>
+      <button class="login-btn" id="loginVerifyBtn">VERIFY →</button>
+      <p class="login-error" id="loginOtpError"></p>
+      <button class="login-back-btn" id="loginBackBtn">← use a different email</button>
     </div>
-    <p class="login-hint">no password needed · link expires in 1 hour</p>
+    <p class="login-hint">no password needed · code expires in 1 hour</p>
   </div>
 </div>
 
@@ -1330,15 +1337,6 @@ async function migrateLegacyData(newUserId){
           }
         }
       });
-      // Also handle the case where Supabase processes a PKCE code in the URL
-      // by explicitly exchanging if we detect a code param
-      if(location.search.includes('code=')){
-        console.log('[Auth] PKCE code detected, exchanging…');
-        _sb.auth.exchangeCodeForSession(new URLSearchParams(location.search).get('code')).then(({data,error})=>{
-          if(error)console.error('[Auth] code exchange error',error);
-          else console.log('[Auth] code exchange success');
-        });
-      }
     } else {
       console.log('[Supabase] not configured — local-only mode');
       _showLoginScreen();
@@ -2881,6 +2879,8 @@ document.getElementById('teacherSearch').addEventListener('input',buildTeacherCh
 });
 
 // ── Login form ──
+// ── Step 1: send OTP code ──
+let _loginEmail='';
 document.getElementById('loginBtn').addEventListener('click',async()=>{
   const name=document.getElementById('loginName').value.trim();
   const email=document.getElementById('loginEmail').value.trim();
@@ -2890,21 +2890,58 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
   const btn=document.getElementById('loginBtn');
   btn.disabled=true;btn.textContent='SENDING…';
   if(name)localStorage.setItem('nyd_pending_name',name);
-  const _redirectTo=(location.hostname==='localhost'||location.protocol==='file:')?'https://nyc-dance-rho.vercel.app':location.origin+'/';
-  const{error}=await _sb.auth.signInWithOtp({email,options:{emailRedirectTo:_redirectTo,data:{display_name:name||undefined}}});
+  // OTP flow: no emailRedirectTo → Supabase sends a 6-digit code
+  const{error}=await _sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,data:{display_name:name||undefined}}});
   if(error){
     console.error('[Auth] signInWithOtp error:',JSON.stringify(error),error);
     const msg=error.message||error.error_description||JSON.stringify(error)||'Something went wrong — try again.';
     errEl.textContent=msg;errEl.style.display='block';
-    btn.disabled=false;btn.textContent='SEND MAGIC LINK →';
+    btn.disabled=false;btn.textContent='SEND CODE →';
   } else {
+    _loginEmail=email;
     document.getElementById('loginForm').style.display='none';
     document.getElementById('loginSentEmail').textContent=email;
     document.getElementById('loginSent').style.display='block';
+    setTimeout(()=>document.getElementById('loginOtp').focus(),300);
   }
 });
 ['loginEmail','loginName'].forEach(id=>{
   document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginBtn').click();});
+});
+
+// ── Step 2: verify OTP code ──
+document.getElementById('loginVerifyBtn').addEventListener('click',async()=>{
+  const token=document.getElementById('loginOtp').value.trim();
+  const errEl=document.getElementById('loginOtpError');
+  errEl.style.display='none';
+  if(!token||token.length<6){errEl.textContent='Please enter the 6-digit code.';errEl.style.display='block';return;}
+  const btn=document.getElementById('loginVerifyBtn');
+  btn.disabled=true;btn.textContent='VERIFYING…';
+  const{error}=await _sb.auth.verifyOtp({email:_loginEmail,token,type:'email'});
+  if(error){
+    console.error('[Auth] verifyOtp error:',error);
+    const msg=error.message||'Invalid code — please try again.';
+    errEl.textContent=msg;errEl.style.display='block';
+    btn.disabled=false;btn.textContent='VERIFY →';
+  }
+  // on success, onAuthStateChange fires SIGNED_IN → _hideLoginScreen called automatically
+});
+document.getElementById('loginOtp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginVerifyBtn').click();});
+// auto-submit when 6 digits entered
+document.getElementById('loginOtp').addEventListener('input',e=>{
+  if(e.target.value.length>=6)document.getElementById('loginVerifyBtn').click();
+});
+
+// ── Back button: go back to email step ──
+document.getElementById('loginBackBtn').addEventListener('click',()=>{
+  document.getElementById('loginSent').style.display='none';
+  document.getElementById('loginOtp').value='';
+  document.getElementById('loginOtpError').style.display='none';
+  document.getElementById('loginVerifyBtn').disabled=false;
+  document.getElementById('loginVerifyBtn').textContent='VERIFY →';
+  document.getElementById('loginForm').style.display='block';
+  document.getElementById('loginBtn').disabled=false;
+  document.getElementById('loginBtn').textContent='SEND CODE →';
 });
 
 
