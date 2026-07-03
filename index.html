@@ -291,6 +291,32 @@ a{color:inherit;text-decoration:none}
 .genre-bar-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
 .genre-bar-fill{height:100%;border-radius:4px;background:rgba(200,195,185,.5)}
 .genre-bar-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);width:18px;text-align:right;flex-shrink:0}
+/* top-teachers list */
+.teacher-list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.teacher-row{display:flex;align-items:center;gap:10px}
+.teacher-rank{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.35);width:14px;flex-shrink:0;text-align:center}
+.teacher-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.teacher-info{flex:1;min-width:0}
+.teacher-name{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:#f0ece4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.teacher-bar-wrap{display:flex;align-items:center;gap:6px;margin-top:3px}
+.teacher-bar-track{flex:1;height:3px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.teacher-bar-fill{height:100%;border-radius:3px}
+.teacher-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);flex-shrink:0}
+/* monthly chart */
+.monthly-chart{display:flex;align-items:flex-end;gap:4px;margin-top:14px;height:64px;overflow-x:auto;padding-bottom:18px;scrollbar-width:none}
+.monthly-chart::-webkit-scrollbar{display:none}
+.month-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;min-width:28px}
+.month-bar{width:18px;border-radius:3px 3px 0 0;background:rgba(200,195,185,.45);min-height:2px;transition:height .3s}
+.month-bar.current{background:rgba(240,168,48,.7)}
+.month-label{font-family:'DM Mono',monospace;font-size:8px;color:rgba(200,195,185,.35);letter-spacing:.02em;white-space:nowrap}
+.month-num{font-family:'DM Mono',monospace;font-size:9px;color:rgba(200,195,185,.5)}
+/* city bars */
+.city-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.city-flag{font-size:14px;flex-shrink:0}
+.city-name{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.55);width:80px;flex-shrink:0;letter-spacing:.02em}
+.city-bar-track{flex:1;height:6px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+.city-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,rgba(200,195,185,.5),rgba(200,195,185,.3))}
+.city-bar-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.45);width:22px;text-align:right;flex-shrink:0}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
@@ -1727,6 +1753,16 @@ function renderMyClasses(){
 }
 
 // ── profile tab ──
+const CITY_MAP={
+  'Brickhouse NYC':'New York','Peridance':'New York','PJM Dance':'New York',
+  'Modega':'New York','X-Space Dance':'New York','Broadway Dance Center':'New York',
+  'Steps on Broadway':'New York','Playground LA':'Los Angeles',
+  'Movement Lifestyle':'Los Angeles','Millennium Dance Complex':'Los Angeles',
+  'DanceLife X':'Toronto','Exit Space':'Seattle',
+};
+const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattle':'🌧','Other':'🌍'};
+const TEACHER_COLORS=['#d4537e','#639922','#2a6cb5','#ba7517','#7b5ea7','#1d9e75','#9e4a20'];
+
 function renderProfile(){
   document.getElementById('pageTitle').textContent='Profile';
   document.getElementById('weekStrip').style.display='none';
@@ -1736,45 +1772,68 @@ function renderProfile(){
   const ntBtn=document.getElementById('notesToggleBtn');if(ntBtn)ntBtn.style.display='none';
   const listEl=document.getElementById('classesList');
 
-  // Compute stats from stamped classes (schedule + historical)
+  // Collect all stamped (schedule + historical)
   const _schedStamped=[...ALL_CLASSES,...CUSTOM_CLASSES].filter(c=>isMyClass(c));
   const _schedIds=new Set(_schedStamped.map(c=>classId(c)));
   const _histStamped=Object.entries(myClassesMap)
     .filter(([id,v])=>!_schedIds.has(id)&&!v._wishlistOnly&&v.date_key)
     .map(([id,v])=>({...v,_historyId:id}));
   const stamped=[..._schedStamped,..._histStamped];
-  const total=stamped.length;
-  const upcoming=stamped.filter(c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d)>=new Date(new Date().setHours(0,0,0,0));}).length;
-  const past=total-upcoming;
+  const today=new Date();today.setHours(0,0,0,0);
+  const upcoming=stamped.filter(c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d)>=today;}).length;
+  const past=stamped.length-upcoming;
 
-  // Genre breakdown
+  // ── Genre breakdown ──
   const genreCounts={};
-  stamped.forEach(c=>{const g=c.genre||c.subgenre||'other';genreCounts[g]=(genreCounts[g]||0)+1;});
+  stamped.forEach(c=>{const g=c.genre||'other';genreCounts[g]=(genreCounts[g]||0)+1;});
   const topGenres=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const maxG=topGenres[0]?topGenres[0][1]:1;
 
-  // Top studio
-  const studioCounts={};
-  stamped.forEach(c=>{if(c.studio)studioCounts[c.studio]=(studioCounts[c.studio]||0)+1;});
-  const topStudio=Object.entries(studioCounts).sort((a,b)=>b[1]-a[1])[0];
+  // ── City breakdown ──
+  const cityCounts={};
+  stamped.forEach(c=>{const city=CITY_MAP[c.studio]||'Other';cityCounts[city]=(cityCounts[city]||0)+1;});
+  const topCities=Object.entries(cityCounts).sort((a,b)=>b[1]-a[1]);
+  const maxCity=topCities[0]?topCities[0][1]:1;
 
-  // Fav instructor
+  // ── Top 5 teachers ──
   const instrCounts={};
   stamped.forEach(c=>{if(c.instructor&&c.instructor!=='Modega Staff')instrCounts[c.instructor]=(instrCounts[c.instructor]||0)+1;});
-  const topInstr=Object.entries(instrCounts).sort((a,b)=>b[1]-a[1])[0];
+  const top5Teachers=Object.entries(instrCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxT=top5Teachers[0]?top5Teachers[0][1]:1;
 
-  // Notes written
-  let noteCount=0;
-  Object.values(myClassesMap).forEach(v=>{if(v.notes)noteCount+=v.notes.length;});
+  // ── Monthly activity (last 18 months) ──
+  const monthCounts={};
+  stamped.forEach(c=>{
+    if(!c.date_key)return;
+    const key=c.date_key.slice(0,7); // "YYYY-MM"
+    monthCounts[key]=(monthCounts[key]||0)+1;
+  });
+  // Build array from earliest month to today
+  const nowY=today.getFullYear(),nowM=today.getMonth();
+  const months=[];
+  for(let i=17;i>=0;i--){
+    let y=nowY,m=nowM-i;
+    while(m<0){m+=12;y--;}
+    const key=`${y}-${String(m+1).padStart(2,'0')}`;
+    const label=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m];
+    months.push({key,label,count:monthCounts[key]||0,isCurrent:i===0});
+  }
+  const maxMonth=Math.max(...months.map(m=>m.count),1);
 
-  // Wishlist count
+  // ── Notes & misc ──
+  let noteCount=0;Object.values(myClassesMap).forEach(v=>{if(v.notes)noteCount+=v.notes.length;});
   const wishCount=ALL_CLASSES.filter(c=>isSaved(c)).length;
-
   const email=_currentUserEmail||'';
   const displayName=_currentUserName&&_currentUserName!==email?_currentUserName:'';
-  const avatarLetter=(displayName||email||'?')[0].toUpperCase();
 
-  // Genre label map
+  // ── Milestone ──
+  const milestones=[5,10,20,30,50,75,100,150,200,300];
+  const next=milestones.find(m=>m>past)||null;
+  const milestoneHTML=next
+    ?`<div class="stat-sub">${next-past} more to ${next} ✦</div>`
+    :`<div class="stat-sub">Century dancer 🏆</div>`;
+
+  // ── HTML builders ──
   const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemp',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Cond.',other:'Other'};
 
   const genreBarsHTML=topGenres.map(([g,n])=>`
@@ -1784,11 +1843,39 @@ function renderProfile(){
       <span class="genre-bar-count">${n}</span>
     </div>`).join('');
 
-  const milestones=[5,10,20,30,50,75,100,150,200];
-  const next=milestones.find(m=>m>past)||null;
-  const milestoneHTML=next
-    ? `<div class="stat-sub">${next-past} more to reach ${next} ✦</div>`
-    : `<div class="stat-sub">Century dancer 🏆</div>`;
+  const cityBarsHTML=topCities.map(([city,n])=>`
+    <div class="city-bar-row">
+      <span class="city-flag">${CITY_FLAG[city]||'🌍'}</span>
+      <span class="city-name">${city}</span>
+      <div class="city-bar-track"><div class="city-bar-fill" style="width:${Math.round(n/maxCity*100)}%"></div></div>
+      <span class="city-bar-count">${n}</span>
+    </div>`).join('');
+
+  const teacherListHTML=top5Teachers.map(([name,n],i)=>{
+    const color=TEACHER_COLORS[i%TEACHER_COLORS.length];
+    const parts=name.trim().split(/\s+/);
+    const init=parts.length===1?parts[0].slice(0,2).toUpperCase():(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+    return`<div class="teacher-row">
+      <span class="teacher-rank">${i+1}</span>
+      <div class="teacher-avatar" style="background:${color}">${init}</div>
+      <div class="teacher-info">
+        <div class="teacher-name">${name}</div>
+        <div class="teacher-bar-wrap">
+          <div class="teacher-bar-track"><div class="teacher-bar-fill" style="width:${Math.round(n/maxT*100)}%;background:${color}"></div></div>
+          <span class="teacher-count">${n}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const monthChartHTML=months.map(({label,count,isCurrent})=>{
+    const barH=count>0?Math.max(Math.round(count/maxMonth*52),4):2;
+    return`<div class="month-col">
+      <div class="month-num" style="opacity:${count>0?1:0.3}">${count||''}</div>
+      <div class="month-bar${isCurrent?' current':''}" style="height:${barH}px"></div>
+      <div class="month-label">${label}</div>
+    </div>`;
+  }).join('');
 
   listEl.innerHTML=`
 <div class="profile-pane">
@@ -1812,18 +1899,20 @@ function renderProfile(){
       <div class="stat-num">${noteCount}</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Pop-ups</div>
-      <div class="stat-num">${CUSTOM_CLASSES.length}</div>
+      <div class="stat-label">Studios</div>
+      <div class="stat-num">${Object.keys(cityCounts).reduce((a,_)=>a,0)||Object.keys(instrCounts).length>0?Object.keys(cityCounts).length:0}</div>
     </div>
-    ${topInstr?`<div class="stat-card full">
-      <div class="stat-label">Favourite Teacher</div>
-      <div class="stat-name">${topInstr[0]}</div>
-      <div class="stat-sub">${topInstr[1]} class${topInstr[1]>1?'es':''} together</div>
+    ${topCities.length?`<div class="stat-card full">
+      <div class="stat-label">By City</div>
+      <div style="margin-top:10px">${cityBarsHTML}</div>
     </div>`:''}
-    ${topStudio?`<div class="stat-card full">
-      <div class="stat-label">Favourite Studio</div>
-      <div class="stat-name">${topStudio[0]}</div>
-      <div class="stat-sub">${topStudio[1]} visit${topStudio[1]>1?'s':''}</div>
+    ${top5Teachers.length?`<div class="stat-card full">
+      <div class="stat-label">Top Teachers</div>
+      <div class="teacher-list">${teacherListHTML}</div>
+    </div>`:''}
+    ${months.some(m=>m.count>0)?`<div class="stat-card full">
+      <div class="stat-label">Monthly Activity</div>
+      <div class="monthly-chart">${monthChartHTML}</div>
     </div>`:''}
     ${topGenres.length?`<div class="stat-card full">
       <div class="stat-label">By Style</div>
