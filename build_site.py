@@ -2976,6 +2976,17 @@ function renderAll(){
   renderCalendar();renderClasses();
 }
 
+// ── one-time history import (remove after use) ──
+async function importHistory(){
+  if(!_sb||!_SB_USER){console.error('Not logged in — open the app first');return;}
+  const rows=__HISTORY_ROWS__;
+  const withUser=rows.map(r=>({...r,user_id:_SB_USER}));
+  console.log('Importing',withUser.length,'classes…');
+  const{error}=await _sb.from('my_classes').upsert(withUser,{onConflict:'user_id,class_id'});
+  if(error){console.error('Import error:',error);}
+  else{console.log('✅ Done! Reloading…');setTimeout(()=>location.reload(),800);}
+}
+
 // ── swipe to change day with slide animation (schedule tab only) ──
 (function(){
   let _tx=0,_ty=0,_busy=false;
@@ -3083,6 +3094,12 @@ def main():
     html = HTML.replace("__ALL_CLASSES__", js_data)
     html = html.replace("__UPDATED_LABEL__", update_label)
     html = html.replace("__WATERMARK_URL__", _watermark_data_url())
+    # Embed history rows for one-time import
+    _history_p = HERE / "history_rows.json"
+    if _history_p.exists():
+        html = html.replace("__HISTORY_ROWS__", _history_p.read_text())
+    else:
+        html = html.replace("__HISTORY_ROWS__", "[]")
 
     out = HERE / "index.html"
     out.write_text(html)
