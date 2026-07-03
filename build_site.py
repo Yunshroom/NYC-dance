@@ -740,10 +740,10 @@ a{color:inherit;text-decoration:none}
 .updown-header:first-child{margin-top:4px}
 .updown-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
 .updown-header.upcoming .updown-label{color:#f0a830;}
-.updown-header.past .updown-label{color:rgba(200,195,185,.4);}
-.updown-line{flex:1;height:1px;opacity:.2;}
+.updown-header.past .updown-label{color:rgba(160,155,148,.85);}
+.updown-line{flex:1;height:1px;opacity:.25;}
 .updown-header.upcoming .updown-line{background:#f0a830;}
-.updown-header.past .updown-line{background:rgba(200,195,185,.4);}
+.updown-header.past .updown-line{background:rgba(160,155,148,.6);}
 /* greyed-out past wishlist card */
 .card-past-wl{opacity:.38;filter:saturate(.3);}
 /* stamp watermark — fixed to top-right corner of page */
@@ -2162,7 +2162,11 @@ function _wrapSwipe(card,notesEl,{onNote,onDelete,onEdit}){
   // Inner draggable layer
   const inner=document.createElement('div');inner.className='swipe-inner';
   inner.appendChild(card);
-  if(notesEl)inner.appendChild(notesEl);
+  if(notesEl){
+    // hide inline notes by default; reveal only when Note swipe action is triggered
+    if(!notesEl.querySelector('.sticky-note'))notesEl.style.display='none';
+    inner.appendChild(notesEl);
+  }
   row.appendChild(actions);row.appendChild(inner);
   // Touch tracking
   let sX=0,sY=0,curX=0,revealed=false,tracking=false;
@@ -2202,6 +2206,7 @@ function _closeSwipe(row,inner){
 }
 function _focusNoteInput(notesEl){
   if(!notesEl)return;
+  notesEl.style.display=''; // reveal if hidden
   const btn=notesEl.querySelector('.note-pill-btn');
   if(btn){btn.scrollIntoView({behavior:'smooth',block:'nearest'});btn.click();}
 }
@@ -2265,7 +2270,7 @@ function renderMyClasses(){
   }
   if(past.length){
     const hdr=document.createElement('div');hdr.className='updown-header past';
-    hdr.innerHTML='<div class="updown-line"></div><span class="updown-label">Past</span><div class="updown-line"></div>';
+    hdr.innerHTML='<span class="updown-label">Past</span><div class="updown-line"></div>';
     listEl.appendChild(hdr);
     let lastDate='';
     past.forEach((c,i)=>{if(c.date_key!==lastDate){_addDateDivider(c.date_key);lastDate=c.date_key;}_appendCard(c,i);});
@@ -2773,7 +2778,7 @@ function renderSaved(){
     }
     if(wlPast.length){
       const hdr=document.createElement('div');hdr.className='updown-header past';
-      hdr.innerHTML='<div class="updown-line"></div><span class="updown-label">Past</span><div class="updown-line"></div>';
+      hdr.innerHTML='<span class="updown-label">Past</span><div class="updown-line"></div>';
       listEl.appendChild(hdr);
       let lastDate='';
       wlPast.forEach((c,i)=>{if(c.date_key!==lastDate){_addWLDateDivider(c.date_key);lastDate=c.date_key;}_appendWLCard(c,i,true);});
