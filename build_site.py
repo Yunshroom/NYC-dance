@@ -164,7 +164,8 @@ def get_update_label() -> str:
     """Human-readable timestamp of the most-recent scraper run."""
     candidates = []
     for fname in ["brickhouse_schedule.json", "modega_schedule.json",
-                  "peridance_schedule.json", "pjm_schedule.json"]:
+                  "peridance_schedule.json", "pjm_schedule.json",
+                  "xspace_schedule.json"]:
         p = HERE / fname
         if p.exists():
             try:
@@ -308,6 +309,29 @@ def load_peridance():
             start_dt=start_dt, end_dt=end_dt,
             is_canceled=c.get("is_canceled", False),
             booking_url=c.get("booking_url", "https://peridance.org"),
+            date_str=c.get("date", ""),
+        ))
+    return out
+
+def load_xspace():
+    p = HERE / "xspace_schedule.json"
+    if not p.exists():
+        return []
+    raw = json.loads(p.read_text())
+    out = []
+    for c in raw.get("classes", []):
+        start_dt = parse_dt(c.get("start_time", ""))
+        end_dt   = parse_dt(c.get("end_time", ""))
+        name = c.get("class_name", "")
+        out.append(_make_class(
+            studio="X-Space Dance", studio_key="xspace",
+            class_name=name, category="",
+            instructor=c.get("instructor", ""),
+            start_dt=start_dt, end_dt=end_dt,
+            is_canceled=c.get("is_canceled", False),
+            booking_url=c.get("booking_url",
+                "https://go.mindbodyonline.com/book/widgets/schedules/view/0744235e061/schedule"),
+            level_override=extract_level(name) or c.get("level"),
             date_str=c.get("date", ""),
         ))
     return out
@@ -781,6 +805,7 @@ a{color:inherit;text-decoration:none}
         <button class="fchip" data-studio="modega">Modega</button>
         <button class="fchip" data-studio="peridance">Peridance</button>
         <button class="fchip" data-studio="pjm">PJM Dance</button>
+        <button class="fchip" data-studio="xspace">X-Space Dance</button>
       </div>
     </div>
 
@@ -3047,8 +3072,9 @@ def main():
     md  = load_modega()
     per = load_peridance()
     pjm = load_pjm()
+    xsp = load_xspace()
     all_classes = sorted(
-        bh + md + per + pjm,
+        bh + md + per + pjm + xsp,
         key=lambda c: (c["date_key"], c["start_hour"] if c["start_hour"] >= 0 else 99)
     )
 
