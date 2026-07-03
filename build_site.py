@@ -165,7 +165,7 @@ def get_update_label() -> str:
     candidates = []
     for fname in ["brickhouse_schedule.json", "modega_schedule.json",
                   "peridance_schedule.json", "pjm_schedule.json",
-                  "xspace_schedule.json"]:
+                  "xspace_schedule.json", "bdc_schedule.json"]:
         p = HERE / fname
         if p.exists():
             try:
@@ -309,6 +309,29 @@ def load_peridance():
             start_dt=start_dt, end_dt=end_dt,
             is_canceled=c.get("is_canceled", False),
             booking_url=c.get("booking_url", "https://peridance.org"),
+            date_str=c.get("date", ""),
+        ))
+    return out
+
+def load_bdc():
+    p = HERE / "bdc_schedule.json"
+    if not p.exists():
+        return []
+    raw = json.loads(p.read_text())
+    out = []
+    for c in raw.get("classes", []):
+        start_dt = parse_dt(c.get("start_time", ""))
+        end_dt   = parse_dt(c.get("end_time", ""))
+        name = c.get("class_name", "")
+        out.append(_make_class(
+            studio="Broadway Dance Center", studio_key="bdc",
+            class_name=name, category="",
+            instructor=c.get("instructor", ""),
+            start_dt=start_dt, end_dt=end_dt,
+            is_canceled=c.get("is_canceled", False),
+            booking_url=c.get("booking_url",
+                "https://clients.mindbodyonline.com/classic/ws?studioid=28329&stype=-103"),
+            level_override=extract_level(name) or c.get("level"),
             date_str=c.get("date", ""),
         ))
     return out
@@ -675,17 +698,10 @@ a{color:inherit;text-decoration:none}
 
 /* custom card badge */
 .custom-tag{font-size:9px;font-weight:700;letter-spacing:.08em;color:rgba(255,210,80,.95);text-transform:uppercase;background:rgba(255,210,80,.14);border-radius:3px;padding:1px 5px;margin-right:5px;flex-shrink:0;vertical-align:middle}
-/* stamp watermark — pinned to top-right, doesn't move when card grows */
-.stamp-mark{position:absolute;right:10px;top:10px;pointer-events:none;transform-origin:center center;width:132px;height:132px;}
-.stamp-mark img{width:100%;height:100%;display:block;mix-blend-mode:multiply;}
-@keyframes stampPress{
-  0%  {transform:rotate(var(--sr)) scale(calc(var(--ss)*1.35));opacity:0}
-  30% {transform:rotate(var(--sr)) scale(calc(var(--ss)*0.9));opacity:calc(var(--so)*1.5)}
-  60% {transform:rotate(var(--sr)) scale(calc(var(--ss)*1.04));opacity:var(--so)}
-  100%{transform:rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
-}
-.stamp-mark.stamp-enter{animation:stampPress .42s cubic-bezier(.22,.68,0,1.2) both}
-.stamp-mark.stamp-show{transform:rotate(var(--sr)) scale(var(--ss));opacity:var(--so)}
+/* stamp watermark — fixed to top-right corner of page */
+#pageStamp{position:fixed;top:10px;right:10px;z-index:900;pointer-events:none;width:96px;height:96px;opacity:0;transform:rotate(-8deg) scale(0.85);transition:opacity .35s,transform .35s;}
+#pageStamp.stamp-visible{opacity:.38;transform:rotate(-8deg) scale(1);}
+#pageStamp img{width:100%;height:100%;display:block;mix-blend-mode:multiply;}
 /* ── Login screen ── */
 #loginScreen{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#1c100e 0%,#0e0a08 100%);padding:32px 24px;text-align:center;transition:opacity .3s}
 #loginScreen.hidden{opacity:0;pointer-events:none}
@@ -735,6 +751,7 @@ a{color:inherit;text-decoration:none}
       <div class="week-strip" id="weekStrip"></div>
     </div>
   </header>
+  <div id="pageStamp"><img src="__WATERMARK_URL__" alt=""/></div>
 
   <main class="main-scroll" id="mainScroll">
     <div id="classesList"></div>
@@ -806,6 +823,7 @@ a{color:inherit;text-decoration:none}
         <button class="fchip" data-studio="peridance">Peridance</button>
         <button class="fchip" data-studio="pjm">PJM Dance</button>
         <button class="fchip" data-studio="xspace">X-Space Dance</button>
+        <button class="fchip" data-studio="bdc">Broadway Dance Center</button>
       </div>
     </div>
 
@@ -2520,28 +2538,15 @@ function renderSaved(){
 }
 
 // ── card builder ──
-// ── stamp watermark ──
-const STAMP_IMG_URL='__WATERMARK_URL__';
-
-function _stampParams(id){
-  // Deterministic seed from classId so stamp looks the same on re-render
-  let h=0;for(const ch of id)h=(h*31+ch.charCodeAt(0))>>>0;
-  const rot=((h%29)-14).toFixed(1)+'deg';           // -14° to +14°
-  const sc=(0.82+(h>>8&0xFF)/255*0.33).toFixed(2);  // 0.82–1.15
-  const op=(0.30+(h>>16&0xFF)/255*0.26).toFixed(2); // 0.30–0.56
-  return{rot,sc,op};
+// ── page stamp watermark (top-right, shown on My Classes tab) ──
+function _showPageStamp(show){
+  const el=document.getElementById('pageStamp');
+  if(!el)return;
+  if(show)el.classList.add('stamp-visible');
+  else el.classList.remove('stamp-visible');
 }
-function _attachStamp(div,c,animate){
-  const p=_stampParams(classId(c));
-  const el=document.createElement('div');
-  el.className='stamp-mark'+(animate?' stamp-enter':' stamp-show');
-  el.style.cssText=`--sr:${p.rot};--ss:${p.sc};--so:${p.op}`;
-  const img=document.createElement('img');
-  img.src=STAMP_IMG_URL;
-  el.appendChild(img);
-  div.appendChild(el);
-  return el;
-}
+// _attachStamp kept as no-op for any legacy call sites
+function _attachStamp(div,c,animate){}
 
 function buildCard(c,i,inMyClasses){
   const past=isPastClass(c);
@@ -2850,17 +2855,21 @@ function switchTab(tab){
     });
     S.tab='schedule';
     if(_ntBtn)_ntBtn.style.display='none';
+    _showPageStamp(false);
   } else if(tab==='wishlist'){
     _animateNav('wishlist',()=>renderSaved());
     S.tab='saved';
     if(_ntBtn)_ntBtn.style.display='';
+    _showPageStamp(false);
   } else if(tab==='profile'){
     _animateNav('profile',()=>renderProfile());
     S.tab='profile';
     if(_ntBtn)_ntBtn.style.display='none';
+    _showPageStamp(false);
   } else {
     _animateNav('myclasses',()=>renderMyClasses());
     S.tab='myclasses';
+    _showPageStamp(true);
   }
   localStorage.setItem('nyd_tab',tab);
 }
@@ -3068,7 +3077,7 @@ async function importHistory(){
     document.getElementById('navSchedule').classList.remove('active');
     document.getElementById(_tabNav[_savedTab]).classList.add('active');
     _navCurrent=_savedTab;
-    if(_savedTab==='myclasses'){S.tab='myclasses';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderMyClasses();}
+    if(_savedTab==='myclasses'){S.tab='myclasses';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderMyClasses();_showPageStamp(true);}
     else if(_savedTab==='wishlist'){S.tab='saved';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderSaved();}
     else if(_savedTab==='profile'){S.tab='profile';document.getElementById('weekStrip').style.display='none';document.getElementById('updatedText').style.visibility='hidden';renderProfile();}
   } else {
@@ -3096,8 +3105,9 @@ def main():
     per = load_peridance()
     pjm = load_pjm()
     xsp = load_xspace()
+    bdc = load_bdc()
     all_classes = sorted(
-        bh + md + per + pjm + xsp,
+        bh + md + per + pjm + xsp + bdc,
         key=lambda c: (c["date_key"], c["start_hour"] if c["start_hour"] >= 0 else 99)
     )
 
