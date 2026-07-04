@@ -931,6 +931,17 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
+<!-- ── Edit Pop-up Drawer ── -->
+<div class="drawer-overlay" id="editDrawerOverlay"></div>
+<div class="drawer" id="editDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <span class="drawer-title">Edit Pop-up</span>
+    <button class="drawer-close" id="editDrawerClose">✕</button>
+  </div>
+  <div class="drawer-scroll" id="editDrawerScroll"></div>
+</div>
+
 <script>
 const ALL_CLASSES = __ALL_CLASSES__;
 
@@ -2258,7 +2269,7 @@ function renderMyClasses(){
         swipeRow.style.transition='opacity .25s';swipeRow.style.opacity='0';
         setTimeout(()=>{swipeRow.remove();},260);
       },
-      onEdit:isCustom?()=>_focusNoteInput(notesEl):null,
+      onEdit:isCustom?()=>openEditPopupDrawer(c):null,
     });
     listEl.appendChild(swipeRow);
   }
@@ -2723,7 +2734,7 @@ function renderSaved(){
           swipeRow.style.transition='opacity .25s';swipeRow.style.opacity='0';
           setTimeout(()=>{swipeRow.remove();},260);
         },
-        onEdit:()=>_focusNoteInput(notesEl),
+        onEdit:()=>openEditPopupDrawer(c),
       });
       listEl.appendChild(swipeRow);
     });
@@ -2936,6 +2947,113 @@ function openDrawer(){
 function closeDrawer(){
   document.getElementById('drawerOverlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// ── edit popup drawer ──
+function openEditPopupDrawer(c){
+  const scroll=document.getElementById('editDrawerScroll');
+  const instructors=[...new Set(ALL_CLASSES.filter(x=>x.instructor&&x.instructor!=='Modega Staff').map(x=>x.instructor))].sort();
+  const studios=[...new Set(ALL_CLASSES.map(x=>x.studio))].sort();
+  const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemporary',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Conditioning',other:'Other'};
+  const LEVEL_LABELS=['All Levels','Beginner','Adv Beg','Intermediate','Int/Adv','Advanced'];
+  // Convert stored time back to HH:MM for time input
+  let timeVal='';
+  if(c.start_hour>=0){
+    const hh=Math.floor(c.start_hour);
+    const mm=Math.round((c.start_hour%1)*60);
+    timeVal=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  }
+  scroll.innerHTML=`
+<div class="popup-manual-form" style="padding-bottom:8px">
+  <datalist id="epd-instrs">${instructors.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>
+  <datalist id="epd-studios">${studios.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
+  <div class="pmf-field">
+    <label class="pmf-label">Class name</label>
+    <input class="pmf-input" id="epd_name" placeholder="e.g. Heels Fundamentals" autocomplete="off" value="${esc(c.class_name||'')}"/>
+  </div>
+  <div class="pmf-row">
+    <div class="pmf-field">
+      <label class="pmf-label">Instructor</label>
+      <input class="pmf-input" id="epd_instructor" list="epd-instrs" placeholder="Name" autocomplete="off" value="${esc(c.instructor||'')}"/>
+    </div>
+    <div class="pmf-field">
+      <label class="pmf-label">Studio / Location</label>
+      <input class="pmf-input" id="epd_studio" list="epd-studios" placeholder="Studio" autocomplete="off" value="${esc(c.studio||'')}"/>
+    </div>
+  </div>
+  <div class="pmf-row">
+    <div class="pmf-field">
+      <label class="pmf-label">Date</label>
+      <input class="pmf-input" id="epd_date" type="date" value="${esc(c.date_key||'')}"/>
+    </div>
+    <div class="pmf-field">
+      <label class="pmf-label">Time</label>
+      <input class="pmf-input" id="epd_time" type="time" value="${esc(timeVal)}"/>
+    </div>
+  </div>
+  <div class="pmf-field">
+    <label class="pmf-label">Style</label>
+    <div class="pmf-chips" id="epd_genre_chips">
+      ${Object.entries(GENRE_LABELS).map(([k,v])=>`<button class="pmf-chip${c.genre===k?' active':''}" data-val="${k}">${v}</button>`).join('')}
+    </div>
+  </div>
+  <div class="pmf-field">
+    <label class="pmf-label">Level</label>
+    <div class="pmf-chips" id="epd_level_chips">
+      ${LEVEL_LABELS.map(l=>`<button class="pmf-chip${(c.level||'All Levels')===l?' active':''}" data-val="${l}">${l}</button>`).join('')}
+    </div>
+  </div>
+  <button class="pmf-save" id="epdSaveBtn" style="margin-top:8px"><i class="ph ph-check-circle"></i> Save changes</button>
+</div>`;
+
+  // Chip single-select toggles
+  ['epd_genre_chips','epd_level_chips'].forEach(rowId=>{
+    scroll.querySelectorAll(`#${rowId} .pmf-chip`).forEach(ch=>{
+      ch.addEventListener('click',()=>{
+        scroll.querySelectorAll(`#${rowId} .pmf-chip`).forEach(x=>x.classList.remove('active'));
+        ch.classList.add('active');
+      });
+    });
+  });
+
+  scroll.querySelector('#epdSaveBtn').addEventListener('click',()=>{
+    const name=(scroll.querySelector('#epd_name').value||'').trim()||'Custom Class';
+    const instructor=(scroll.querySelector('#epd_instructor').value||'').trim();
+    const studio=(scroll.querySelector('#epd_studio').value||'').trim()||'Custom';
+    const dateVal=scroll.querySelector('#epd_date').value||'';
+    const tVal=scroll.querySelector('#epd_time').value||'';
+    const genreEl=scroll.querySelector('#epd_genre_chips .pmf-chip.active');
+    const genre=genreEl?genreEl.dataset.val:'other';
+    const levelEl=scroll.querySelector('#epd_level_chips .pmf-chip.active');
+    const level=levelEl?levelEl.dataset.val:'All Levels';
+    let start_display='',start_hour=-1;
+    if(tVal){
+      const[hh,mm]=tVal.split(':').map(Number);
+      const period=hh>=12?'PM':'AM';const dh=hh>12?hh-12:(hh===0?12:hh);
+      start_display=`${dh}:${String(mm).padStart(2,'0')} ${period}`;
+      start_hour=hh+mm/60;
+    }
+    // Update in-place by custom_id
+    const idx=CUSTOM_CLASSES.findIndex(x=>x.custom_id===c.custom_id);
+    if(idx!==-1){
+      Object.assign(CUSTOM_CLASSES[idx],{class_name:name,instructor,studio,date_key:dateVal,
+        start_display,end_display:'',level,genre,subgenre:genre,start_hour});
+    }
+    localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));
+    sbSyncCustomClasses();
+    const btn=scroll.querySelector('#epdSaveBtn');
+    btn.innerHTML='<i class="ph ph-check-circle"></i> Saved!';btn.style.opacity='.7';
+    setTimeout(()=>{closeEditPopupDrawer();if(S.tab==='my_classes')renderMyClasses();else renderSaved();},900);
+  });
+
+  document.getElementById('editDrawerOverlay').classList.add('open');
+  document.getElementById('editDrawer').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeEditPopupDrawer(){
+  document.getElementById('editDrawerOverlay').classList.remove('open');
+  document.getElementById('editDrawer').classList.remove('open');
   document.body.style.overflow='';
 }
 
@@ -3164,6 +3282,8 @@ document.getElementById('filterBtn').addEventListener('click',openDrawer);
 document.getElementById('drawerClose').addEventListener('click',closeDrawer);
 document.getElementById('notesToggleBtn').addEventListener('click',_toggleNotesHidden);
 document.getElementById('drawerOverlay').addEventListener('click',closeDrawer);
+document.getElementById('editDrawerClose').addEventListener('click',closeEditPopupDrawer);
+document.getElementById('editDrawerOverlay').addEventListener('click',closeEditPopupDrawer);
 document.getElementById('applyBtn').addEventListener('click',()=>{saveFilters();closeDrawer();renderAll()});
 document.getElementById('teacherSearch').addEventListener('input',buildTeacherChips);
 ['navSchedule','navWishlist','navMyclasses','navProfile'].forEach(id=>{
