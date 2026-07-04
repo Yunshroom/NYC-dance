@@ -740,10 +740,9 @@ a{color:inherit;text-decoration:none}
 .updown-header:first-child{margin-top:4px}
 .updown-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
 .updown-header.upcoming .updown-label{color:#f0a830;}
-.updown-header.past .updown-label{color:rgba(160,155,148,.85);}
+.updown-header.past .updown-label{color:#d4637a;}
 .updown-line{flex:1;height:1px;opacity:.25;}
-.updown-header.upcoming .updown-line{background:#f0a830;}
-.updown-header.past .updown-line{background:rgba(160,155,148,.6);}
+.updown-header.past .updown-line{background:#d4637a;}
 /* greyed-out past wishlist card */
 .card-past-wl{opacity:.38;filter:saturate(.3);}
 /* stamp watermark — fixed to top-right corner of page */
@@ -1158,16 +1157,16 @@ function renderManualForm(container){
   <datalist id="pmf-studios">${studios.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
   <div class="pmf-field">
     <label class="pmf-label">Class name</label>
-    <input class="pmf-input" id="pmf_name" list="pmf-instrs" placeholder="e.g. Heels Fundamentals" autocomplete="off"/>
+    <input class="pmf-input" id="pmf_name" list="pmf-instrs" placeholder="e.g. Heels Fundamentals" autocomplete="on"/>
   </div>
   <div class="pmf-row">
     <div class="pmf-field">
       <label class="pmf-label">Instructor</label>
-      <input class="pmf-input" id="pmf_instructor" list="pmf-instrs" placeholder="Name" autocomplete="off"/>
+      <input class="pmf-input" id="pmf_instructor" list="pmf-instrs" placeholder="Name" autocomplete="on"/>
     </div>
     <div class="pmf-field">
       <label class="pmf-label">Studio / Location</label>
-      <input class="pmf-input" id="pmf_studio" list="pmf-studios" placeholder="Studio" autocomplete="off"/>
+      <input class="pmf-input" id="pmf_studio" list="pmf-studios" placeholder="Studio" autocomplete="on"/>
     </div>
   </div>
   <div class="pmf-row">
@@ -2275,7 +2274,7 @@ function renderMyClasses(){
   }
   if(upcoming.length){
     const hdr=document.createElement('div');hdr.className='updown-header upcoming';
-    hdr.innerHTML='<span class="updown-label">Upcoming</span><div class="updown-line"></div>';
+    hdr.innerHTML='<span class="updown-label">Upcoming</span>';
     listEl.appendChild(hdr);
     let lastDate='';
     upcoming.forEach((c,i)=>{if(c.date_key!==lastDate){_addDateDivider(c.date_key);lastDate=c.date_key;}_appendCard(c,i);});
@@ -2783,7 +2782,7 @@ function renderSaved(){
     }
     if(wlUpcoming.length){
       const hdr=document.createElement('div');hdr.className='updown-header upcoming';
-      hdr.innerHTML='<span class="updown-label">Upcoming</span><div class="updown-line"></div>';
+      hdr.innerHTML='<span class="updown-label">Upcoming</span>';
       listEl.appendChild(hdr);
       let lastDate='';
       wlUpcoming.forEach((c,i)=>{if(c.date_key!==lastDate){_addWLDateDivider(c.date_key);lastDate=c.date_key;}_appendWLCard(c,i,false);});
@@ -2972,16 +2971,16 @@ function openEditPopupDrawer(c){
   <datalist id="epd-studios">${studios.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
   <div class="pmf-field">
     <label class="pmf-label">Class name</label>
-    <input class="pmf-input" id="epd_name" list="epd-classes" placeholder="e.g. Heels Fundamentals" autocomplete="off" value="${esc(c.class_name||'')}"/>
+    <input class="pmf-input" id="epd_name" list="epd-classes" placeholder="e.g. Heels Fundamentals" autocomplete="on" value="${esc(c.class_name||'')}"/>
   </div>
   <div class="pmf-row">
     <div class="pmf-field">
       <label class="pmf-label">Instructor</label>
-      <input class="pmf-input" id="epd_instructor" list="epd-instrs" placeholder="Name" autocomplete="off" value="${esc(c.instructor||'')}"/>
+      <input class="pmf-input" id="epd_instructor" list="epd-instrs" placeholder="Name" autocomplete="on" value="${esc(c.instructor||'')}"/>
     </div>
     <div class="pmf-field">
       <label class="pmf-label">Studio / Location</label>
-      <input class="pmf-input" id="epd_studio" list="epd-studios" placeholder="Studio" autocomplete="off" value="${esc(c.studio||'')}"/>
+      <input class="pmf-input" id="epd_studio" list="epd-studios" placeholder="Studio" autocomplete="on" value="${esc(c.studio||'')}"/>
     </div>
   </div>
   <div class="pmf-row">
