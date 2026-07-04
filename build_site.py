@@ -709,8 +709,8 @@ a{color:inherit;text-decoration:none}
 /* monthly chart */
 .monthly-chart{display:flex;align-items:flex-end;gap:5px;margin-top:12px;overflow-x:auto;padding-bottom:22px;scrollbar-width:none}
 .monthly-chart::-webkit-scrollbar{display:none}
-.month-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;min-width:28px}
-.month-bar-space{height:88px;display:flex;align-items:flex-end}
+.month-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;width:calc(20% - 4px);min-width:44px}
+.month-bar-space{height:120px;display:flex;align-items:flex-end}
 .chart-stack{display:flex;flex-direction:column-reverse;width:18px;border-radius:3px 3px 0 0;overflow:hidden}
 .chart-seg{width:100%;flex-shrink:0}
 .seg-street{background:#f0a830}
@@ -2382,10 +2382,11 @@ function renderProfile(){
   }
 
   function buildBarHTML(data){
-    const maxV=Math.max(...data.map(d=>d.count),1);
-    return data.map(({label,count,street,contemp,other,isCurrent})=>{
+    const rev=[...data].reverse(); // newest first → scroll right for older
+    const maxV=Math.max(...rev.map(d=>d.count),1);
+    return rev.map(({label,count,street,contemp,other,isCurrent})=>{
       if(!count)return`<div class="month-col"><div class="month-num"> </div><div class="month-bar-space"><div class="chart-empty-bar"></div></div><div class="month-label${isCurrent?' mcur':''}">${label}</div></div>`;
-      const tH=Math.max(Math.round(count/maxV*80),4);
+      const tH=Math.max(Math.round(count/maxV*108),4);
       const sH=Math.round(street/count*tH);
       const cH=Math.round(contemp/count*tH);
       const oH=tH-sH-cH;
