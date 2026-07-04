@@ -2641,7 +2641,7 @@ function openEditPopupDrawer(c){
     sbSyncCustomClasses();
     const btn=scroll.querySelector('#epdSaveBtn');
     btn.innerHTML='<i class="ph ph-check-circle"></i> Saved!';btn.style.opacity='.7';
-    setTimeout(()=>{closeEditPopupDrawer();if(S.tab==='my_classes')renderMyClasses();else renderSaved();},900);
+    setTimeout(()=>{closeEditPopupDrawer();if(S.tab==='myclasses')renderMyClasses();else renderSaved();},900);
   });
 
   document.getElementById('editDrawerOverlay').classList.add('open');
