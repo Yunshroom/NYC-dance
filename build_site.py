@@ -727,12 +727,12 @@ a{color:inherit;text-decoration:none}
 /* ── swipe-left actions ── */
 .swipe-row{position:relative;overflow:hidden;margin-bottom:10px;border-radius:14px;}
 .swipe-row>.swipe-inner>.card{margin-bottom:0;border-radius:14px;}
-.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;}
-.swipe-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:76px;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;border:none;cursor:pointer;flex-shrink:0;}
-.swipe-action-btn i{font-size:22px;}
+.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 0;visibility:hidden;}
+.swipe-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:72px;height:100%;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;border:none;cursor:pointer;flex-shrink:0;border-radius:12px;}
+.swipe-action-btn i{font-size:24px;}
 .sa-note{background:#4f46e5;}
-.sa-delete{background:#b91c1c;}
-.sa-edit{background:#7c3aed;}
+.sa-delete{background:#7f1d1d;}
+.sa-edit{background:#3b0764;}
 .swipe-inner{position:relative;z-index:1;transform:translateX(0);transition:transform .2s ease;touch-action:pan-y;}
 .swipe-inner.is-swiping{transition:none;}
 /* upcoming / past section headers */
@@ -2143,7 +2143,7 @@ function _wrapSwipe(card,notesEl,{onNote,onDelete,onEdit}){
   const row=document.createElement('div');row.className='swipe-row';
   const hasEdit=!!onEdit;
   const numBtns=hasEdit?3:2;
-  const actionW=numBtns*76;
+  const actionW=numBtns*72+(numBtns-1)*8+8; // btn*72 + gaps + right padding
   // Build action buttons (left-to-right behind card)
   const actions=document.createElement('div');actions.className='swipe-actions';
   if(hasEdit){
@@ -2171,6 +2171,7 @@ function _wrapSwipe(card,notesEl,{onNote,onDelete,onEdit}){
   // Touch tracking
   let sX=0,sY=0,curX=0,revealed=false,tracking=false;
   inner.addEventListener('touchstart',e=>{
+    actions.style.visibility='visible'; // reveal actions on first touch, never flash on load
     sX=e.touches[0].clientX;sY=e.touches[0].clientY;
     tracking=true;inner.classList.add('is-swiping');
   },{passive:true});
