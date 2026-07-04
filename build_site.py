@@ -2273,9 +2273,6 @@ function renderMyClasses(){
     listEl.appendChild(swipeRow);
   }
   if(upcoming.length){
-    const hdr=document.createElement('div');hdr.className='updown-header upcoming';
-    hdr.innerHTML='<span class="updown-label">Upcoming</span>';
-    listEl.appendChild(hdr);
     let lastDate='';
     upcoming.forEach((c,i)=>{if(c.date_key!==lastDate){_addDateDivider(c.date_key);lastDate=c.date_key;}_appendCard(c,i);});
   }
@@ -2300,7 +2297,8 @@ const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattl
 const TEACHER_COLORS=['#d4537e','#639922','#2a6cb5','#ba7517','#7b5ea7','#1d9e75','#9e4a20'];
 
 function renderProfile(){
-  document.getElementById('pageTitle').textContent='Profile';
+  const _firstName=(_currentUserName&&_currentUserName!==_currentUserEmail?_currentUserName:_currentUserEmail||'Profile').split(/[\s@]/)[0];
+  document.getElementById('pageTitle').textContent=_firstName;
   document.getElementById('weekStrip').style.display='none';
   document.getElementById('updatedText').style.visibility='hidden';
   document.getElementById('filterBtn').style.display='none';
@@ -2420,35 +2418,18 @@ function renderProfile(){
     <div class="profile-hero-num">${past}</div>
     ${milestoneHTML}
   </div>
-  <div class="profile-email-row">${displayName?`<strong style="color:rgba(200,195,185,.65);font-weight:600">${displayName}</strong> · `:''}${email}</div>
   <div class="profile-grid">
-    <div class="stat-card">
-      <div class="stat-label">Upcoming</div>
-      <div class="stat-num">${upcoming}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Wishlisted</div>
-      <div class="stat-num">${wishCount}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Notes</div>
-      <div class="stat-num">${noteCount}</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Studios</div>
-      <div class="stat-num">${Object.keys(cityCounts).reduce((a,_)=>a,0)||Object.keys(instrCounts).length>0?Object.keys(cityCounts).length:0}</div>
-    </div>
-    ${topCities.length?`<div class="stat-card full">
-      <div class="stat-label">By City</div>
-      <div style="margin-top:10px">${cityBarsHTML}</div>
+    ${months.some(m=>m.count>0)?`<div class="stat-card full">
+      <div class="stat-label">Monthly Activity</div>
+      <div class="monthly-chart">${monthChartHTML}</div>
     </div>`:''}
     ${top5Teachers.length?`<div class="stat-card full">
       <div class="stat-label">Top Teachers</div>
       <div class="teacher-list">${teacherListHTML}</div>
     </div>`:''}
-    ${months.some(m=>m.count>0)?`<div class="stat-card full">
-      <div class="stat-label">Monthly Activity</div>
-      <div class="monthly-chart">${monthChartHTML}</div>
+    ${topCities.length?`<div class="stat-card full">
+      <div class="stat-label">By City</div>
+      <div style="margin-top:10px">${cityBarsHTML}</div>
     </div>`:''}
     ${topGenres.length?`<div class="stat-card full">
       <div class="stat-label">By Style</div>
@@ -2781,9 +2762,6 @@ function renderSaved(){
       listEl.appendChild(swipeRow);
     }
     if(wlUpcoming.length){
-      const hdr=document.createElement('div');hdr.className='updown-header upcoming';
-      hdr.innerHTML='<span class="updown-label">Upcoming</span>';
-      listEl.appendChild(hdr);
       let lastDate='';
       wlUpcoming.forEach((c,i)=>{if(c.date_key!==lastDate){_addWLDateDivider(c.date_key);lastDate=c.date_key;}_appendWLCard(c,i,false);});
     }
