@@ -727,8 +727,8 @@ a{color:inherit;text-decoration:none}
 /* ── swipe-left actions ── */
 .swipe-row{position:relative;overflow:hidden;margin-bottom:10px;border-radius:14px;}
 .swipe-row>.swipe-inner>.card{margin-bottom:0;border-radius:14px;}
-.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:8px;padding:8px 8px 8px 0;visibility:hidden;}
-.swipe-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:72px;height:100%;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;border:none;cursor:pointer;flex-shrink:0;border-radius:12px;}
+.swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:stretch;gap:5px;padding:0 6px 0 14px;visibility:hidden;}
+.swipe-action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:70px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;border:none;cursor:pointer;flex-shrink:0;border-radius:12px;}
 .swipe-action-btn i{font-size:24px;}
 .sa-note{background:#4f46e5;}
 .sa-delete{background:#7f1d1d;}
@@ -2143,7 +2143,7 @@ function _wrapSwipe(card,notesEl,{onNote,onDelete,onEdit}){
   const row=document.createElement('div');row.className='swipe-row';
   const hasEdit=!!onEdit;
   const numBtns=hasEdit?3:2;
-  const actionW=numBtns*72+(numBtns-1)*8+8; // btn*72 + gaps + right padding
+  const actionW=numBtns*70+(numBtns-1)*5+20; // btn*70 + gaps + left(14)+right(6) padding
   // Build action buttons (left-to-right behind card)
   const actions=document.createElement('div');actions.className='swipe-actions';
   if(hasEdit){
