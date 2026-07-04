@@ -2560,13 +2560,15 @@ function openEditPopupDrawer(c){
     const mm=Math.round((c.start_hour%1)*60);
     timeVal=`${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
   }
+  const classNames=[...new Set([...ALL_CLASSES,...CUSTOM_CLASSES].map(x=>x.class_name).filter(Boolean))].sort();
   scroll.innerHTML=`
-<div class="popup-manual-form" style="padding-bottom:8px">
+<div style="display:flex;flex-direction:column;gap:14px;padding-bottom:24px">
+  <datalist id="epd-classes">${classNames.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
   <datalist id="epd-instrs">${instructors.map(i=>`<option value="${esc(i)}">`).join('')}</datalist>
   <datalist id="epd-studios">${studios.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>
   <div class="pmf-field">
     <label class="pmf-label">Class name</label>
-    <input class="pmf-input" id="epd_name" placeholder="e.g. Heels Fundamentals" autocomplete="off" value="${esc(c.class_name||'')}"/>
+    <input class="pmf-input" id="epd_name" list="epd-classes" placeholder="e.g. Heels Fundamentals" autocomplete="off" value="${esc(c.class_name||'')}"/>
   </div>
   <div class="pmf-row">
     <div class="pmf-field">
@@ -2600,7 +2602,7 @@ function openEditPopupDrawer(c){
       ${LEVEL_LABELS.map(l=>`<button class="pmf-chip${(c.level||'All Levels')===l?' active':''}" data-val="${l}">${l}</button>`).join('')}
     </div>
   </div>
-  <button class="pmf-save" id="epdSaveBtn" style="margin-top:8px"><i class="ph ph-check-circle"></i> Save changes</button>
+  <button class="pmf-save" id="epdSaveBtn"><i class="ph ph-check-circle"></i> Save changes</button>
 </div>`;
 
   // Chip single-select toggles
