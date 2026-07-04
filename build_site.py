@@ -2355,6 +2355,12 @@ function renderProfile(){
   const top5Teachers=Object.entries(instrCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const maxT=top5Teachers[0]?top5Teachers[0][1]:1;
 
+  // ── Studio breakdown ──
+  const studioCounts={};
+  stamped.forEach(c=>{const s=c.studio||'Other';studioCounts[s]=(studioCounts[s]||0)+1;});
+  const topStudios=Object.entries(studioCounts).sort((a,b)=>b[1]-a[1]);
+  const maxStudio=topStudios[0]?topStudios[0][1]:1;
+
   // ── Monthly activity (last 18 months) with genre split ──
   const MABB=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const nowY=today.getFullYear(),nowM=today.getMonth();
@@ -2402,6 +2408,13 @@ function renderProfile(){
   // ── HTML builders ──
   const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemp',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Cond.',other:'Other'};
   const GENRE_COLORS={street:'#f0a830',choreo:'#f0a830',contemporary:'#5b9bd5',ballet:'#c87db4',heels:'#e8607a',afro:'#52b87a',latin:'#e07850',conditioning:'#7890a8',other:'rgba(200,195,185,.35)'};
+
+  const studioBarsHTML=topStudios.map(([studio,n])=>`
+    <div class="city-bar-row">
+      <span class="city-name" style="width:140px">${studio}</span>
+      <div class="city-bar-track"><div class="city-bar-fill" style="width:${Math.round(n/maxStudio*100)}%"></div></div>
+      <span class="city-bar-count">${n}</span>
+    </div>`).join('');
 
   const cityBarsHTML=topCities.map(([city,n])=>`
     <div class="city-bar-row">
@@ -2458,6 +2471,10 @@ function renderProfile(){
     ${top5Teachers.length?`<div class="stat-card full">
       <div class="stat-label">Top Teachers</div>
       <div class="teacher-list">${teacherListHTML}</div>
+    </div>`:''}
+    ${topStudios.length?`<div class="stat-card full">
+      <div class="stat-label">By Studio</div>
+      <div style="margin-top:10px">${studioBarsHTML}</div>
     </div>`:''}
     ${topCities.length?`<div class="stat-card full">
       <div class="stat-label">By City</div>
