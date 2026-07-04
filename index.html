@@ -273,13 +273,13 @@ a{color:inherit;text-decoration:none}
 .popup-add-opt:active{background:#e4e0da}
 /* ── profile tab ── */
 .profile-pane{padding:4px 0 80px}
-.profile-hero{border-radius:14px;overflow:hidden;margin-bottom:10px;padding:20px 18px 22px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);position:relative}
+.profile-hero{border-radius:14px;overflow:hidden;margin-bottom:10px;padding:20px 18px 22px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);position:relative}
 .profile-hero-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
 .profile-hero-num{font-family:'Permanent Marker',cursive;font-size:64px;color:#f5f1ea;line-height:1;margin-bottom:2px}
 .profile-hero-sub{font-family:'DM Mono',monospace;font-size:11px;color:rgba(200,195,185,.5);letter-spacing:.04em}
 .profile-email-row{font-family:'DM Mono',monospace;font-size:11px;color:rgba(200,195,185,.38);letter-spacing:.04em;margin-bottom:14px}
 .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.stat-card{border-radius:14px;overflow:hidden;padding:16px 14px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);background-image:repeating-linear-gradient(60deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 8px),linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);display:flex;flex-direction:column;gap:3px}
+.stat-card{border-radius:14px;overflow:hidden;padding:16px 14px;background:linear-gradient(155deg,#1e1a16 0%,#0e0a08 72%);display:flex;flex-direction:column;gap:3px}
 .stat-card.full{grid-column:1/-1}
 .stat-num{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;color:#f5f1ea;line-height:1;letter-spacing:-1px}
 .stat-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
@@ -303,13 +303,33 @@ a{color:inherit;text-decoration:none}
 .teacher-bar-fill{height:100%;border-radius:3px}
 .teacher-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.4);flex-shrink:0}
 /* monthly chart */
-.monthly-chart{display:flex;align-items:flex-end;gap:4px;margin-top:14px;height:64px;overflow-x:auto;padding-bottom:18px;scrollbar-width:none}
+.monthly-chart{display:flex;align-items:flex-end;gap:5px;margin-top:12px;overflow-x:auto;padding-bottom:22px;scrollbar-width:none}
 .monthly-chart::-webkit-scrollbar{display:none}
 .month-col{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;min-width:28px}
-.month-bar{width:18px;border-radius:3px 3px 0 0;background:rgba(200,195,185,.45);min-height:2px;transition:height .3s}
-.month-bar.current{background:rgba(240,168,48,.7)}
+.month-bar-space{height:88px;display:flex;align-items:flex-end}
+.chart-stack{display:flex;flex-direction:column-reverse;width:18px;border-radius:3px 3px 0 0;overflow:hidden}
+.chart-seg{width:100%;flex-shrink:0}
+.seg-street{background:#f0a830}
+.seg-contemp{background:#5b9bd5}
+.seg-other{background:rgba(200,195,185,.32)}
+.chart-empty-bar{width:18px;height:2px;background:rgba(200,195,185,.1);border-radius:3px}
 .month-label{font-family:'DM Mono',monospace;font-size:8px;color:rgba(200,195,185,.35);letter-spacing:.02em;white-space:nowrap}
+.month-label.mcur{color:#f0a830}
 .month-num{font-family:'DM Mono',monospace;font-size:9px;color:rgba(200,195,185,.5)}
+.chart-toggle{display:flex;gap:2px;background:rgba(255,255,255,.07);border-radius:20px;padding:3px}
+.ctb{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.45);background:none;border:none;cursor:pointer;padding:4px 11px;border-radius:16px;letter-spacing:.04em;-webkit-tap-highlight-color:transparent}
+.ctb.active{background:rgba(255,255,255,.13);color:#f5f1ea}
+.chart-legend-row{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.cl-dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.cl-lbl{font-family:'DM Mono',monospace;font-size:9px;color:rgba(200,195,185,.38);letter-spacing:.03em;margin-right:8px}
+.donut-wrap{display:flex;align-items:center;gap:18px;margin-top:12px}
+.donut-svg{width:110px;height:110px;flex-shrink:0;overflow:visible}
+.donut-center-text{font-family:'DM Mono',monospace;font-size:16px;font-weight:600;fill:#f5f1ea;text-anchor:middle;dominant-baseline:central}
+.donut-legend{display:flex;flex-direction:column;gap:7px;flex:1}
+.donut-legend-item{display:flex;align-items:center;gap:7px}
+.donut-legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.donut-legend-label{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.6);flex:1;text-transform:capitalize;letter-spacing:.02em}
+.donut-legend-count{font-family:'DM Mono',monospace;font-size:10px;color:rgba(200,195,185,.38)}
 /* city bars */
 .city-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .city-flag{font-size:14px;flex-shrink:0}
@@ -1931,47 +1951,52 @@ function renderProfile(){
   const top5Teachers=Object.entries(instrCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const maxT=top5Teachers[0]?top5Teachers[0][1]:1;
 
-  // ── Monthly activity (last 18 months) ──
-  const monthCounts={};
-  stamped.forEach(c=>{
-    if(!c.date_key)return;
-    const key=c.date_key.slice(0,7); // "YYYY-MM"
-    monthCounts[key]=(monthCounts[key]||0)+1;
-  });
-  // Build array from earliest month to today
+  // ── Monthly activity (last 18 months) with genre split ──
+  const MABB=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const nowY=today.getFullYear(),nowM=today.getMonth();
   const months=[];
   for(let i=17;i>=0;i--){
-    let y=nowY,m=nowM-i;
-    while(m<0){m+=12;y--;}
+    let y=nowY,m=nowM-i;while(m<0){m+=12;y--;}
     const key=`${y}-${String(m+1).padStart(2,'0')}`;
-    const label=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m];
-    months.push({key,label,count:monthCounts[key]||0,isCurrent:i===0});
+    const pc=stamped.filter(c=>c.date_key&&c.date_key.slice(0,7)===key);
+    const street=pc.filter(c=>['street','choreo'].includes(c.genre||'')).length;
+    const contemp=pc.filter(c=>(c.genre||'')==='contemporary').length;
+    months.push({label:MABB[m],count:pc.length,street,contemp,other:pc.length-street-contemp,isCurrent:i===0});
   }
-  const maxMonth=Math.max(...months.map(m=>m.count),1);
 
-  // ── Notes & misc ──
-  let noteCount=0;Object.values(myClassesMap).forEach(v=>{if(v.notes)noteCount+=v.notes.length;});
-  const wishCount=ALL_CLASSES.filter(c=>isSaved(c)).length;
-  const email=_currentUserEmail||'';
-  const displayName=_currentUserName&&_currentUserName!==email?_currentUserName:'';
+  // ── Weekly activity (last 16 weeks) ──
+  const weeks=[];
+  for(let i=15;i>=0;i--){
+    const wS=new Date(today);const dow=wS.getDay();
+    wS.setDate(today.getDate()-(dow===0?6:dow-1)-i*7);wS.setHours(0,0,0,0);
+    const wE=new Date(wS);wE.setDate(wS.getDate()+6);wE.setHours(23,59,59,999);
+    const label=`${MABB[wS.getMonth()]} ${wS.getDate()}`;
+    const pc=stamped.filter(c=>{if(!c.date_key)return false;const[y,m,d]=c.date_key.split('-').map(Number);const cd=new Date(y,m-1,d);return cd>=wS&&cd<=wE;});
+    const street=pc.filter(c=>['street','choreo'].includes(c.genre||'')).length;
+    const contemp=pc.filter(c=>(c.genre||'')==='contemporary').length;
+    weeks.push({label,count:pc.length,street,contemp,other:pc.length-street-contemp,isCurrent:i===0});
+  }
+
+  function buildBarHTML(data){
+    const maxV=Math.max(...data.map(d=>d.count),1);
+    return data.map(({label,count,street,contemp,other,isCurrent})=>{
+      if(!count)return`<div class="month-col"><div class="month-num"> </div><div class="month-bar-space"><div class="chart-empty-bar"></div></div><div class="month-label${isCurrent?' mcur':''}">${label}</div></div>`;
+      const tH=Math.max(Math.round(count/maxV*80),4);
+      const sH=Math.round(street/count*tH);
+      const cH=Math.round(contemp/count*tH);
+      const oH=tH-sH-cH;
+      return`<div class="month-col"><div class="month-num">${count}</div><div class="month-bar-space"><div class="chart-stack" style="height:${tH}px">${oH>0?`<div class="chart-seg seg-other" style="height:${oH}px"></div>`:''}${cH>0?`<div class="chart-seg seg-contemp" style="height:${cH}px"></div>`:''}${sH>0?`<div class="chart-seg seg-street" style="height:${sH}px"></div>`:''}</div></div><div class="month-label${isCurrent?' mcur':''}">${label}</div></div>`;
+    }).join('');
+  }
 
   // ── Milestone ──
   const milestones=[5,10,20,30,50,75,100,150,200,300];
   const next=milestones.find(m=>m>past)||null;
-  const milestoneHTML=next
-    ?`<div class="stat-sub">${next-past} more to ${next} ✦</div>`
-    :`<div class="stat-sub">Century dancer 🏆</div>`;
+  const milestoneHTML=next?`<div class="stat-sub">${next-past} more to ${next} ✦</div>`:`<div class="stat-sub">Century dancer 🏆</div>`;
 
   // ── HTML builders ──
   const GENRE_LABELS={street:'Street',ballet:'Ballet',contemporary:'Contemp',afro:'Afro',latin:'Latin',heels:'Heels',choreo:'Choreo',conditioning:'Cond.',other:'Other'};
-
-  const genreBarsHTML=topGenres.map(([g,n])=>`
-    <div class="genre-bar-row">
-      <span class="genre-bar-label">${GENRE_LABELS[g]||g}</span>
-      <div class="genre-bar-track"><div class="genre-bar-fill" style="width:${Math.round(n/maxG*100)}%"></div></div>
-      <span class="genre-bar-count">${n}</span>
-    </div>`).join('');
+  const GENRE_COLORS={street:'#f0a830',choreo:'#f0a830',contemporary:'#5b9bd5',ballet:'#c87db4',heels:'#e8607a',afro:'#52b87a',latin:'#e07850',conditioning:'#7890a8',other:'rgba(200,195,185,.35)'};
 
   const cityBarsHTML=topCities.map(([city,n])=>`
     <div class="city-bar-row">
@@ -1998,14 +2023,16 @@ function renderProfile(){
     </div>`;
   }).join('');
 
-  const monthChartHTML=months.map(({label,count,isCurrent})=>{
-    const barH=count>0?Math.max(Math.round(count/maxMonth*52),4):2;
-    return`<div class="month-col">
-      <div class="month-num" style="opacity:${count>0?1:0.3}">${count||''}</div>
-      <div class="month-bar${isCurrent?' current':''}" style="height:${barH}px"></div>
-      <div class="month-label">${label}</div>
-    </div>`;
+  // ── Donut chart (By Style) ──
+  const donutTotal=topGenres.reduce((s,[,n])=>s+n,0);
+  const circ=2*Math.PI*45;
+  let cDash=0;
+  const donutArcs=topGenres.map(([g,n])=>{
+    const dash=(n/donutTotal)*circ,gap=circ-dash,offset=circ/4-cDash;
+    cDash+=dash;
+    return`<circle cx="60" cy="60" r="45" fill="none" stroke-width="18" stroke="${GENRE_COLORS[g]||'rgba(200,195,185,.35)'}" stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"/>`;
   }).join('');
+  const donutLegendHTML=topGenres.map(([g,n])=>`<div class="donut-legend-item"><span class="donut-legend-dot" style="background:${GENRE_COLORS[g]||'rgba(200,195,185,.35)'}"></span><span class="donut-legend-label">${GENRE_LABELS[g]||g}</span><span class="donut-legend-count">${n}</span></div>`).join('');
 
   listEl.innerHTML=`
 <div class="profile-pane">
@@ -2015,9 +2042,13 @@ function renderProfile(){
     ${milestoneHTML}
   </div>
   <div class="profile-grid">
-    ${months.some(m=>m.count>0)?`<div class="stat-card full">
-      <div class="stat-label">Monthly Activity</div>
-      <div class="monthly-chart">${monthChartHTML}</div>
+    ${months.some(m=>m.count>0)||weeks.some(w=>w.count>0)?`<div class="stat-card full">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="stat-label">Activity</div>
+        <div class="chart-toggle"><button class="ctb active" id="ctMonth">Month</button><button class="ctb" id="ctWeek">Week</button></div>
+      </div>
+      <div id="actChart" class="monthly-chart">${buildBarHTML(months)}</div>
+      <div class="chart-legend-row"><span class="cl-dot" style="background:#f0a830"></span><span class="cl-lbl">Street / Choreo</span><span class="cl-dot" style="background:#5b9bd5"></span><span class="cl-lbl">Contemporary</span><span class="cl-dot" style="background:rgba(200,195,185,.35)"></span><span class="cl-lbl">Other</span></div>
     </div>`:''}
     ${top5Teachers.length?`<div class="stat-card full">
       <div class="stat-label">Top Teachers</div>
@@ -2027,12 +2058,26 @@ function renderProfile(){
       <div class="stat-label">By City</div>
       <div style="margin-top:10px">${cityBarsHTML}</div>
     </div>`:''}
-    ${topGenres.length?`<div class="stat-card full">
+    ${topGenres.length&&donutTotal>0?`<div class="stat-card full">
       <div class="stat-label">By Style</div>
-      <div class="genre-bars">${genreBarsHTML}</div>
+      <div class="donut-wrap">
+        <svg class="donut-svg" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="45" fill="none" stroke-width="18" stroke="rgba(255,255,255,.07)"/>
+          ${donutArcs}
+          <text x="60" y="61" class="donut-center-text">${donutTotal}</text>
+        </svg>
+        <div class="donut-legend">${donutLegendHTML}</div>
+      </div>
     </div>`:''}
   </div>
 </div>`;
+
+  // Wire chart toggle (after innerHTML set)
+  const _ctM=listEl.querySelector('#ctMonth'),_ctW=listEl.querySelector('#ctWeek'),_ac=listEl.querySelector('#actChart');
+  if(_ctM&&_ctW&&_ac){
+    _ctM.addEventListener('click',()=>{_ctM.classList.add('active');_ctW.classList.remove('active');_ac.innerHTML=buildBarHTML(months);});
+    _ctW.addEventListener('click',()=>{_ctW.classList.add('active');_ctM.classList.remove('active');_ac.innerHTML=buildBarHTML(weeks);});
+  }
 }
 
 // ── fav teachers ──
