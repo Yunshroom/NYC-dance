@@ -121,6 +121,7 @@ a{color:inherit;text-decoration:none}
 .card-past .card-tap{pointer-events:none}
 /* card-inner has no z-index so save-btn can rise above card-tap in card's stacking context */
 .card-inner{padding:14px;position:relative}
+.class-rank{position:absolute;bottom:10px;right:12px;font-size:10px;font-weight:600;color:rgba(180,170,155,.55);letter-spacing:.03em;pointer-events:none;z-index:2;line-height:1}
 .card-tap{position:absolute;inset:0;z-index:1}
 .card-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
 .card-actions{display:flex;align-items:center;gap:0;position:relative;z-index:2;flex-shrink:0}
@@ -1857,6 +1858,9 @@ function renderMyClasses(){
     listEl.innerHTML=`<div class="empty-state"><div class="empty-icon">🎟️</div><div class="empty-title">No classes stamped yet</div><div class="empty-sub">Tap the stamp icon on any class card to add it here.</div></div>`;
     return;
   }
+  // ── chronological rank: sort all stamped earliest→latest, assign 1-based index ──
+  const _rankSorted=[...stamped].sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:(a.start_hour||0)-(b.start_hour||0));
+  const _rankMap=new Map(_rankSorted.map((c,i)=>[classId(c),i+1]));
   const today=new Date();today.setHours(0,0,0,0);
   const _dk=c=>{const[y,m,d]=c.date_key.split('-').map(Number);return new Date(y,m-1,d);}
   const upcoming=stamped.filter(c=>_dk(c)>=today).sort((a,b)=>a.date_key<b.date_key?-1:a.date_key>b.date_key?1:a.start_hour-b.start_hour);
@@ -1870,6 +1874,8 @@ function renderMyClasses(){
   function _appendCard(c,i){
     const isCustom=c.studio_key==='custom';
     const card=buildCard(c,i,true);
+    const rankNum=_rankMap.get(classId(c));
+    if(rankNum!=null){const rk=document.createElement('span');rk.className='class-rank';rk.textContent='#'+rankNum;card.querySelector('.card-inner').appendChild(rk);}
     const notesEl=_buildInlineNotes(c);
     const cid=classId(c);
     const swipeRow=_wrapSwipe(card,notesEl,{
