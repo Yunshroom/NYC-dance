@@ -2317,7 +2317,7 @@ const CITY_MAP={
   'Modega':'New York','X-Space Dance':'New York','Broadway Dance Center':'New York',
   'Steps on Broadway':'New York','Playground LA':'Los Angeles',
   'Movement Lifestyle':'Los Angeles','Millennium Dance Complex':'Los Angeles',
-  'DanceLife X':'Toronto','Exit Space':'Seattle',
+  'DanceLife X':'Toronto','Soo Studio North':'Toronto','Underground Dance Studio':'Toronto','Exit Space':'Seattle',
 };
 const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattle':'🌧','Other':'🌍'};
 const TEACHER_COLORS=['#d4537e','#639922','#2a6cb5','#ba7517','#7b5ea7','#1d9e75','#9e4a20'];
