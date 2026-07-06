@@ -2313,16 +2313,41 @@ function renderMyClasses(){
 
 // ── profile tab ──
 const CITY_MAP={
+  // ── New York ──
   'Brickhouse NYC':'New York','Peridance':'New York','PJM Dance':'New York',
   'Modega':'New York','X-Space Dance':'New York','Broadway Dance Center':'New York',
-  'Steps on Broadway':'New York','Playground LA':'Los Angeles',
-  'Movement Lifestyle':'Los Angeles','Millennium Dance Complex':'Los Angeles',
-  'DanceLife X':'Toronto','Studio North':'Toronto','Soo Studio North':'Toronto',
-  'Underground Dance Studio':'Toronto','Run The Flex':'Toronto','Dovercourt House':'Toronto',
+  'Steps on Broadway':'New York','Steps On Broadway':'New York',
+  'broadway dance':'New York','Broadway Dance':'New York',
+  '126 East 13th Street':'New York',   // Peridance address
+  '156 West 44th Street 3rd Floor':'New York', // Brickhouse address
+  '44-02 23rd Street Suite 309':'New York',    // X-Space address
+  '520 8th Ave':'New York',
+  '2121 Broadway':'New York',          // Steps on Broadway address
+  '92NYdance':'New York','Gibney Dance':'New York',
+  'Phresh NYC':'New York',
+  'Ripley-Grier Studios & Flexible Spaces - New york':'New York',
+  // ── Los Angeles ──
+  'Playground LA':'Los Angeles','Movement Lifestyle':'Los Angeles',
+  'Millennium Dance Complex':'Los Angeles',
+  // ── Toronto ──
+  'DanceLife X':'Toronto','Studio North':'Toronto','Studio North Toronto':'Toronto',
+  'Soo Studio North':'Toronto','374 Dupont Street':'Toronto', // Studio North address
+  'Underground Dance Studio':'Toronto','The Underground Dance Centre':'Toronto',
+  'The Underground Dance Center':'Toronto',
+  'Run The Flex':'Toronto','Run The Flex ( 2842909 Ontario':'Toronto',
+  'Dovercourt House':'Toronto','City Dance Corps':'Toronto',
   'George Brown College':'Toronto','Joy of Dance Centre':'Toronto',
-  'TEXTUREDance Studio':'Chicago','Exit Space':'Seattle',
+  'Pia Bouman School For Ballet and Creative Movement':'Toronto',
+  'Pia Bouman School':'Toronto','Xing Dance Theatre':'Toronto',
+  'Allison Bradley':'Toronto',
+  // ── Chicago ──
+  'TEXTUREDance Studio':'Chicago',
+  // ── Seattle ──
+  'Exit Space':'Seattle',
+  // ── Shanghai ──
+  'Gstep':'Shanghai','Impetus':'Toronto',
 };
-const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattle':'🌧','Chicago':'🌬','Other':'🌍'};
+const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattle':'🌧','Chicago':'🌬','Shanghai':'✈️','Other':'🌍'};
 const TEACHER_COLORS=['#d4537e','#639922','#2a6cb5','#ba7517','#7b5ea7','#1d9e75','#9e4a20'];
 
 function renderProfile(){
