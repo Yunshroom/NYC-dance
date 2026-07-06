@@ -138,14 +138,24 @@ def parse_classes(html: str) -> list:
 def week_start_dates(num_weeks: int) -> list:
     """Return YYYY-MM-DD strings for the Tuesday of the current + next N-1 weeks.
     Peridance uses the same Tuesday week-start as Brickhouse (confirmed from captured URL).
+
+    Special case: on Monday the Mindbody widget has rolled past the previous
+    Tuesday's week, so we prepend today's date as an extra start to capture
+    the current day's classes (they live in a Tue–Mon week that started 6 days ago
+    but the widget only serves the current-day slice when queried with today's date).
     """
     today = date.today()
     days_since_tuesday = (today.weekday() - 1) % 7  # Mon=0…Sun=6; Tue=1
     this_tuesday = today - timedelta(days=days_since_tuesday)
-    return [
+    dates = [
         (this_tuesday + timedelta(weeks=i)).isoformat()
         for i in range(num_weeks)
     ]
+    # If today is Monday (weekday=0), this_tuesday is 6 days ago and the widget
+    # returns nothing for it. Prepend today so we capture today's classes.
+    if today.weekday() == 0:
+        dates = [today.isoformat()] + dates
+    return dates
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────

@@ -2626,7 +2626,7 @@ function renderCalendar(){
   strip.innerHTML='';
   let selectedEl=null,todayEl=null;
 
-  for(let i=0;i<21;i++){
+  for(let i=-1;i<21;i++){
     const d=new Date(todayDate);d.setDate(d.getDate()+i);
     const key=isoKey(d);
     const col=document.createElement('div');

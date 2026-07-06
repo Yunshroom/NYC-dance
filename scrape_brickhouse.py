@@ -161,15 +161,23 @@ def week_start_dates(num_weeks: int) -> list[str]:
     """Return YYYY-MM-DD strings for the Tuesday of the current + next N-1 weeks.
 
     Brickhouse uses Tuesday as its schedule week start (as observed in widget URLs).
+
+    Special case: on Monday the Mindbody widget has rolled past the previous
+    Tuesday's week, so we prepend today's date to capture today's classes.
     """
     today = date.today()
     # weekday(): Mon=0 … Sun=6; Tuesday=1
     days_since_tuesday = (today.weekday() - 1) % 7
     this_tuesday = today - __import__("datetime").timedelta(days=days_since_tuesday)
-    return [
+    dates = [
         (this_tuesday + __import__("datetime").timedelta(weeks=i)).isoformat()
         for i in range(num_weeks)
     ]
+    # On Monday, this_tuesday is 6 days ago and the widget returns nothing for it.
+    # Prepend today so we capture today's classes.
+    if today.weekday() == 0:
+        dates = [today.isoformat()] + dates
+    return dates
 
 
 def main():
