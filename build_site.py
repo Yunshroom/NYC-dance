@@ -2352,9 +2352,13 @@ const CITY_MAP={
   // ── Seattle ──
   'Exit Space':'Seattle',
   // ── Shanghai ──
-  'Gstep':'Shanghai','Impetus':'Toronto',
+  'Gstep':'Shanghai','Nospace':'Shanghai','ML':'Shanghai',
+  // ── Beijing ──
+  'Gstep Beijing':'Beijing','Jiahe':'Beijing','Intrepid':'Beijing','V5':'Beijing','APE':'Beijing',
+  // ── Other ──
+  'Impetus':'Toronto',
 };
-const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattle':'🌧','Chicago':'🌬','Shanghai':'✈️','Other':'🌍'};
+const CITY_FLAG={'New York':'🗽','Los Angeles':'🌴','Toronto':'🍁','Seattle':'🌧','Chicago':'🌬','Shanghai':'🌆','Beijing':'🏯','Other':'🌍'};
 const TEACHER_COLORS=['#d4537e','#639922','#2a6cb5','#ba7517','#7b5ea7','#1d9e75','#9e4a20'];
 
 function renderProfile(){
