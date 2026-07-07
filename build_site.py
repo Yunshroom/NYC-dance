@@ -144,6 +144,10 @@ def extract_genre(name: str):
     if 'jazz' in n:
         return ('contemporary', 'jazz')
 
+    # Contemporary extensions
+    if any(x in n for x in ['countertechnique', 'counter technique', 'floorwork', 'floor work', 'release', 'somatic']):
+        return ('contemporary', 'contemporary')
+
     # Yoga / Conditioning
     if any(x in n for x in ['yoga', 'condition', 'pilates', 'stretch']):
         return ('conditioning', 'conditioning')
@@ -989,6 +993,7 @@ function extractGenreJS(n){
   if(/hip.?hop/.test(n))return['street','hiphop'];
   if(/street.?style|urban|funk.?style/.test(n))return['street','street'];
   if(/jazz/.test(n))return['contemporary','jazz'];
+  if(/countertechnique|counter.technique|floorwork|floor.work|release|somatic/.test(n))return['contemporary','contemporary'];
   if(/yoga|condition|pilates|stretch/.test(n))return['conditioning','conditioning'];
   return['other','other'];
 }

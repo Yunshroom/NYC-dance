@@ -585,6 +585,7 @@ function extractGenreJS(n){
   if(/hip.?hop/.test(n))return['street','hiphop'];
   if(/street.?style|urban|funk.?style/.test(n))return['street','street'];
   if(/jazz/.test(n))return['contemporary','jazz'];
+  if(/countertechnique|counter.technique|floorwork|floor.work|release|somatic/.test(n))return['contemporary','contemporary'];
   if(/yoga|condition|pilates|stretch/.test(n))return['conditioning','conditioning'];
   return['other','other'];
 }
