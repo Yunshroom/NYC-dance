@@ -2807,7 +2807,7 @@ function renderSaved(){
         onDelete:()=>{
           const idx=CUSTOM_CLASSES.findIndex(x=>classId(x)===classId(c));
           if(idx!==-1)CUSTOM_CLASSES.splice(idx,1);
-          localStorage.setItem('nyd_custom_classes',JSON.stringify(CUSTOM_CLASSES));
+          localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));sbSyncCustomClasses();
           swipeRow.style.transition='opacity .25s';swipeRow.style.opacity='0';
           setTimeout(()=>{swipeRow.remove();},260);
         },
@@ -2950,7 +2950,12 @@ function buildCard(c,i,inMyClasses){
       menu.querySelector('.mc-dots-delete').addEventListener('click',ev=>{
         ev.stopPropagation();
         menu.remove();
-        toggleMyClass(c); // removes it
+        toggleMyClass(c); // removes from my classes
+        // If this was a custom pop-up class, also remove it from CUSTOM_CLASSES
+        if(c.is_custom){
+          const idx=CUSTOM_CLASSES.findIndex(x=>classId(x)===classId(c));
+          if(idx!==-1){CUSTOM_CLASSES.splice(idx,1);localStorage.setItem('nyd_custom',JSON.stringify(CUSTOM_CLASSES));sbSyncCustomClasses();}
+        }
         setTimeout(renderMyClasses,60);
       });
       // Position below the button
