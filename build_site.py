@@ -2669,9 +2669,11 @@ function renderCalendar(){
   // Preserve scroll position across re-renders
   const prevScroll=strip.scrollLeft;
   strip.innerHTML='';
-  let selectedEl=null,todayEl=null;
+  let selectedEl=null,todayEl=null,yesterdayEl=null;
+  const yesterday=isoKey(new Date(todayDate.getTime()-86400000));
 
-  for(let i=-1;i<21;i++){
+  // 7 days of history + 21 days ahead — scroll left to retroactively stamp missed classes
+  for(let i=-7;i<21;i++){
     const d=new Date(todayDate);d.setDate(d.getDate()+i);
     const key=isoKey(d);
     const col=document.createElement('div');
@@ -2681,13 +2683,14 @@ function renderCalendar(){
     strip.appendChild(col);
     if(key===S.selectedDate)selectedEl=col;
     if(key===today)todayEl=col;
+    if(key===yesterday)yesterdayEl=col;
   }
 
-  // On first load start at left (today visible, 7 days shown); otherwise restore scroll
+  // Default view: yesterday anchored at left edge (unchanged UX); scroll left for older days
   if(prevScroll===0){
-    strip.scrollLeft=0;
-    // If selected date is not today, scroll it just into view (don't center)
-    if(selectedEl&&S.selectedDate!==today){
+    const anchor=yesterdayEl||todayEl;
+    if(anchor)requestAnimationFrame(()=>anchor.scrollIntoView({behavior:'instant',inline:'start'}));
+    if(selectedEl&&S.selectedDate!==today&&S.selectedDate!==yesterday){
       requestAnimationFrame(()=>selectedEl.scrollIntoView({behavior:'instant',inline:'nearest'}));
     }
   } else {
