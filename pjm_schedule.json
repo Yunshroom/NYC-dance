@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-07-23T11:15:45.507813Z",
-  "source_generated_at": "2026-07-22T11:43:46.921Z",
+  "scraped_at": "2026-07-24T11:07:03.565905Z",
+  "source_generated_at": "2026-07-23T11:47:13.605Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -300,16 +300,16 @@
       "end_time_display": "6:30 PM",
       "duration_minutes": 90,
       "start_hour": 17.0,
-      "class_name": "Beg/Adv Beg Waacking Fusion",
-      "instructor": "Onjay Cho",
-      "level": "Beginner",
+      "class_name": "[Pop Up] Open Level Waacking",
+      "instructor": "Lashey Martin",
+      "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
       "is_full": false,
       "spots_left": null,
       "source_url": "https://www.pjmdancenyc.com/",
       "studio": "PJM Dance",
-      "source_event_id": "pjm:2026-07-24T17:00:00.000-04:00:beg-adv-beg-waacking-fusion"
+      "source_event_id": "pjm:2026-07-24T17:00:00.000-04:00:pop-up-open-level-waacking"
     },
     {
       "date": "2026-07-24",
