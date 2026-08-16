@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-08-15T09:31:36.038332Z",
-  "source_generated_at": "2026-08-14T10:51:24.724Z",
+  "scraped_at": "2026-08-16T09:33:16.323575Z",
+  "source_generated_at": "2026-08-15T10:14:44.105Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -510,7 +510,7 @@
       "duration_minutes": 90,
       "start_hour": 15.5,
       "class_name": "Int Choreography",
-      "instructor": "Yasu Kawate",
+      "instructor": "Peter Chow",
       "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
