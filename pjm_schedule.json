@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-08-25T09:41:25.287377Z",
-  "source_generated_at": "2026-08-24T10:30:20.150Z",
+  "scraped_at": "2026-08-26T09:49:37.716710Z",
+  "source_generated_at": "2026-08-25T10:23:26.525Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -282,7 +282,7 @@
       "duration_minutes": 90,
       "start_hour": 17.0,
       "class_name": "Beg/Adv Beg Waacking Fusion",
-      "instructor": "Onjay Cho",
+      "instructor": "PJM DANCE NYC",
       "level": "Beginner",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
