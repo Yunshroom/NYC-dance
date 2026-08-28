@@ -1,11 +1,11 @@
 {
-  "scraped_at": "2026-08-27T19:44:47.253130Z",
-  "source_generated_at": "2026-08-26T10:26:24.455Z",
+  "scraped_at": "2026-08-28T20:47:58.856942Z",
+  "source_generated_at": "2026-08-27T20:05:23.732Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
   "mindbody_widget_token": "e141370d439",
-  "class_count": 54,
+  "class_count": 55,
   "classes": [
     {
       "date": "2026-08-24",
@@ -225,7 +225,7 @@
       "duration_minutes": 90,
       "start_hour": 17.0,
       "class_name": "Open Level Vogue Femme",
-      "instructor": "Zenta Mugler",
+      "instructor": "PJM DANCE NYC",
       "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
@@ -956,6 +956,25 @@
       "source_url": "https://www.pjmdancenyc.com/",
       "studio": "PJM Dance",
       "source_event_id": "pjm:2026-09-05T18:30:00.000-04:00:open-level-house"
+    },
+    {
+      "date": "2026-09-06",
+      "start_time": "2026-09-06T11:00:00-04:00",
+      "end_time": "2026-09-06T12:30:00-04:00",
+      "start_time_display": "11:00 AM",
+      "end_time_display": "12:30 PM",
+      "duration_minutes": 90,
+      "start_hour": 11.0,
+      "class_name": "Open Level Vogue",
+      "instructor": "Isabella Akel",
+      "level": "All Levels",
+      "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
+      "is_canceled": false,
+      "is_full": false,
+      "spots_left": null,
+      "source_url": "https://www.pjmdancenyc.com/",
+      "studio": "PJM Dance",
+      "source_event_id": "pjm:2026-09-06T11:00:00.000-04:00:open-level-vogue"
     },
     {
       "date": "2026-09-06",
