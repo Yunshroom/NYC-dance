@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-09-09T13:37:48.859495Z",
-  "source_generated_at": "2026-09-08T14:01:31.153Z",
+  "scraped_at": "2026-09-10T13:29:07.344242Z",
+  "source_generated_at": "2026-09-09T14:03:53.735Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -642,16 +642,16 @@
       "end_time_display": "11:00 PM",
       "duration_minutes": 90,
       "start_hour": 21.5,
-      "class_name": "Beg Heels",
+      "class_name": "Open Heels",
       "instructor": "Mini Zhang",
-      "level": "Beginner",
+      "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
       "is_full": false,
       "spots_left": null,
       "source_url": "https://www.pjmdancenyc.com/",
       "studio": "PJM Dance",
-      "source_event_id": "pjm:2026-09-15T21:30:00.000-04:00:beg-heels"
+      "source_event_id": "pjm:2026-09-15T21:30:00.000-04:00:open-heels"
     },
     {
       "date": "2026-09-16",
