@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-09-17T14:13:30.916939Z",
-  "source_generated_at": "2026-09-16T14:29:42.268Z",
+  "scraped_at": "2026-09-18T13:31:49.129445Z",
+  "source_generated_at": "2026-09-17T14:34:03.970Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -224,16 +224,16 @@
       "end_time_display": "8:00 PM",
       "duration_minutes": 90,
       "start_hour": 18.5,
-      "class_name": "Int Choreography",
-      "instructor": "James Kho",
-      "level": "All Levels",
+      "class_name": "[Pop Up] Adv Beg Street Jazz",
+      "instructor": "Joanna Walker",
+      "level": "Beginner",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
       "is_full": false,
       "spots_left": null,
       "source_url": "https://www.pjmdancenyc.com/",
       "studio": "PJM Dance",
-      "source_event_id": "pjm:2026-09-17T18:30:00.000-04:00:int-choreography"
+      "source_event_id": "pjm:2026-09-17T18:30:00.000-04:00:pop-up-adv-beg-street-jazz"
     },
     {
       "date": "2026-09-17",
