@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-09-23T14:11:03.429517Z",
-  "source_generated_at": "2026-09-22T14:17:04.730Z",
+  "scraped_at": "2026-09-24T14:08:42.806421Z",
+  "source_generated_at": "2026-09-23T14:34:34.503Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -244,7 +244,7 @@
       "duration_minutes": 90,
       "start_hour": 18.5,
       "class_name": "Int Choreography",
-      "instructor": "Marlon Santana",
+      "instructor": "Felipe Morales",
       "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
