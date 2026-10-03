@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-10-02T15:38:13.152633Z",
-  "source_generated_at": "2026-10-01T16:51:27.652Z",
+  "scraped_at": "2026-10-03T14:13:36.752046Z",
+  "source_generated_at": "2026-10-02T16:02:41.755Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -719,7 +719,7 @@
       "duration_minutes": 90,
       "start_hour": 17.0,
       "class_name": "Open Heels",
-      "instructor": "Mini Zhang",
+      "instructor": "PJM DANCE NYC",
       "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
