@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-10-29T15:58:37.843877Z",
-  "source_generated_at": "2026-10-28T16:23:21.281Z",
+  "scraped_at": "2026-10-30T15:45:07.347685Z",
+  "source_generated_at": "2026-10-29T16:32:24.693Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -206,7 +206,7 @@
       "duration_minutes": 90,
       "start_hour": 17.0,
       "class_name": "Open Level Vogue",
-      "instructor": "Isabella Akel",
+      "instructor": "PJM DANCE NYC",
       "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
