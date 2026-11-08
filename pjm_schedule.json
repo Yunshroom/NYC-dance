@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-11-07T15:34:43.068105Z",
-  "source_generated_at": "2026-11-06T17:12:59.192Z",
+  "scraped_at": "2026-11-08T15:53:00.317560Z",
+  "source_generated_at": "2026-11-07T16:00:37.991Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -719,7 +719,7 @@
       "duration_minutes": 90,
       "start_hour": 19.5,
       "class_name": "Beg Jazz Funk",
-      "instructor": "Mini Zhang",
+      "instructor": "Peter Chow",
       "level": "Beginner",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
