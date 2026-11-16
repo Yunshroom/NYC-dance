@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-11-15T16:11:45.328716Z",
-  "source_generated_at": "2026-11-14T16:16:41.882Z",
+  "scraped_at": "2026-11-16T19:27:32.500514Z",
+  "source_generated_at": "2026-11-15T16:44:50.070Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -548,7 +548,7 @@
       "duration_minutes": 90,
       "start_hour": 19.5,
       "class_name": "Adv Beg Choreography",
-      "instructor": "Felipe Morales",
+      "instructor": "Jano Libres",
       "level": "Beginner",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
