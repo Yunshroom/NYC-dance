@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-11-19T18:06:55.164983Z",
-  "source_generated_at": "2026-11-18T18:31:57.571Z",
+  "scraped_at": "2026-11-20T17:40:26.139255Z",
+  "source_generated_at": "2026-11-19T18:46:47.742Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -339,7 +339,7 @@
       "duration_minutes": 90,
       "start_hour": 15.0,
       "class_name": "Beg Choreography",
-      "instructor": "Jano Libres",
+      "instructor": "Rose Lu",
       "level": "Beginner",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
       "is_canceled": false,
