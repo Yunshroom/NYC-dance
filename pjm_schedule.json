@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2026-11-26T18:54:41.781813Z",
-  "source_generated_at": "2026-11-25T19:42:02.337Z",
+  "scraped_at": "2026-11-27T18:47:02.755669Z",
+  "source_generated_at": "2026-11-26T19:23:14.780Z",
   "studio": "PJM Dance",
   "source_url": "https://www.pjmdancenyc.com/",
   "data_source": "https://dance-schedule-unfold-studio.vercel.app/api/schedule",
@@ -490,7 +490,7 @@
       "end_time_display": "10:30 PM",
       "duration_minutes": 90,
       "start_hour": 21.0,
-      "class_name": "Open Heels",
+      "class_name": "[POP UP] Open Heels",
       "instructor": "Mini Zhang",
       "level": "All Levels",
       "booking_url": "https://go.mindbodyonline.com/book/widgets/schedules/view/e141370d439/schedule",
@@ -499,7 +499,7 @@
       "spots_left": null,
       "source_url": "https://www.pjmdancenyc.com/",
       "studio": "PJM Dance",
-      "source_event_id": "pjm:2026-12-01T20:00:00.000-05:00:open-heels"
+      "source_event_id": "pjm:2026-12-01T20:00:00.000-05:00:pop-up-open-heels"
     },
     {
       "date": "2026-12-02",
